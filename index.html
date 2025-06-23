@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulário de Cadastro Completo - Versão Teste</title>
+    <title>Formulário de Cadastro Completo com Envio WhatsApp</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -86,7 +88,7 @@
         .header {
             background: linear-gradient(to right, #1a2980, #26d0ce);
             color: white;
-            padding: 25px 30px 25px 100px;
+            padding: 25px 30px;
             text-align: center;
             position: relative;
         }
@@ -94,6 +96,7 @@
         .header h1 {
             font-size: 28px;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            margin-top: 10px;
         }
         
         .header i {
@@ -624,6 +627,62 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        .pdf-preview {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+        
+        .pdf-preview-content {
+            width: 90%;
+            height: 90%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pdf-preview-header {
+            padding: 15px;
+            background: #1a2980;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .pdf-preview-body {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+        }
+        
+        .pdf-preview-footer {
+            padding: 15px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        .pdf-preview-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
         @media (max-width: 768px) {
             .form-group {
                 flex: 0 0 100% !important;
@@ -664,7 +723,15 @@
             
             .btn {
                 min-width: 100%;
-            width: 100%;
+                width: 100%;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
             }
         }
     </style>
@@ -675,13 +742,13 @@
             <div class="company-logo">
                 <div class="logo-symbol">S</div>
                 <div class="logo-text">
-                    <div class="company-name">TESTE</div>
-                    <div class="company-description">TESTE</div>
+                    <div class="company-name">SELLES</div>
+                    <div class="company-description">ASSESSORIA CONTABIL</div>
                 </div>
             </div>
             
             <div class="header">
-                <h1><i class="fas fa-user-tie"></i> Ficha Cadastral Completa - Versão Teste</h1>
+                <h1><i class="fas fa-user-tie"></i> Ficha Cadastral Completa</h1>
             </div>
             
             <div class="company-info">
@@ -704,7 +771,7 @@
             </div>
             
             <div class="form-title">
-                <i class="fas fa-id-card"></i> Formulário de Cadastro (Sem Reconhecimento Facial)
+                <i class="fas fa-id-card"></i> Formulário de Cadastro
             </div>
             
             <form id="employeeForm">
@@ -1128,10 +1195,10 @@
                 <!-- Botões de Ação -->
                 <div class="btn-group">
                     <button type="button" id="generatePdf" class="btn">
-                        <i class="fas fa-file-pdf"></i> Gerar PDF
+                        <i class="fas fa-file-pdf"></i> Visualizar PDF
                     </button>
                     <button type="button" id="sendWhatsApp" class="btn btn-whatsapp">
-                        <i class="fab fa-whatsapp"></i> Enviar via WhatsApp
+                        <i class="fab fa-whatsapp"></i> Enviar para WhatsApp
                     </button>
                     <button type="submit" id="submitForm" class="btn">
                         <i class="fas fa-paper-plane"></i> Enviar Formulário
@@ -1149,6 +1216,29 @@
         </div>
     </div>
     
+    <!-- Preview do PDF -->
+    <div class="pdf-preview" id="pdfPreview">
+        <div class="pdf-preview-content">
+            <div class="pdf-preview-header">
+                <h3>Pré-visualização do PDF</h3>
+                <button class="pdf-preview-close" id="closePdfPreview">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="pdf-preview-body" id="pdfPreviewBody">
+                <!-- Conteúdo do PDF será renderizado aqui -->
+            </div>
+            <div class="pdf-preview-footer">
+                <button class="btn" id="downloadPdf">
+                    <i class="fas fa-download"></i> Baixar PDF
+                </button>
+                <button class="btn btn-whatsapp" id="sendPdfWhatsApp">
+                    <i class="fab fa-whatsapp"></i> Enviar via WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i> <span id="toastMessage">Operação realizada com sucesso!</span>
     </div>
@@ -1158,6 +1248,7 @@
         let uploadedFiles = [];
         let dependentCounter = 1;
         let experienceCounter = 1;
+        let generatedPdf = null;
         
         // Funções para dependentes
         function addDependente() {
@@ -1354,46 +1445,240 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
         
-        // Funções para ações finais
+        // Função para gerar PDF
         function generatePdf() {
             if (!validateForm()) return;
             
-            // Simulação de geração de PDF
-            showToast('PDF gerado com sucesso!');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
             
-            // Simular download
-            const link = document.createElement('a');
-            link.href = '#';
-            link.download = 'ficha-cadastral.pdf';
-            link.click();
+            // Configurações do documento
+            doc.setFontSize(20);
+            doc.setTextColor(26, 41, 128);
+            doc.text('FICHA CADASTRAL', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Gerado em: ${new Date().toLocaleString()}`, 105, 28, { align: 'center' });
+            
+            // Adicionar linha divisória
+            doc.setDrawColor(26, 41, 128);
+            doc.setLineWidth(0.5);
+            doc.line(20, 35, 190, 35);
+            
+            // Dados Pessoais
+            doc.setFontSize(14);
+            doc.setTextColor(26, 41, 128);
+            doc.text('DADOS PESSOAIS', 20, 45);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Nome Completo: ${document.getElementById('nome').value}`, 20, 55);
+            doc.text(`CPF: ${document.getElementById('cpf').value}`, 20, 65);
+            doc.text(`RG: ${document.getElementById('rg').value}`, 20, 75);
+            doc.text(`Órgão Emissor: ${document.getElementById('orgaoEmissor').value}`, 20, 85);
+            doc.text(`Data de Emissão: ${formatDate(document.getElementById('dataEmissao').value)}`, 110, 85);
+            doc.text(`Data de Nascimento: ${formatDate(document.getElementById('dataNascimento').value)}`, 20, 95);
+            doc.text(`Naturalidade: ${document.getElementById('naturalidade').value}`, 110, 95);
+            doc.text(`Nacionalidade: ${document.getElementById('nacionalidade').value}`, 20, 105);
+            doc.text(`Nome do Pai: ${document.getElementById('nomePai').value || 'Não informado'}`, 20, 115);
+            doc.text(`Nome da Mãe: ${document.getElementById('nomeMae').value}`, 20, 125);
+            doc.text(`Estado Civil: ${document.getElementById('estadoCivil').value}`, 110, 125);
+            doc.text(`Gênero: ${document.getElementById('genero').value}`, 20, 135);
+            doc.text(`Tipo Sanguíneo: ${document.getElementById('tipoSanguineo').value || 'Não informado'}`, 110, 135);
+            
+            // Endereço
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.setTextColor(26, 41, 128);
+            doc.text('ENDEREÇO', 20, 20);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`CEP: ${document.getElementById('cep').value}`, 20, 30);
+            doc.text(`Logradouro: ${document.getElementById('logradouro').value}`, 20, 40);
+            doc.text(`Número: ${document.getElementById('numero').value}`, 110, 40);
+            doc.text(`Complemento: ${document.getElementById('complemento').value || 'Não informado'}`, 20, 50);
+            doc.text(`Bairro: ${document.getElementById('bairro').value}`, 110, 50);
+            doc.text(`Cidade: ${document.getElementById('cidade').value}`, 20, 60);
+            doc.text(`Estado: ${document.getElementById('estado').value}`, 110, 60);
+            
+            // Contato
+            doc.setFontSize(14);
+            doc.setTextColor(26, 41, 128);
+            doc.text('CONTATO', 20, 80);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Celular 1: ${document.getElementById('celular1').value}`, 20, 90);
+            doc.text(`Celular 2: ${document.getElementById('celular2').value || 'Não informado'}`, 110, 90);
+            doc.text(`E-mail: ${document.getElementById('email').value}`, 20, 100);
+            
+            // Formação Acadêmica
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.setTextColor(26, 41, 128);
+            doc.text('FORMAÇÃO ACADÊMICA', 20, 20);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Escolaridade: ${document.getElementById('escolaridade').value}`, 20, 30);
+            doc.text(`Curso Superior: ${document.getElementById('curso').value || 'Não informado'}`, 20, 40);
+            doc.text(`Instituição de Ensino: ${document.getElementById('instituicao').value || 'Não informado'}`, 20, 50);
+            doc.text(`Ano de Conclusão: ${document.getElementById('anoConclusao').value || 'Não informado'}`, 20, 60);
+            
+            // Experiências Profissionais
+            doc.setFontSize(14);
+            doc.setTextColor(26, 41, 128);
+            doc.text('EXPERIÊNCIAS PROFISSIONAIS', 20, 80);
+            
+            let yPos = 90;
+            document.querySelectorAll('.experiencia-item').forEach((exp, index) => {
+                const inputs = exp.querySelectorAll('input');
+                doc.text(`Experiência ${index + 1}:`, 20, yPos);
+                doc.text(`Empresa: ${inputs[0].value}`, 30, yPos + 10);
+                doc.text(`Cargo: ${inputs[1].value}`, 30, yPos + 20);
+                doc.text(`Data Início: ${formatDate(inputs[2].value)}`, 30, yPos + 30);
+                doc.text(`Data Término: ${inputs[3].value ? formatDate(inputs[3].value) : 'Atual'}`, 110, yPos + 30);
+                yPos += 40;
+            });
+            
+            // Dependentes
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.setTextColor(26, 41, 128);
+            doc.text('DEPENDENTES', 20, 20);
+            
+            yPos = 30;
+            document.querySelectorAll('.dependente-card').forEach((dep, index) => {
+                const inputs = dep.querySelectorAll('input, select');
+                doc.text(`Dependente ${index + 1}:`, 20, yPos);
+                doc.text(`Nome: ${inputs[0].value}`, 30, yPos + 10);
+                doc.text(`Parentesco: ${inputs[1].value || 'Não informado'}`, 30, yPos + 20);
+                doc.text(`Data de Nascimento: ${inputs[2].value ? formatDate(inputs[2].value) : 'Não informada'}`, 30, yPos + 30);
+                doc.text(`CPF: ${inputs[3].value || 'Não informado'}`, 110, yPos + 30);
+                yPos += 40;
+            });
+            
+            // Documentos
+            doc.setFontSize(14);
+            doc.setTextColor(26, 41, 128);
+            doc.text('DOCUMENTOS ANEXADOS', 20, yPos + 20);
+            
+            yPos += 30;
+            if (uploadedFiles.length > 0) {
+                uploadedFiles.forEach((file, index) => {
+                    doc.text(`${index + 1}. ${file.name} (${formatFileSize(file.size)})`, 20, yPos);
+                    yPos += 10;
+                });
+            } else {
+                doc.text('Nenhum documento anexado', 20, yPos);
+            }
+            
+            // Declarações
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.setTextColor(26, 41, 128);
+            doc.text('DECLARAÇÕES', 20, 20);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Declaro que as informações fornecidas são verdadeiras e estou ciente que falsas declarações sujeitam-me às penalidades legais.', 20, 30);
+            doc.text(`Data: ${formatDate(document.getElementById('dataDeclaracao').value) || '________'}`, 20, 40);
+            doc.text(`Cidade: ${document.getElementById('cidadeDeclaracao').value || '________'}`, 110, 40);
+            
+            doc.text('Autorizo a empresa a utilizar minhas informações para fins de registro e conformidade legal.', 20, 60);
+            doc.text(`Data: ${formatDate(document.getElementById('dataAutorizacao').value) || '________'}`, 20, 70);
+            doc.text(`Cidade: ${document.getElementById('cidadeAutorizacao').value || '________'}`, 110, 70);
+            
+            // Rodapé
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Documento gerado automaticamente pelo sistema de cadastro', 105, 280, { align: 'center' });
+            
+            // Salvar o PDF para uso posterior
+            generatedPdf = doc.output('blob');
+            
+            // Exibir preview do PDF
+            showPdfPreview();
         }
         
-        function sendViaWhatsApp() {
-            if (!validateForm()) return;
+        // Função para formatar data
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+        
+        // Função para exibir preview do PDF
+        function showPdfPreview() {
+            const pdfUrl = URL.createObjectURL(generatedPdf);
+            const pdfPreviewBody = document.getElementById('pdfPreviewBody');
             
-            // Montar mensagem com os dados principais
+            // Limpar conteúdo anterior
+            pdfPreviewBody.innerHTML = '';
+            
+            // Criar iframe para exibir o PDF
+            const iframe = document.createElement('iframe');
+            iframe.src = pdfUrl;
+            iframe.width = '100%';
+            iframe.height = '100%';
+            iframe.style.border = 'none';
+            
+            pdfPreviewBody.appendChild(iframe);
+            document.getElementById('pdfPreview').style.display = 'flex';
+        }
+        
+        // Função para baixar o PDF
+        function downloadPdf() {
+            const pdfUrl = URL.createObjectURL(generatedPdf);
+            const a = document.createElement('a');
+            a.href = pdfUrl;
+            a.download = 'ficha_cadastral.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast('PDF baixado com sucesso!');
+        }
+        
+        // Função para enviar para WhatsApp
+        function sendPdfToWhatsApp() {
+            if (!generatedPdf) return;
+            
+            // Mensagem padrão
             const nome = document.getElementById('nome').value;
-            const cpf = document.getElementById('cpf').value;
-            const email = document.getElementById('email').value;
-            const celular1 = document.getElementById('celular1').value;
+            const defaultMessage = `Olá, segue em anexo a ficha cadastral de *${nome}*.\n\nDados principais:\n- CPF: ${document.getElementById('cpf').value}\n- Celular: ${document.getElementById('celular1').value}\n\nPor favor, confira o documento anexo.`;
             
-            const message = `Olá, segue a ficha cadastral em anexo (PDF) e os dados principais:\n\n` +
-                            `*Nome:* ${nome}\n` +
-                            `*CPF:* ${cpf}\n` +
-                            `*E-mail:* ${email}\n` +
-                            `*Celular:* ${celular1}\n\n` +
-                            `Por favor, confira o anexo.`;
+            // Codificar a mensagem para URL
+            const encodedMessage = encodeURIComponent(defaultMessage);
             
-            // Codificar mensagem para URL
-            const encodedMessage = encodeURIComponent(message);
+            // Número de WhatsApp formatado (11 96838-0160)
+            const whatsappNumber = '5511968380160';
             
-            // Criar link do WhatsApp com o número fornecido
-            const whatsappUrl = `https://wa.me/5511968380160?text=${encodedMessage}`;
+            // Criar link do WhatsApp com mensagem
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
             
             // Abrir em nova aba
             window.open(whatsappUrl, '_blank');
+            showToast('Abrindo WhatsApp para envio do PDF...');
             
-            showToast('Abrindo WhatsApp para envio...');
+            // Fechar o preview
+            document.getElementById('pdfPreview').style.display = 'none';
+        }
+        
+        // Função para enviar para WhatsApp diretamente
+        function sendViaWhatsApp() {
+            if (!validateForm()) return;
+            
+            // Primeiro gerar o PDF
+            generatePdf();
+            
+            // Depois enviar para WhatsApp
+            setTimeout(() => {
+                if (generatedPdf) {
+                    sendPdfToWhatsApp();
+                }
+            }, 500);
         }
         
         function submitForm() {
@@ -1534,6 +1819,13 @@
             document.getElementById('generatePdf').addEventListener('click', generatePdf);
             document.getElementById('sendWhatsApp').addEventListener('click', sendViaWhatsApp);
             document.getElementById('submitForm').addEventListener('click', submitForm);
+            
+            // Botões do preview do PDF
+            document.getElementById('downloadPdf').addEventListener('click', downloadPdf);
+            document.getElementById('sendPdfWhatsApp').addEventListener('click', sendPdfToWhatsApp);
+            document.getElementById('closePdfPreview').addEventListener('click', () => {
+                document.getElementById('pdfPreview').style.display = 'none';
+            });
             
             // Remover dependentes e experiências (delegação de eventos)
             document.getElementById('dependentesContainer').addEventListener('click', function(e) {
