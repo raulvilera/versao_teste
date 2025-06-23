@@ -709,6 +709,18 @@
             cursor: pointer;
         }
         
+        .cep-loader {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .cep-group {
+            position: relative;
+        }
+        
         @media (max-width: 768px) {
             .form-group {
                 flex: 0 0 100% !important;
@@ -912,9 +924,12 @@
                     </div>
                     
                     <div class="form-row">
-                        <div class="form-group medium">
+                        <div class="form-group medium cep-group">
                             <label for="cep" class="required">CEP</label>
                             <input type="text" id="cep" name="cep" placeholder="00000-000" required>
+                            <div class="cep-loader" id="cepLoader">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
                         </div>
                         <div class="form-group medium">
                             <label for="logradouro" class="required">Logradouro</label>
@@ -978,7 +993,7 @@
                     </div>
                 </div>
                 
-                <!-- Seção de Contato (com 2 celulares) -->
+                <!-- Seção de Contato -->
                 <div class="form-section">
                     <div class="section-title">
                         <i class="fas fa-phone"></i> Contato
@@ -1243,7 +1258,7 @@
                     <button type="button" id="sendWhatsApp" class="btn btn-whatsapp">
                         <i class="fab fa-whatsapp"></i> Enviar para WhatsApp
                     </button>
-                    <button type="submit" id="submitForm" class="btn">
+                    <button type="button" id="submitForm" class="btn">
                         <i class="fas fa-paper-plane"></i> Enviar Formulário
                     </button>
                 </div>
@@ -1292,6 +1307,42 @@
         let dependentCounter = 1;
         let experienceCounter = 1;
         let generatedPdf = null;
+        
+        // Função para buscar endereço pelo CEP
+        async function buscarEnderecoPorCEP() {
+            const cep = document.getElementById('cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+            
+            // Mostrar spinner de carregamento
+            document.getElementById('cepLoader').style.display = 'block';
+            
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+                
+                if (data.erro) {
+                    showToast('CEP não encontrado!', 'error');
+                    return;
+                }
+                
+                // Preencher os campos com os dados do CEP
+                document.getElementById('logradouro').value = data.logradouro || '';
+                document.getElementById('bairro').value = data.bairro || '';
+                document.getElementById('cidade').value = data.localidade || '';
+                document.getElementById('estado').value = data.uf || '';
+                
+                // Focar no campo de número
+                document.getElementById('numero').focus();
+                
+                showToast('Endereço preenchido automaticamente!');
+            } catch (error) {
+                showToast('Erro ao buscar o endereço. Tente novamente.', 'error');
+                console.error('Erro na busca de CEP:', error);
+            } finally {
+                // Ocultar spinner de carregamento
+                document.getElementById('cepLoader').style.display = 'none';
+            }
+        }
         
         // Funções para dependentes
         function addDependente() {
@@ -1689,6 +1740,9 @@
         function sendPdfToWhatsApp() {
             if (!generatedPdf) return;
             
+            // Baixar o PDF primeiro
+            downloadPdf();
+            
             // Mensagem padrão
             const nome = document.getElementById('nome').value;
             const defaultMessage = `Olá, segue em anexo a ficha cadastral de *${nome}*.\n\nDados principais:\n- CPF: ${document.getElementById('cpf').value}\n- Celular: ${document.getElementById('celular1').value}\n\nPor favor, confira o documento anexo.`;
@@ -1843,6 +1897,11 @@
                     value = value.replace(/(\d{5})(\d+)/, '$1-$2');
                 }
                 e.target.value = value;
+                
+                // Buscar endereço quando o CEP estiver completo
+                if (value.length === 8) {
+                    buscarEnderecoPorCEP();
+                }
             });
         }
         
@@ -1858,6 +1917,7 @@
             document.getElementById('fileInput').addEventListener('change', handleFileSelect);
             document.getElementById('dropArea').addEventListener('dragover', handleDragOver);
             document.getElementById('dropArea').addEventListener('drop', handleFileDrop);
+            document.getElementById('dropArea').addEventListener('click', triggerFileInput);
             
             // Botões de ação
             document.getElementById('generatePdf').addEventListener('click', generatePdf);
@@ -1876,6 +1936,7 @@
                 if (e.target.closest('.remove-dependente')) {
                     e.target.closest('.dependente-card').remove();
                     updateDependenteTitles();
+                    showToast('Dependente removido com sucesso!');
                 }
             });
             
@@ -1883,6 +1944,7 @@
                 if (e.target.closest('.remove-experiencia')) {
                     e.target.closest('.form-row').remove();
                     updateExperienciaTitles();
+                    showToast('Experiência removida com sucesso!');
                 }
             });
         }
