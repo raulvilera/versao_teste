@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulário de Cadastro Completo com Envio WhatsApp</title>
+    <title>Formulário de Cadastro Completo com Envio WhatsApp Direto</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -627,6 +627,32 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        .whatsapp-instructions {
+            background: linear-gradient(to right, #e1f7e7, #d1f0d8);
+            border-left: 4px solid #25D366;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 0 8px 8px 0;
+            display: none;
+        }
+        
+        .whatsapp-steps {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+        
+        .whatsapp-steps li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .whatsapp-steps li i {
+            color: #25D366;
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+        
         .pdf-preview {
             position: fixed;
             top: 0;
@@ -733,6 +759,11 @@
             .header h1 {
                 font-size: 22px;
             }
+            
+            .pdf-preview-content {
+                width: 95%;
+                height: 95%;
+            }
         }
     </style>
 </head>
@@ -742,27 +773,27 @@
             <div class="company-logo">
                 <div class="logo-symbol">S</div>
                 <div class="logo-text">
-                    <div class="company-name">VERSÃO TESTE</div>
-                    <div class="company-description">TESTE</div>
+                    <div class="company-name">SELLES</div>
+                    <div class="company-description">ASSESSORIA CONTABIL</div>
                 </div>
             </div>
             
             <div class="header">
-                <h1><i class="fas fa-user-tie"></i> Ficha Cadastral Completa (Versão Teste)</h1>
+                <h1><i class="fas fa-user-tie"></i> Ficha Cadastral Completa</h1>
             </div>
             
             <div class="company-info">
                 <div>
                     <i class="fas fa-building"></i>
-                    <span>Empresa: TeSTE</span>
+                    <span>Empresa: Tech Solutions Ltda</span>
                 </div>
                 <div>
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>Endereço: Av. , 1000 - São Paulo/SP</span>
+                    <span>Endereço: Av. Paulista, 1000 - São Paulo/SP</span>
                 </div>
                 <div>
                     <i class="fas fa-phone"></i>
-                    <span>Telefone: (11) 99999-9999</span>
+                    <span>Telefone: (11) 96838-0160</span>
                 </div>
                 <div>
                     <i class="fas fa-envelope"></i>
@@ -1190,6 +1221,18 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Instruções para envio WhatsApp -->
+                <div class="whatsapp-instructions" id="whatsappInstructions">
+                    <h3><i class="fab fa-whatsapp"></i> Instruções para Envio via WhatsApp</h3>
+                    <p>Para enviar seu formulário, siga os passos abaixo:</p>
+                    <ol class="whatsapp-steps">
+                        <li><i class="fas fa-download"></i> Um arquivo PDF foi baixado automaticamente</li>
+                        <li><i class="fab fa-whatsapp"></i> O WhatsApp foi aberto com o número (11) 96838-0160</li>
+                        <li><i class="fas fa-paperclip"></i> Anexe o PDF baixado na conversa do WhatsApp</li>
+                        <li><i class="fas fa-paper-plane"></i> Envie a mensagem com o anexo</li>
+                    </ol>
                 </div>
                 
                 <!-- Botões de Ação -->
@@ -1638,6 +1681,7 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            URL.revokeObjectURL(pdfUrl); // Limpar o objeto URL
             showToast('PDF baixado com sucesso!');
         }
         
