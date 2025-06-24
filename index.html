@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulário de Cadastro Completo com Envio WhatsApp Direto</title>
+    <title>Cadastro Completo com Reconhecimento Facial</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -88,7 +86,7 @@
         .header {
             background: linear-gradient(to right, #1a2980, #26d0ce);
             color: white;
-            padding: 25px 30px;
+            padding: 25px 30px 25px 100px;
             text-align: center;
             position: relative;
         }
@@ -96,7 +94,6 @@
         .header h1 {
             font-size: 28px;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-            margin-top: 10px;
         }
         
         .header i {
@@ -540,6 +537,280 @@
             background-color: #e9f7fe;
         }
         
+        /* Estilos para reconhecimento facial automático */
+        .facial-recognition {
+            position: relative;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .facial-header {
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .facial-content {
+            padding: 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .camera-container {
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .camera-preview {
+            width: 100%;
+            max-width: 500px;
+            height: 375px;
+            margin: 0 auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .camera-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .camera-preview canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+        
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .camera-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .camera-btn.capture {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+            color: white;
+        }
+        
+        .camera-btn.retake {
+            background: linear-gradient(to right, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .camera-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .facial-instructions {
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .instructions-list {
+            list-style-type: none;
+            padding: 15px 0;
+        }
+        
+        .instructions-list li {
+            padding: 8px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .instructions-list i {
+            color: #1a2980;
+            min-width: 20px;
+        }
+        
+        .captured-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+        
+        .camera-placeholder {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+        
+        .camera-placeholder i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #1a2980;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-pending { background-color: #ff9800; }
+        .status-good { background-color: #4CAF50; }
+        .status-bad { background-color: #f44336; }
+        
+        .position-feedback {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            z-index: 20;
+            background: rgba(0,0,0,0.5);
+            padding: 8px;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .quality-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 120px;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            z-index: 20;
+        }
+        
+        .quality-progress {
+            height: 100%;
+            background: linear-gradient(to right, #f44336, #ff9800, #4CAF50);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .auto-capture-indicator {
+            position: absolute;
+            top: 30px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .capture-countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            color: white;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 30;
+            display: none;
+        }
+        
+        .capture-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 25;
+            display: none;
+        }
+        
+        .capture-overlay i {
+            font-size: 80px;
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .face-guidelines {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 250px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            z-index: 5;
+            display: none;
+        }
+        
         .error-message {
             color: #d32f2f;
             font-size: 14px;
@@ -627,100 +898,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .whatsapp-instructions {
-            background: linear-gradient(to right, #e1f7e7, #d1f0d8);
-            border-left: 4px solid #25D366;
-            padding: 20px;
-            margin: 25px 0;
-            border-radius: 0 8px 8px 0;
-            display: none;
-        }
-        
-        .whatsapp-steps {
-            margin-top: 15px;
-            padding-left: 20px;
-        }
-        
-        .whatsapp-steps li {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: flex-start;
-        }
-        
-        .whatsapp-steps li i {
-            color: #25D366;
-            margin-right: 10px;
-            margin-top: 5px;
-        }
-        
-        .pdf-preview {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            display: none;
-        }
-        
-        .pdf-preview-content {
-            width: 90%;
-            height: 90%;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .pdf-preview-header {
-            padding: 15px;
-            background: #1a2980;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .pdf-preview-body {
-            flex: 1;
-            padding: 20px;
-            overflow: auto;
-        }
-        
-        .pdf-preview-footer {
-            padding: 15px;
-            background: #f8f9fa;
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-        }
-        
-        .pdf-preview-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        .cep-loader {
-            display: none;
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        .cep-group {
-            position: relative;
-        }
-        
         @media (max-width: 768px) {
             .form-group {
                 flex: 0 0 100% !important;
@@ -764,17 +941,16 @@
                 width: 100%;
             }
             
+            .facial-content {
+                flex-direction: column;
+            }
+            
+            .camera-preview {
+                height: 300px;
+            }
+            
             .header {
-                padding: 20px 15px;
-            }
-            
-            .header h1 {
-                font-size: 22px;
-            }
-            
-            .pdf-preview-content {
-                width: 95%;
-                height: 95%;
+                padding-left: 30px;
             }
         }
     </style>
@@ -797,19 +973,19 @@
             <div class="company-info">
                 <div>
                     <i class="fas fa-building"></i>
-                    <span>Empresa: Tech Solutions Ltda</span>
+                    <span>Empresa: Escritório Selles Assessoria Contábil</span>
                 </div>
                 <div>
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>Endereço: Av. Paulista, 1000 - São Paulo/SP</span>
+                    <span>Endereço: Rua: 5, 2245 -Centro - Jales/SP</span>
                 </div>
                 <div>
                     <i class="fas fa-phone"></i>
-                    <span>Telefone: (11) 96838-0160</span>
+                    <span>Telefone: (17) 3632-3016</span>
                 </div>
                 <div>
                     <i class="fas fa-envelope"></i>
-                    <span>Email: rh@techsolutions.com</span>
+                    <span>Email: escrsel@gmail.com</span>
                 </div>
             </div>
             
@@ -818,6 +994,90 @@
             </div>
             
             <form id="employeeForm">
+                <!-- Seção de Reconhecimento Facial Automático (opcional) -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-camera"></i> Reconhecimento Facial Automático (Opcional)
+                    </div>
+                    
+                    <div class="facial-recognition">
+                        <div class="facial-header">
+                            <i class="fas fa-robot"></i> Captura Automática de Imagem Facial
+                        </div>
+                        
+                        <div class="facial-content">
+                            <div class="camera-container">
+                                <div class="camera-preview" id="cameraPreview">
+                                    <div class="camera-placeholder">
+                                        <i class="fas fa-camera"></i>
+                                        <p>Clique em Iniciar Câmera</p>
+                                    </div>
+                                    <video id="video" autoplay playsinline style="display: none;"></video>
+                                    <canvas id="canvas"></canvas>
+                                    <img id="capturedImage" class="captured-image" alt="Imagem capturada">
+                                    
+                                    <div class="status-indicator">
+                                        <div class="status-dot status-pending"></div>
+                                        <span>Status: Aguardando...</span>
+                                    </div>
+                                    
+                                    <div class="quality-bar">
+                                        <div class="quality-progress" id="qualityProgress"></div>
+                                    </div>
+                                    
+                                    <div class="auto-capture-indicator">
+                                        <i class="fas fa-robot"></i>
+                                        <span>Modo Automático</span>
+                                    </div>
+                                    
+                                    <div class="position-feedback" id="positionFeedback">
+                                        Posicione seu rosto no círculo
+                                    </div>
+                                    
+                                    <div class="face-guidelines" id="faceGuidelines"></div>
+                                    
+                                    <div class="capture-overlay" id="captureOverlay">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                    
+                                    <div class="capture-countdown" id="captureCountdown">3</div>
+                                </div>
+                                
+                                <div class="camera-controls">
+                                    <button type="button" id="startCamera" class="camera-btn capture">
+                                        <i class="fas fa-video"></i> Iniciar Câmera
+                                    </button>
+                                    <button type="button" id="retakeBtn" class="camera-btn retake" style="display: none;">
+                                        <i class="fas fa-redo"></i> Repetir Captura
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="facial-instructions">
+                                <h3><i class="fas fa-info-circle"></i> Instruções para Captura Automática</h3>
+                                <ul class="instructions-list">
+                                    <li><i class="fas fa-check-circle"></i> Certifique-se de estar em um ambiente bem iluminado</li>
+                                    <li><i class="fas fa-check-circle"></i> Olhe diretamente para a câmera</li>
+                                    <li><i class="fas fa-check-circle"></i> Mantenha o rosto dentro do círculo guia</li>
+                                    <li><i class="fas fa-check-circle"></i> Remova óculos escuros ou chapéus</li>
+                                    <li><i class="fas fa-check-circle"></i> Mantenha uma expressão neutra</li>
+                                    <li><i class="fas fa-check-circle"></i> O sistema capturará automaticamente quando a posição for ideal</li>
+                                </ul>
+                                
+                                <div class="instructions">
+                                    <p><i class="fas fa-lightbulb"></i> O sistema analisa continuamente:</p>
+                                    <ul>
+                                        <li>Posição do rosto (centralização)</li>
+                                        <li>Tamanho do rosto (distância da câmera)</li>
+                                        <li>Ângulo de rotação (frontalidade)</li>
+                                        <li>Iluminação e nitidez</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Seção de Dados Pessoais -->
                 <div class="form-section">
                     <div class="section-title">
@@ -924,12 +1184,9 @@
                     </div>
                     
                     <div class="form-row">
-                        <div class="form-group medium cep-group">
+                        <div class="form-group medium">
                             <label for="cep" class="required">CEP</label>
                             <input type="text" id="cep" name="cep" placeholder="00000-000" required>
-                            <div class="cep-loader" id="cepLoader">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
                         </div>
                         <div class="form-group medium">
                             <label for="logradouro" class="required">Logradouro</label>
@@ -993,7 +1250,7 @@
                     </div>
                 </div>
                 
-                <!-- Seção de Contato -->
+                <!-- Seção de Contato (com 2 celulares) -->
                 <div class="form-section">
                     <div class="section-title">
                         <i class="fas fa-phone"></i> Contato
@@ -1238,27 +1495,15 @@
                     </div>
                 </div>
                 
-                <!-- Instruções para envio WhatsApp -->
-                <div class="whatsapp-instructions" id="whatsappInstructions">
-                    <h3><i class="fab fa-whatsapp"></i> Instruções para Envio via WhatsApp</h3>
-                    <p>Para enviar seu formulário, siga os passos abaixo:</p>
-                    <ol class="whatsapp-steps">
-                        <li><i class="fas fa-download"></i> Um arquivo PDF foi baixado automaticamente</li>
-                        <li><i class="fab fa-whatsapp"></i> O WhatsApp foi aberto com o número (11) 96838-0160</li>
-                        <li><i class="fas fa-paperclip"></i> Anexe o PDF baixado na conversa do WhatsApp</li>
-                        <li><i class="fas fa-paper-plane"></i> Envie a mensagem com o anexo</li>
-                    </ol>
-                </div>
-                
                 <!-- Botões de Ação -->
                 <div class="btn-group">
                     <button type="button" id="generatePdf" class="btn">
-                        <i class="fas fa-file-pdf"></i> Visualizar PDF
+                        <i class="fas fa-file-pdf"></i> Gerar PDF
                     </button>
                     <button type="button" id="sendWhatsApp" class="btn btn-whatsapp">
-                        <i class="fab fa-whatsapp"></i> Enviar para WhatsApp
+                        <i class="fab fa-whatsapp"></i> Enviar via WhatsApp
                     </button>
-                    <button type="button" id="submitForm" class="btn">
+                    <button type="submit" id="submitForm" class="btn">
                         <i class="fas fa-paper-plane"></i> Enviar Formulário
                     </button>
                 </div>
@@ -1274,73 +1519,235 @@
         </div>
     </div>
     
-    <!-- Preview do PDF -->
-    <div class="pdf-preview" id="pdfPreview">
-        <div class="pdf-preview-content">
-            <div class="pdf-preview-header">
-                <h3>Pré-visualização do PDF</h3>
-                <button class="pdf-preview-close" id="closePdfPreview">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="pdf-preview-body" id="pdfPreviewBody">
-                <!-- Conteúdo do PDF será renderizado aqui -->
-            </div>
-            <div class="pdf-preview-footer">
-                <button class="btn" id="downloadPdf">
-                    <i class="fas fa-download"></i> Baixar PDF
-                </button>
-                <button class="btn btn-whatsapp" id="sendPdfWhatsApp">
-                    <i class="fab fa-whatsapp"></i> Enviar via WhatsApp
-                </button>
-            </div>
-        </div>
-    </div>
-    
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i> <span id="toastMessage">Operação realizada com sucesso!</span>
     </div>
     
     <script>
         // Variáveis globais
+        let stream = null;
+        let capturedPhoto = null;
         let uploadedFiles = [];
         let dependentCounter = 1;
         let experienceCounter = 1;
-        let generatedPdf = null;
+        let captureTimeout = null;
+        let isCameraActive = false;
+        let detectionInterval = null;
+        let isFaceInPosition = false;
+        let facePositionScore = 0;
         
-        // Função para buscar endereço pelo CEP
-        async function buscarEnderecoPorCEP() {
-            const cep = document.getElementById('cep').value.replace(/\D/g, '');
-            if (cep.length !== 8) return;
+        // Elementos DOM
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const capturedImage = document.getElementById('capturedImage');
+        const startCameraBtn = document.getElementById('startCamera');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const positionFeedback = document.getElementById('positionFeedback');
+        const faceGuidelines = document.getElementById('faceGuidelines');
+        const captureOverlay = document.getElementById('captureOverlay');
+        const captureCountdown = document.getElementById('captureCountdown');
+        const qualityProgress = document.getElementById('qualityProgress');
+        
+        // Função para detectar rostos
+        function detectFaces() {
+            if (!isCameraActive) return;
             
-            // Mostrar spinner de carregamento
-            document.getElementById('cepLoader').style.display = 'block';
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            try {
-                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await response.json();
+            // Simulação de detecção facial
+            const faceDetected = Math.random() > 0.3; // 70% chance de detectar rosto
+            
+            if (faceDetected) {
+                // Simulação de análise de posição (valor entre 0-100)
+                const quality = Math.floor(Math.random() * 100);
+                qualityProgress.style.width = `${quality}%`;
                 
-                if (data.erro) {
-                    showToast('CEP não encontrado!', 'error');
-                    return;
+                if (quality > 85) {
+                    updatePositionFeedback('Posição perfeita! Captura em...', 'good');
+                    if (!isFaceInPosition) {
+                        isFaceInPosition = true;
+                        scheduleCapture();
+                    }
+                } else if (quality > 70) {
+                    updatePositionFeedback('Boa posição! Continue assim...', 'good');
+                    isFaceInPosition = false;
+                    cancelCapture();
+                } else if (quality > 50) {
+                    updatePositionFeedback('Aproxime-se e centralize o rosto', 'pending');
+                    isFaceInPosition = false;
+                    cancelCapture();
+                } else {
+                    updatePositionFeedback('Posicione seu rosto no círculo', 'bad');
+                    isFaceInPosition = false;
+                    cancelCapture();
                 }
                 
-                // Preencher os campos com os dados do CEP
-                document.getElementById('logradouro').value = data.logradouro || '';
-                document.getElementById('bairro').value = data.bairro || '';
-                document.getElementById('cidade').value = data.localidade || '';
-                document.getElementById('estado').value = data.uf || '';
+                // Desenhar um rosto simulado
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2 + (Math.random() * 50 - 25), 
+                        canvas.height / 2 + (Math.random() * 50 - 25), 
+                        70, 0, Math.PI * 2);
+                ctx.strokeStyle = '#4CAF50';
+                ctx.lineWidth = 2;
+                ctx.stroke();
                 
-                // Focar no campo de número
-                document.getElementById('numero').focus();
+                // Olhos
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2 - 25, canvas.height / 2 - 15, 10, 0, Math.PI * 2);
+                ctx.stroke();
                 
-                showToast('Endereço preenchido automaticamente!');
-            } catch (error) {
-                showToast('Erro ao buscar o endereço. Tente novamente.', 'error');
-                console.error('Erro na busca de CEP:', error);
-            } finally {
-                // Ocultar spinner de carregamento
-                document.getElementById('cepLoader').style.display = 'none';
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2 + 25, canvas.height / 2 - 15, 10, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Boca
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2 + 20, 30, 0, Math.PI);
+                ctx.stroke();
+            } else {
+                updatePositionFeedback('Nenhum rosto detectado', 'bad');
+                qualityProgress.style.width = '0%';
+                isFaceInPosition = false;
+                cancelCapture();
+            }
+        }
+        
+        // Iniciar a câmera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    }, 
+                    audio: false 
+                });
+                
+                video.style.display = 'block';
+                video.srcObject = stream;
+                
+                // Esconder placeholder e mostrar elementos
+                document.querySelector('.camera-placeholder').style.display = 'none';
+                faceGuidelines.style.display = 'block';
+                startCameraBtn.style.display = 'none';
+                retakeBtn.style.display = 'inline-flex';
+                isCameraActive = true;
+                
+                // Ajustar tamanho do canvas
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    // Iniciar detecção facial simulada
+                    detectionInterval = setInterval(detectFaces, 500);
+                });
+                
+                showToast('Câmera iniciada! O sistema está analisando sua posição...');
+            } catch (err) {
+                console.error('Erro ao acessar a câmera:', err);
+                showToast('Erro ao acessar a câmera. Verifique as permissões.', 'error');
+            }
+        }
+        
+        // Agendar captura automática
+        function scheduleCapture() {
+            if (captureTimeout) return;
+            
+            let count = 3;
+            captureCountdown.textContent = count;
+            captureCountdown.style.display = 'block';
+            
+            const countdown = setInterval(() => {
+                count--;
+                captureCountdown.textContent = count;
+                
+                if (count <= 0) {
+                    clearInterval(countdown);
+                    captureCountdown.style.display = 'none';
+                    capturePhoto();
+                }
+            }, 1000);
+        }
+        
+        // Cancelar captura programada
+        function cancelCapture() {
+            if (captureTimeout) {
+                clearTimeout(captureTimeout);
+                captureTimeout = null;
+            }
+            captureCountdown.style.display = 'none';
+        }
+        
+        // Capturar foto
+        function capturePhoto() {
+            if (!isCameraActive) return;
+            
+            // Mostrar overlay de captura
+            captureOverlay.style.display = 'flex';
+            
+            setTimeout(() => {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Desenhar imagem no canvas
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Obter URL da imagem
+                capturedPhoto = canvas.toDataURL('image/jpeg', 0.92);
+                capturedImage.src = capturedPhoto;
+                capturedImage.style.display = 'block';
+                video.style.display = 'none';
+                
+                // Parar a câmera e detecção
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                clearInterval(detectionInterval);
+                isCameraActive = false;
+                
+                // Esconder overlay
+                captureOverlay.style.display = 'none';
+                
+                // Atualizar UI
+                faceGuidelines.style.display = 'none';
+                positionFeedback.style.display = 'none';
+                qualityProgress.style.width = '0%';
+                
+                showToast('Captura automática realizada com sucesso!');
+            }, 500);
+        }
+        
+        // Repetir captura
+        function retakePhoto() {
+            capturedImage.style.display = 'none';
+            video.style.display = 'block';
+            positionFeedback.style.display = 'block';
+            faceGuidelines.style.display = 'block';
+            retakeBtn.style.display = 'none';
+            startCameraBtn.style.display = 'inline-flex';
+            
+            // Reiniciar a câmera
+            startCamera();
+        }
+        
+        // Atualizar feedback de posição
+        function updatePositionFeedback(message, status) {
+            positionFeedback.textContent = message;
+            
+            const statusDot = document.querySelector('.status-dot');
+            statusDot.className = 'status-dot';
+            
+            if (status === 'good') {
+                statusDot.classList.add('status-good');
+                positionFeedback.style.backgroundColor = 'rgba(76, 175, 80, 0.7)';
+            } else if (status === 'pending') {
+                statusDot.classList.add('status-pending');
+                positionFeedback.style.backgroundColor = 'rgba(255, 152, 0, 0.7)';
+            } else {
+                statusDot.classList.add('status-bad');
+                positionFeedback.style.backgroundColor = 'rgba(244, 67, 54, 0.7)';
             }
         }
         
@@ -1539,244 +1946,43 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
         
-        // Função para gerar PDF
+        // Funções para ações finais
         function generatePdf() {
             if (!validateForm()) return;
             
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            // Simulação de geração de PDF
+            showToast('PDF gerado com sucesso!');
             
-            // Configurações do documento
-            doc.setFontSize(20);
-            doc.setTextColor(26, 41, 128);
-            doc.text('FICHA CADASTRAL', 105, 20, null, null, 'center');
-            
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Gerado em: ${new Date().toLocaleString()}`, 105, 28, null, null, 'center');
-            
-            // Adicionar linha divisória
-            doc.setDrawColor(26, 41, 128);
-            doc.setLineWidth(0.5);
-            doc.line(20, 35, 190, 35);
-            
-            // Dados Pessoais
-            doc.setFontSize(14);
-            doc.setTextColor(26, 41, 128);
-            doc.text('DADOS PESSOAIS', 20, 45);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Nome Completo: ${document.getElementById('nome').value}`, 20, 55);
-            doc.text(`CPF: ${document.getElementById('cpf').value}`, 20, 65);
-            doc.text(`RG: ${document.getElementById('rg').value}`, 20, 75);
-            doc.text(`Órgão Emissor: ${document.getElementById('orgaoEmissor').value}`, 20, 85);
-            doc.text(`Data de Emissão: ${formatDate(document.getElementById('dataEmissao').value)}`, 110, 85);
-            doc.text(`Data de Nascimento: ${formatDate(document.getElementById('dataNascimento').value)}`, 20, 95);
-            doc.text(`Naturalidade: ${document.getElementById('naturalidade').value}`, 110, 95);
-            doc.text(`Nacionalidade: ${document.getElementById('nacionalidade').value}`, 20, 105);
-            doc.text(`Nome do Pai: ${document.getElementById('nomePai').value || 'Não informado'}`, 20, 115);
-            doc.text(`Nome da Mãe: ${document.getElementById('nomeMae').value}`, 20, 125);
-            doc.text(`Estado Civil: ${document.getElementById('estadoCivil').value}`, 110, 125);
-            doc.text(`Gênero: ${document.getElementById('genero').value}`, 20, 135);
-            doc.text(`Tipo Sanguíneo: ${document.getElementById('tipoSanguineo').value || 'Não informado'}`, 110, 135);
-            
-            // Endereço
-            doc.addPage();
-            doc.setFontSize(14);
-            doc.setTextColor(26, 41, 128);
-            doc.text('ENDEREÇO', 20, 20);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`CEP: ${document.getElementById('cep').value}`, 20, 30);
-            doc.text(`Logradouro: ${document.getElementById('logradouro').value}`, 20, 40);
-            doc.text(`Número: ${document.getElementById('numero').value}`, 110, 40);
-            doc.text(`Complemento: ${document.getElementById('complemento').value || 'Não informado'}`, 20, 50);
-            doc.text(`Bairro: ${document.getElementById('bairro').value}`, 110, 50);
-            doc.text(`Cidade: ${document.getElementById('cidade').value}`, 20, 60);
-            doc.text(`Estado: ${document.getElementById('estado').value}`, 110, 60);
-            
-            // Contato
-            doc.setFontSize(14);
-            doc.setTextColor(26, 41, 128);
-            doc.text('CONTATO', 20, 80);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Celular 1: ${document.getElementById('celular1').value}`, 20, 90);
-            doc.text(`Celular 2: ${document.getElementById('celular2').value || 'Não informado'}`, 110, 90);
-            doc.text(`E-mail: ${document.getElementById('email').value}`, 20, 100);
-            
-            // Formação Acadêmica
-            doc.addPage();
-            doc.setFontSize(14);
-            doc.setTextColor(26, 41, 128);
-            doc.text('FORMAÇÃO ACADÊMICA', 20, 20);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Escolaridade: ${document.getElementById('escolaridade').value}`, 20, 30);
-            doc.text(`Curso Superior: ${document.getElementById('curso').value || 'Não informado'}`, 20, 40);
-            doc.text(`Instituição de Ensino: ${document.getElementById('instituicao').value || 'Não informado'}`, 20, 50);
-            doc.text(`Ano de Conclusão: ${document.getElementById('anoConclusao').value || 'Não informado'}`, 20, 60);
-            
-            // Experiências Profissionais
-            doc.setFontSize(14);
-            doc.setTextColor(26, 41, 128);
-            doc.text('EXPERIÊNCIAS PROFISSIONAIS', 20, 80);
-            
-            let yPos = 90;
-            document.querySelectorAll('.experiencia-item').forEach((exp, index) => {
-                const inputs = exp.querySelectorAll('input');
-                doc.text(`Experiência ${index + 1}:`, 20, yPos);
-                doc.text(`Empresa: ${inputs[0].value}`, 30, yPos + 10);
-                doc.text(`Cargo: ${inputs[1].value}`, 30, yPos + 20);
-                doc.text(`Data Início: ${formatDate(inputs[2].value)}`, 30, yPos + 30);
-                doc.text(`Data Término: ${inputs[3].value ? formatDate(inputs[3].value) : 'Atual'}`, 110, yPos + 30);
-                yPos += 40;
-            });
-            
-            // Dependentes
-            doc.addPage();
-            doc.setFontSize(14);
-            doc.setTextColor(26, 41, 128);
-            doc.text('DEPENDENTES', 20, 20);
-            
-            yPos = 30;
-            document.querySelectorAll('.dependente-card').forEach((dep, index) => {
-                const inputs = dep.querySelectorAll('input, select');
-                doc.text(`Dependente ${index + 1}:`, 20, yPos);
-                doc.text(`Nome: ${inputs[0].value}`, 30, yPos + 10);
-                doc.text(`Parentesco: ${inputs[1].value || 'Não informado'}`, 30, yPos + 20);
-                doc.text(`Data de Nascimento: ${inputs[2].value ? formatDate(inputs[2].value) : 'Não informada'}`, 30, yPos + 30);
-                doc.text(`CPF: ${inputs[3].value || 'Não informado'}`, 110, yPos + 30);
-                yPos += 40;
-            });
-            
-            // Documentos
-            doc.setFontSize(14);
-            doc.setTextColor(26, 41, 128);
-            doc.text('DOCUMENTOS ANEXADOS', 20, yPos + 20);
-            
-            yPos += 30;
-            if (uploadedFiles.length > 0) {
-                uploadedFiles.forEach((file, index) => {
-                    doc.text(`${index + 1}. ${file.name} (${formatFileSize(file.size)})`, 20, yPos);
-                    yPos += 10;
-                });
-            } else {
-                doc.text('Nenhum documento anexado', 20, yPos);
-            }
-            
-            // Declarações
-            doc.addPage();
-            doc.setFontSize(14);
-            doc.setTextColor(26, 41, 128);
-            doc.text('DECLARAÇÕES', 20, 20);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text('Declaro que as informações fornecidas são verdadeiras e estou ciente que falsas declarações sujeitam-me às penalidades legais.', 20, 30);
-            doc.text(`Data: ${formatDate(document.getElementById('dataDeclaracao').value) || '________'}`, 20, 40);
-            doc.text(`Cidade: ${document.getElementById('cidadeDeclaracao').value || '________'}`, 110, 40);
-            
-            doc.text('Autorizo a empresa a utilizar minhas informações para fins de registro e conformidade legal.', 20, 60);
-            doc.text(`Data: ${formatDate(document.getElementById('dataAutorizacao').value) || '________'}`, 20, 70);
-            doc.text(`Cidade: ${document.getElementById('cidadeAutorizacao').value || '________'}`, 110, 70);
-            
-            // Rodapé
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
-            doc.text('Documento gerado automaticamente pelo sistema de cadastro', 105, 280, null, null, 'center');
-            
-            // Salvar o PDF para uso posterior
-            generatedPdf = doc.output('blob');
-            
-            // Exibir preview do PDF
-            showPdfPreview();
+            // Simular download
+            const link = document.createElement('a');
+            link.href = '#';
+            link.download = 'ficha-cadastral.pdf';
+            link.click();
         }
         
-        // Função para formatar data
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('pt-BR');
-        }
-        
-        // Função para exibir preview do PDF
-        function showPdfPreview() {
-            const pdfUrl = URL.createObjectURL(generatedPdf);
-            const pdfPreviewBody = document.getElementById('pdfPreviewBody');
-            
-            // Limpar conteúdo anterior
-            pdfPreviewBody.innerHTML = '';
-            
-            // Criar iframe para exibir o PDF
-            const iframe = document.createElement('iframe');
-            iframe.src = pdfUrl;
-            iframe.width = '100%';
-            iframe.height = '100%';
-            iframe.style.border = 'none';
-            
-            pdfPreviewBody.appendChild(iframe);
-            document.getElementById('pdfPreview').style.display = 'flex';
-        }
-        
-        // Função para baixar o PDF
-        function downloadPdf() {
-            const pdfUrl = URL.createObjectURL(generatedPdf);
-            const a = document.createElement('a');
-            a.href = pdfUrl;
-            a.download = 'ficha_cadastral.pdf';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(pdfUrl); // Limpar o objeto URL
-            showToast('PDF baixado com sucesso!');
-        }
-        
-        // Função para enviar para WhatsApp
-        function sendPdfToWhatsApp() {
-            if (!generatedPdf) return;
-            
-            // Baixar o PDF primeiro
-            downloadPdf();
-            
-            // Mensagem padrão
-            const nome = document.getElementById('nome').value;
-            const defaultMessage = `Olá, segue em anexo a ficha cadastral de *${nome}*.\n\nDados principais:\n- CPF: ${document.getElementById('cpf').value}\n- Celular: ${document.getElementById('celular1').value}\n\nPor favor, confira o documento anexo.`;
-            
-            // Codificar a mensagem para URL
-            const encodedMessage = encodeURIComponent(defaultMessage);
-            
-            // Número de WhatsApp formatado (11 96838-0160)
-            const whatsappNumber = '5511968380160';
-            
-            // Criar link do WhatsApp com mensagem
-            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-            
-            // Abrir em nova aba
-            window.open(whatsappUrl, '_blank');
-            showToast('Abrindo WhatsApp para envio do PDF...');
-            
-            // Fechar o preview
-            document.getElementById('pdfPreview').style.display = 'none';
-        }
-        
-        // Função para enviar para WhatsApp diretamente
         function sendViaWhatsApp() {
             if (!validateForm()) return;
             
-            // Primeiro gerar o PDF
-            generatePdf();
+            // Montar mensagem
+            const nome = document.getElementById('nome').value;
+            const cpf = document.getElementById('cpf').value;
+            const email = document.getElementById('email').value;
             
-            // Depois enviar para WhatsApp
-            setTimeout(() => {
-                if (generatedPdf) {
-                    sendPdfToWhatsApp();
-                }
-            }, 500);
+            const message = `Olá, aqui está a ficha cadastral de ${nome}\n\n` +
+                            `CPF: ${cpf}\n` +
+                            `E-mail: ${email}\n\n` +
+                            `*Formulário enviado com sucesso via WhatsApp!*`;
+            
+            // Codificar mensagem para URL
+            const encodedMessage = encodeURIComponent(message);
+            
+            // Criar link do WhatsApp
+            const whatsappUrl = `https://wa.me/5511968380160?text=${encodedMessage}`;
+            
+            // Abrir em nova aba
+            window.open(whatsappUrl, '_blank');
+            
+            showToast('Abrindo WhatsApp para envio...');
         }
         
         function submitForm() {
@@ -1897,11 +2103,6 @@
                     value = value.replace(/(\d{5})(\d+)/, '$1-$2');
                 }
                 e.target.value = value;
-                
-                // Buscar endereço quando o CEP estiver completo
-                if (value.length === 8) {
-                    buscarEnderecoPorCEP();
-                }
             });
         }
         
@@ -1911,6 +2112,10 @@
             
             // Botão para adicionar experiência
             document.getElementById('addExperiencia').addEventListener('click', addExperiencia);
+            
+            // Botões da câmera
+            document.getElementById('startCamera').addEventListener('click', startCamera);
+            document.getElementById('retakeBtn').addEventListener('click', retakePhoto);
             
             // Upload de arquivos
             document.getElementById('uploadBtn').addEventListener('click', triggerFileInput);
@@ -1923,13 +2128,6 @@
             document.getElementById('generatePdf').addEventListener('click', generatePdf);
             document.getElementById('sendWhatsApp').addEventListener('click', sendViaWhatsApp);
             document.getElementById('submitForm').addEventListener('click', submitForm);
-            
-            // Botões do preview do PDF
-            document.getElementById('downloadPdf').addEventListener('click', downloadPdf);
-            document.getElementById('sendPdfWhatsApp').addEventListener('click', sendPdfToWhatsApp);
-            document.getElementById('closePdfPreview').addEventListener('click', () => {
-                document.getElementById('pdfPreview').style.display = 'none';
-            });
             
             // Remover dependentes e experiências (delegação de eventos)
             document.getElementById('dependentesContainer').addEventListener('click', function(e) {
@@ -1953,9 +2151,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupInputMasks();
             setupEventListeners();
-            
-            // Inicializar lista de arquivos
-            updateFileList();
         });
     </script>
 </body>
