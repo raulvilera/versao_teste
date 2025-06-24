@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro Completo com Reconhecimento Facial</title>
+    <title>Cadastro Completo com Envio Automático</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -537,280 +539,6 @@
             background-color: #e9f7fe;
         }
         
-        /* Estilos para reconhecimento facial automático */
-        .facial-recognition {
-            position: relative;
-            margin-bottom: 30px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .facial-header {
-            background: linear-gradient(to right, #1a2980, #26d0ce);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .facial-content {
-            padding: 20px;
-            background-color: #f8f9fa;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .camera-container {
-            flex: 1;
-            min-width: 300px;
-            background: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            position: relative;
-        }
-        
-        .camera-preview {
-            width: 100%;
-            max-width: 500px;
-            height: 375px;
-            margin: 0 auto;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .camera-preview video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .camera-preview canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-        }
-        
-        .camera-controls {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .camera-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
-        
-        .camera-btn.capture {
-            background: linear-gradient(to right, #4CAF50, #2E7D32);
-            color: white;
-        }
-        
-        .camera-btn.retake {
-            background: linear-gradient(to right, #f44336, #d32f2f);
-            color: white;
-        }
-        
-        .camera-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-        
-        .facial-instructions {
-            flex: 1;
-            min-width: 300px;
-            background: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-        
-        .instructions-list {
-            list-style-type: none;
-            padding: 15px 0;
-        }
-        
-        .instructions-list li {
-            padding: 8px 0;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .instructions-list i {
-            color: #1a2980;
-            min-width: 20px;
-        }
-        
-        .captured-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-        
-        .camera-placeholder {
-            text-align: center;
-            color: #666;
-            padding: 20px;
-        }
-        
-        .camera-placeholder i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: #1a2980;
-        }
-        
-        .status-indicator {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .status-pending { background-color: #ff9800; }
-        .status-good { background-color: #4CAF50; }
-        .status-bad { background-color: #f44336; }
-        
-        .position-feedback {
-            position: absolute;
-            bottom: 10px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: white;
-            font-weight: bold;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-            z-index: 20;
-            background: rgba(0,0,0,0.5);
-            padding: 8px;
-            border-radius: 0 0 8px 8px;
-        }
-        
-        .quality-bar {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 120px;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-            z-index: 20;
-        }
-        
-        .quality-progress {
-            height: 100%;
-            background: linear-gradient(to right, #f44336, #ff9800, #4CAF50);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        
-        .auto-capture-indicator {
-            position: absolute;
-            top: 30px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .capture-countdown {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 60px;
-            color: white;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 30;
-            display: none;
-        }
-        
-        .capture-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 25;
-            display: none;
-        }
-        
-        .capture-overlay i {
-            font-size: 80px;
-            color: white;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .face-guidelines {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 200px;
-            height: 250px;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            z-index: 5;
-            display: none;
-        }
-        
         .error-message {
             color: #d32f2f;
             font-size: 14px;
@@ -845,57 +573,125 @@
             z-index: 1000;
         }
         
-        .dependentes-container {
-            margin-top: 20px;
-        }
-        
-        .dependente-card {
-            background-color: #f0f8ff;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #cfe8ff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: relative;
-        }
-        
-        .dependente-card-header {
+        .whatsapp-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed #cfe8ff;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
         }
         
-        .dependente-card-title {
-            font-weight: 600;
-            color: #1a2980;
-            font-size: 18px;
+        .whatsapp-modal.active {
+            opacity: 1;
+            pointer-events: all;
         }
         
-        .remove-dependente {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+        
+        .whatsapp-modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #128C7E;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 10px;
+        }
+        
+        .modal-content p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .remove-dependente:hover {
-            background: #ff5252;
-            transform: rotate(90deg);
+        .modal-btn.cancel {
+            background: #f1f1f1;
+            color: #333;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .modal-btn.send {
+            background: #25D366;
+            color: white;
+        }
+        
+        .sending-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            flex-direction: column;
+            color: white;
+            display: none;
+        }
+        
+        .sending-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 5px solid #25D366;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sending-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .sending-subtext {
+            font-size: 14px;
+            opacity: 0.8;
         }
         
         @media (max-width: 768px) {
@@ -941,16 +737,8 @@
                 width: 100%;
             }
             
-            .facial-content {
+            .modal-buttons {
                 flex-direction: column;
-            }
-            
-            .camera-preview {
-                height: 300px;
-            }
-            
-            .header {
-                padding-left: 30px;
             }
         }
     </style>
@@ -994,90 +782,6 @@
             </div>
             
             <form id="employeeForm">
-                <!-- Seção de Reconhecimento Facial Automático (opcional) -->
-                <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-camera"></i> Reconhecimento Facial Automático (Opcional)
-                    </div>
-                    
-                    <div class="facial-recognition">
-                        <div class="facial-header">
-                            <i class="fas fa-robot"></i> Captura Automática de Imagem Facial
-                        </div>
-                        
-                        <div class="facial-content">
-                            <div class="camera-container">
-                                <div class="camera-preview" id="cameraPreview">
-                                    <div class="camera-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Clique em Iniciar Câmera</p>
-                                    </div>
-                                    <video id="video" autoplay playsinline style="display: none;"></video>
-                                    <canvas id="canvas"></canvas>
-                                    <img id="capturedImage" class="captured-image" alt="Imagem capturada">
-                                    
-                                    <div class="status-indicator">
-                                        <div class="status-dot status-pending"></div>
-                                        <span>Status: Aguardando...</span>
-                                    </div>
-                                    
-                                    <div class="quality-bar">
-                                        <div class="quality-progress" id="qualityProgress"></div>
-                                    </div>
-                                    
-                                    <div class="auto-capture-indicator">
-                                        <i class="fas fa-robot"></i>
-                                        <span>Modo Automático</span>
-                                    </div>
-                                    
-                                    <div class="position-feedback" id="positionFeedback">
-                                        Posicione seu rosto no círculo
-                                    </div>
-                                    
-                                    <div class="face-guidelines" id="faceGuidelines"></div>
-                                    
-                                    <div class="capture-overlay" id="captureOverlay">
-                                        <i class="fas fa-camera"></i>
-                                    </div>
-                                    
-                                    <div class="capture-countdown" id="captureCountdown">3</div>
-                                </div>
-                                
-                                <div class="camera-controls">
-                                    <button type="button" id="startCamera" class="camera-btn capture">
-                                        <i class="fas fa-video"></i> Iniciar Câmera
-                                    </button>
-                                    <button type="button" id="retakeBtn" class="camera-btn retake" style="display: none;">
-                                        <i class="fas fa-redo"></i> Repetir Captura
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="facial-instructions">
-                                <h3><i class="fas fa-info-circle"></i> Instruções para Captura Automática</h3>
-                                <ul class="instructions-list">
-                                    <li><i class="fas fa-check-circle"></i> Certifique-se de estar em um ambiente bem iluminado</li>
-                                    <li><i class="fas fa-check-circle"></i> Olhe diretamente para a câmera</li>
-                                    <li><i class="fas fa-check-circle"></i> Mantenha o rosto dentro do círculo guia</li>
-                                    <li><i class="fas fa-check-circle"></i> Remova óculos escuros ou chapéus</li>
-                                    <li><i class="fas fa-check-circle"></i> Mantenha uma expressão neutra</li>
-                                    <li><i class="fas fa-check-circle"></i> O sistema capturará automaticamente quando a posição for ideal</li>
-                                </ul>
-                                
-                                <div class="instructions">
-                                    <p><i class="fas fa-lightbulb"></i> O sistema analisa continuamente:</p>
-                                    <ul>
-                                        <li>Posição do rosto (centralização)</li>
-                                        <li>Tamanho do rosto (distância da câmera)</li>
-                                        <li>Ângulo de rotação (frontalidade)</li>
-                                        <li>Iluminação e nitidez</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Seção de Dados Pessoais -->
                 <div class="form-section">
                     <div class="section-title">
@@ -1369,12 +1073,10 @@
                     </div>
                     
                     <div id="dependentesContainer">
-                        <div class="dependente-card">
-                            <div class="dependente-card-header">
-                                <div class="dependente-card-title">Dependente #1</div>
-                                <button type="button" class="remove-dependente">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                        <div class="dependente-item">
+                            <div class="dependente-header">
+                                <div class="dependente-title">Dependente #1</div>
+                                <button type="button" class="btn-remove remove-dependente"><i class="fas fa-trash"></i></button>
                             </div>
                             
                             <div class="form-row">
@@ -1519,250 +1221,57 @@
         </div>
     </div>
     
+    <!-- Modal de confirmação -->
+    <div class="whatsapp-modal" id="whatsappModal">
+        <div class="modal-content">
+            <h2><i class="fab fa-whatsapp"></i> Enviar via WhatsApp</h2>
+            <p>O formulário será convertido em PDF e enviado automaticamente para o escritório responsável.</p>
+            <p>Deseja confirmar o envio?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancelWhatsApp">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="modal-btn send" id="confirmSend">
+                    <i class="fab fa-whatsapp"></i> Confirmar Envio
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay de envio -->
+    <div class="sending-overlay" id="sendingOverlay">
+        <div class="sending-spinner"></div>
+        <div class="sending-text">Enviando formulário...</div>
+        <div class="sending-subtext">Aguarde enquanto enviamos seus dados para o escritório</div>
+    </div>
+    
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i> <span id="toastMessage">Operação realizada com sucesso!</span>
     </div>
     
     <script>
         // Variáveis globais
-        let stream = null;
-        let capturedPhoto = null;
         let uploadedFiles = [];
         let dependentCounter = 1;
         let experienceCounter = 1;
-        let captureTimeout = null;
-        let isCameraActive = false;
-        let detectionInterval = null;
-        let isFaceInPosition = false;
-        let facePositionScore = 0;
         
         // Elementos DOM
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const capturedImage = document.getElementById('capturedImage');
-        const startCameraBtn = document.getElementById('startCamera');
-        const retakeBtn = document.getElementById('retakeBtn');
-        const positionFeedback = document.getElementById('positionFeedback');
-        const faceGuidelines = document.getElementById('faceGuidelines');
-        const captureOverlay = document.getElementById('captureOverlay');
-        const captureCountdown = document.getElementById('captureCountdown');
-        const qualityProgress = document.getElementById('qualityProgress');
+        const whatsappModal = document.getElementById('whatsappModal');
+        const sendingOverlay = document.getElementById('sendingOverlay');
         
-        // Função para detectar rostos
-        function detectFaces() {
-            if (!isCameraActive) return;
-            
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Simulação de detecção facial
-            const faceDetected = Math.random() > 0.3; // 70% chance de detectar rosto
-            
-            if (faceDetected) {
-                // Simulação de análise de posição (valor entre 0-100)
-                const quality = Math.floor(Math.random() * 100);
-                qualityProgress.style.width = `${quality}%`;
-                
-                if (quality > 85) {
-                    updatePositionFeedback('Posição perfeita! Captura em...', 'good');
-                    if (!isFaceInPosition) {
-                        isFaceInPosition = true;
-                        scheduleCapture();
-                    }
-                } else if (quality > 70) {
-                    updatePositionFeedback('Boa posição! Continue assim...', 'good');
-                    isFaceInPosition = false;
-                    cancelCapture();
-                } else if (quality > 50) {
-                    updatePositionFeedback('Aproxime-se e centralize o rosto', 'pending');
-                    isFaceInPosition = false;
-                    cancelCapture();
-                } else {
-                    updatePositionFeedback('Posicione seu rosto no círculo', 'bad');
-                    isFaceInPosition = false;
-                    cancelCapture();
-                }
-                
-                // Desenhar um rosto simulado
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2 + (Math.random() * 50 - 25), 
-                        canvas.height / 2 + (Math.random() * 50 - 25), 
-                        70, 0, Math.PI * 2);
-                ctx.strokeStyle = '#4CAF50';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                // Olhos
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2 - 25, canvas.height / 2 - 15, 10, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2 + 25, canvas.height / 2 - 15, 10, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                // Boca
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2, canvas.height / 2 + 20, 30, 0, Math.PI);
-                ctx.stroke();
-            } else {
-                updatePositionFeedback('Nenhum rosto detectado', 'bad');
-                qualityProgress.style.width = '0%';
-                isFaceInPosition = false;
-                cancelCapture();
-            }
-        }
-        
-        // Iniciar a câmera
-        async function startCamera() {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: 'user'
-                    }, 
-                    audio: false 
-                });
-                
-                video.style.display = 'block';
-                video.srcObject = stream;
-                
-                // Esconder placeholder e mostrar elementos
-                document.querySelector('.camera-placeholder').style.display = 'none';
-                faceGuidelines.style.display = 'block';
-                startCameraBtn.style.display = 'none';
-                retakeBtn.style.display = 'inline-flex';
-                isCameraActive = true;
-                
-                // Ajustar tamanho do canvas
-                video.addEventListener('loadedmetadata', () => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    
-                    // Iniciar detecção facial simulada
-                    detectionInterval = setInterval(detectFaces, 500);
-                });
-                
-                showToast('Câmera iniciada! O sistema está analisando sua posição...');
-            } catch (err) {
-                console.error('Erro ao acessar a câmera:', err);
-                showToast('Erro ao acessar a câmera. Verifique as permissões.', 'error');
-            }
-        }
-        
-        // Agendar captura automática
-        function scheduleCapture() {
-            if (captureTimeout) return;
-            
-            let count = 3;
-            captureCountdown.textContent = count;
-            captureCountdown.style.display = 'block';
-            
-            const countdown = setInterval(() => {
-                count--;
-                captureCountdown.textContent = count;
-                
-                if (count <= 0) {
-                    clearInterval(countdown);
-                    captureCountdown.style.display = 'none';
-                    capturePhoto();
-                }
-            }, 1000);
-        }
-        
-        // Cancelar captura programada
-        function cancelCapture() {
-            if (captureTimeout) {
-                clearTimeout(captureTimeout);
-                captureTimeout = null;
-            }
-            captureCountdown.style.display = 'none';
-        }
-        
-        // Capturar foto
-        function capturePhoto() {
-            if (!isCameraActive) return;
-            
-            // Mostrar overlay de captura
-            captureOverlay.style.display = 'flex';
-            
-            setTimeout(() => {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Desenhar imagem no canvas
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                // Obter URL da imagem
-                capturedPhoto = canvas.toDataURL('image/jpeg', 0.92);
-                capturedImage.src = capturedPhoto;
-                capturedImage.style.display = 'block';
-                video.style.display = 'none';
-                
-                // Parar a câmera e detecção
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                }
-                clearInterval(detectionInterval);
-                isCameraActive = false;
-                
-                // Esconder overlay
-                captureOverlay.style.display = 'none';
-                
-                // Atualizar UI
-                faceGuidelines.style.display = 'none';
-                positionFeedback.style.display = 'none';
-                qualityProgress.style.width = '0%';
-                
-                showToast('Captura automática realizada com sucesso!');
-            }, 500);
-        }
-        
-        // Repetir captura
-        function retakePhoto() {
-            capturedImage.style.display = 'none';
-            video.style.display = 'block';
-            positionFeedback.style.display = 'block';
-            faceGuidelines.style.display = 'block';
-            retakeBtn.style.display = 'none';
-            startCameraBtn.style.display = 'inline-flex';
-            
-            // Reiniciar a câmera
-            startCamera();
-        }
-        
-        // Atualizar feedback de posição
-        function updatePositionFeedback(message, status) {
-            positionFeedback.textContent = message;
-            
-            const statusDot = document.querySelector('.status-dot');
-            statusDot.className = 'status-dot';
-            
-            if (status === 'good') {
-                statusDot.classList.add('status-good');
-                positionFeedback.style.backgroundColor = 'rgba(76, 175, 80, 0.7)';
-            } else if (status === 'pending') {
-                statusDot.classList.add('status-pending');
-                positionFeedback.style.backgroundColor = 'rgba(255, 152, 0, 0.7)';
-            } else {
-                statusDot.classList.add('status-bad');
-                positionFeedback.style.backgroundColor = 'rgba(244, 67, 54, 0.7)';
-            }
-        }
+        // Número do escritório (fixo na aplicação)
+        const OFFICE_WHATSAPP_NUMBER = "5511968380160";
         
         // Funções para dependentes
         function addDependente() {
             dependentCounter++;
             const container = document.getElementById('dependentesContainer');
             const newDependente = document.createElement('div');
-            newDependente.className = 'dependente-card';
+            newDependente.className = 'dependente-item';
             newDependente.innerHTML = `
-                <div class="dependente-card-header">
-                    <div class="dependente-card-title">Dependente #${dependentCounter}</div>
-                    <button type="button" class="remove-dependente">
-                        <i class="fas fa-times"></i>
-                    </button>
+                <div class="dependente-header">
+                    <div class="dependente-title">Dependente #${dependentCounter}</div>
+                    <button type="button" class="btn-remove remove-dependente"><i class="fas fa-trash"></i></button>
                 </div>
                 
                 <div class="form-row">
@@ -1799,7 +1308,7 @@
         }
         
         function updateDependenteTitles() {
-            const dependentes = document.querySelectorAll('.dependente-card-title');
+            const dependentes = document.querySelectorAll('.dependente-title');
             dependentes.forEach((title, index) => {
                 title.textContent = `Dependente #${index + 1}`;
             });
@@ -1946,52 +1455,78 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
         
-        // Funções para ações finais
-        function generatePdf() {
-            if (!validateForm()) return;
-            
-            // Simulação de geração de PDF
-            showToast('PDF gerado com sucesso!');
-            
-            // Simular download
-            const link = document.createElement('a');
-            link.href = '#';
-            link.download = 'ficha-cadastral.pdf';
-            link.click();
-        }
-        
-        function sendViaWhatsApp() {
-            if (!validateForm()) return;
-            
-            // Montar mensagem
-            const nome = document.getElementById('nome').value;
-            const cpf = document.getElementById('cpf').value;
-            const email = document.getElementById('email').value;
-            
-            const message = `Olá, aqui está a ficha cadastral de ${nome}\n\n` +
-                            `CPF: ${cpf}\n` +
-                            `E-mail: ${email}\n\n` +
-                            `*Formulário enviado com sucesso via WhatsApp!*`;
-            
-            // Codificar mensagem para URL
-            const encodedMessage = encodeURIComponent(message);
-            
-            // Criar link do WhatsApp
-            const whatsappUrl = `https://wa.me/5511968380160?text=${encodedMessage}`;
-            
-            // Abrir em nova aba
-            window.open(whatsappUrl, '_blank');
-            
-            showToast('Abrindo WhatsApp para envio...');
-        }
-        
-        function submitForm() {
-            if (validateForm()) {
-                document.getElementById('successMessage').style.display = 'block';
-                showToast('Formulário enviado com sucesso!');
+        // Gerar PDF do formulário
+        async function generatePDF() {
+            return new Promise((resolve, reject) => {
+                const card = document.querySelector('.card');
                 
-                // Scroll para a mensagem de sucesso
-                document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+                html2canvas(card, {
+                    scale: 2,
+                    useCORS: true
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                    const imgWidth = pdf.internal.pageSize.getWidth();
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                    
+                    // Adicionar dados extras ao PDF
+                    pdf.setFontSize(12);
+                    pdf.text('Formulário enviado automaticamente pelo sistema', 20, imgHeight + 20);
+                    pdf.text(`Data do envio: ${new Date().toLocaleString()}`, 20, imgHeight + 30);
+                    
+                    const pdfBlob = pdf.output('blob');
+                    resolve(pdfBlob);
+                }).catch(error => {
+                    reject(error);
+                });
+            });
+        }
+        
+        // Simular envio via WhatsApp
+        function sendPDFToOffice(pdfBlob) {
+            return new Promise((resolve) => {
+                // Simulação de envio para o WhatsApp do escritório
+                setTimeout(() => {
+                    resolve(true);
+                }, 3000);
+            });
+        }
+        
+        // Enviar via WhatsApp (processo completo)
+        async function sendViaWhatsApp() {
+            if (!validateForm()) return;
+            
+            // Mostrar modal de confirmação
+            whatsappModal.classList.add('active');
+        }
+        
+        // Confirmar envio
+        async function confirmSend() {
+            whatsappModal.classList.remove('active');
+            sendingOverlay.style.display = 'flex';
+            
+            try {
+                // Gerar PDF
+                const pdfBlob = await generatePDF();
+                
+                // Simular envio para o WhatsApp do escritório
+                const sendResult = await sendPDFToOffice(pdfBlob);
+                
+                if (sendResult) {
+                    // Mostrar mensagem de sucesso
+                    document.getElementById('successMessage').style.display = 'block';
+                    showToast('Formulário enviado com sucesso para o escritório!');
+                    
+                    // Scroll para a mensagem de sucesso
+                    document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error('Erro ao enviar formulário:', error);
+                showToast('Erro ao enviar formulário. Tente novamente.', 'error');
+            } finally {
+                sendingOverlay.style.display = 'none';
             }
         }
         
@@ -2113,10 +1648,6 @@
             // Botão para adicionar experiência
             document.getElementById('addExperiencia').addEventListener('click', addExperiencia);
             
-            // Botões da câmera
-            document.getElementById('startCamera').addEventListener('click', startCamera);
-            document.getElementById('retakeBtn').addEventListener('click', retakePhoto);
-            
             // Upload de arquivos
             document.getElementById('uploadBtn').addEventListener('click', triggerFileInput);
             document.getElementById('fileInput').addEventListener('change', handleFileSelect);
@@ -2125,14 +1656,23 @@
             document.getElementById('dropArea').addEventListener('click', triggerFileInput);
             
             // Botões de ação
-            document.getElementById('generatePdf').addEventListener('click', generatePdf);
             document.getElementById('sendWhatsApp').addEventListener('click', sendViaWhatsApp);
-            document.getElementById('submitForm').addEventListener('click', submitForm);
+            document.getElementById('submitForm').addEventListener('click', function(e) {
+                e.preventDefault();
+                sendViaWhatsApp();
+            });
+            
+            // Botões do modal WhatsApp
+            document.getElementById('cancelWhatsApp').addEventListener('click', function() {
+                whatsappModal.classList.remove('active');
+            });
+            
+            document.getElementById('confirmSend').addEventListener('click', confirmSend);
             
             // Remover dependentes e experiências (delegação de eventos)
             document.getElementById('dependentesContainer').addEventListener('click', function(e) {
                 if (e.target.closest('.remove-dependente')) {
-                    e.target.closest('.dependente-card').remove();
+                    e.target.closest('.dependente-item').remove();
                     updateDependenteTitles();
                     showToast('Dependente removido com sucesso!');
                 }
