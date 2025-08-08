@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * {
             margin: 0;
@@ -310,15 +311,21 @@
             min-width: 280px;
         }
         
-        .btn-whatsapp {
-            background: linear-gradient(to right, #25D366, #128C7E);
+        .btn-primary {
+            background: linear-gradient(to right, #1a2980, #26d0ce);
             color: white;
-            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.25);
+            box-shadow: 0 5px 15px rgba(26, 41, 128, 0.25);
         }
         
-        .btn-whatsapp:hover {
+        .btn-secondary {
+            background: linear-gradient(to right, #6c757d, #5a6268);
+            color: white;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.25);
+        }
+        
+        .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.35);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
         }
         
         .btn-add {
@@ -626,87 +633,31 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .whatsapp-modal {
+        .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
+            display: none;
         }
         
-        .whatsapp-modal.active {
-            opacity: 1;
-            pointer-events: all;
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #1a2980;
+            animation: spin 1s ease-in-out infinite;
         }
         
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 500px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transform: translateY(20px);
-            transition: transform 0.3s;
-        }
-        
-        .whatsapp-modal.active .modal-content {
-            transform: translateY(0);
-        }
-        
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: #128C7E;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .modal-content input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #25D366;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-        
-        .modal-btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .modal-btn.cancel {
-            background: #f1f1f1;
-            color: #333;
-        }
-        
-        .modal-btn.send {
-            background: #25D366;
-            color: white;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
         @media (max-width: 768px) {
@@ -750,10 +701,6 @@
             .btn {
                 min-width: 100%;
             width: 100%;
-            }
-            
-            .modal-buttons {
-                flex-direction: column;
             }
         }
     </style>
@@ -1216,14 +1163,11 @@
                 
                 <!-- Botões de Ação -->
                 <div class="btn-group">
-                    <button type="button" id="generatePdf" class="btn">
-                        <i class="fas fa-file-pdf"></i> Gerar PDF
+                    <button type="reset" id="resetForm" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i> Limpar
                     </button>
-                    <button type="button" id="sendWhatsApp" class="btn btn-whatsapp">
-                        <i class="fab fa-whatsapp"></i> Enviar via WhatsApp
-                    </button>
-                    <button type="submit" id="submitForm" class="btn">
-                        <i class="fas fa-paper-plane"></i> Enviar Formulário
+                    <button type="button" id="submitForm" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Enviar
                     </button>
                 </div>
                 
@@ -1238,25 +1182,12 @@
         </div>
     </div>
     
-    <!-- Modal para envio via WhatsApp -->
-    <div class="whatsapp-modal" id="whatsappModal">
-        <div class="modal-content">
-            <h2><i class="fab fa-whatsapp"></i> Enviar via WhatsApp</h2>
-            <p>Digite o número de telefone com DDD para enviar o formulário:</p>
-            <input type="tel" id="whatsappNumber" placeholder="(00) 00000-0000" required>
-            <div class="modal-buttons">
-                <button class="modal-btn cancel" id="cancelWhatsApp">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
-                <button class="modal-btn send" id="confirmSend">
-                    <i class="fab fa-whatsapp"></i> Enviar
-                </button>
-            </div>
-        </div>
-    </div>
-    
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i> <span id="toastMessage">Operação realizada com sucesso!</span>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
     </div>
     
     <script>
@@ -1264,6 +1195,15 @@
         let uploadedFiles = [];
         let dependentCounter = 1;
         let experienceCounter = 1;
+        
+        // IDs das planilhas e e-mail de destino
+        const SPREADSHEET_ID = '1yOSsmS9p9BJpBZnpYODswd-rh1cml13haK3WsZMFtds';
+        const SHEET_NAME = 'dados';
+        const TEMPLATE_ID = '1ZAodQmDn0fqyzmWiFrjnngw-zbvVcPda';
+        const EMAIL_DESTINO = 'vilera@prof.educacao.sp.gov.br';
+        
+        // URL do Google Apps Script (deverá ser implementado separadamente)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRf4sVZz2Pzr3K6u4dKd5D5p1pJk9Ld5Yf3z0GJ0/exec';
         
         // Funções para dependentes
         function addDependente() {
@@ -1460,119 +1400,182 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
         
-        // Funções para ações finais
-        function generatePdf() {
-            if (!validateForm()) return;
+        // Função para coletar todos os dados do formulário
+        function collectFormData() {
+            const formData = {};
             
-            showToast('Gerando PDF...');
+            // Coletar dados básicos
+            const fields = [
+                'nome', 'cpf', 'rg', 'orgaoEmissor', 'dataEmissao', 'dataNascimento',
+                'naturalidade', 'nacionalidade', 'nomePai', 'nomeMae', 'estadoCivil',
+                'genero', 'tipoSanguineo', 'cep', 'logradouro', 'numero', 'complemento',
+                'bairro', 'cidade', 'estado', 'celular1', 'celular2', 'email',
+                'escolaridade', 'curso', 'instituicao', 'anoConclusao',
+                'dataDeclaracao', 'cidadeDeclaracao', 'dataAutorizacao', 'cidadeAutorizacao'
+            ];
             
-            // Gerar PDF com html2canvas e jsPDF
-            const cardElement = document.querySelector('.card');
+            fields.forEach(field => {
+                formData[field] = document.getElementById(field)?.value || '';
+            });
             
-            html2canvas(cardElement, {
-                scale: 2,
-                useCORS: true,
-                logging: false
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/jpeg', 0.92);
-                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                const imgWidth = pdf.internal.pageSize.getWidth();
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            // Coletar experiências
+            formData.experiencias = [];
+            const empresaInputs = document.querySelectorAll('input[name="empresa[]"]');
+            const cargoInputs = document.querySelectorAll('input[name="cargo[]"]');
+            const dataInicioInputs = document.querySelectorAll('input[name="dataInicio[]"]');
+            const dataTerminoInputs = document.querySelectorAll('input[name="dataTermino[]"]');
+            
+            for (let i = 0; i < empresaInputs.length; i++) {
+                formData.experiencias.push({
+                    empresa: empresaInputs[i].value,
+                    cargo: cargoInputs[i].value,
+                    dataInicio: dataInicioInputs[i].value,
+                    dataTermino: dataTerminoInputs[i].value
+                });
+            }
+            
+            // Coletar dependentes
+            formData.dependentes = [];
+            const dependenteNomeInputs = document.querySelectorAll('input[name="dependenteNome[]"]');
+            const dependenteParentescoInputs = document.querySelectorAll('select[name="dependenteParentesco[]"]');
+            const dependenteNascimentoInputs = document.querySelectorAll('input[name="dependenteNascimento[]"]');
+            const dependenteCpfInputs = document.querySelectorAll('input[name="dependenteCpf[]"]');
+            
+            for (let i = 0; i < dependenteNomeInputs.length; i++) {
+                formData.dependentes.push({
+                    nome: dependenteNomeInputs[i].value,
+                    parentesco: dependenteParentescoInputs[i].value,
+                    nascimento: dependenteNascimentoInputs[i].value,
+                    cpf: dependenteCpfInputs[i].value
+                });
+            }
+            
+            // Coletar arquivos
+            formData.arquivos = uploadedFiles.map(file => file.name);
+            
+            return formData;
+        }
+        
+        // Função para enviar dados para o Google Sheets
+        async function sendToGoogleSheets(formData) {
+            try {
+                // Mostrar overlay de carregamento
+                document.getElementById('loadingOverlay').style.display = 'flex';
                 
-                pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-                pdf.save('ficha-cadastral.pdf');
+                // Gerar PDF
+                const pdfUrl = await generatePDF(formData);
                 
-                showToast('PDF gerado com sucesso!');
-            }).catch(error => {
-                console.error('Erro ao gerar PDF:', error);
-                showToast('Erro ao gerar o PDF', 'error');
+                // Adicionar o link do PDF aos dados
+                formData.pdfUrl = pdfUrl;
+                
+                // Enviar dados para o Google Sheets
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        spreadsheetId: SPREADSHEET_ID,
+                        sheetName: SHEET_NAME,
+                        emailDestino: EMAIL_DESTINO,
+                        data: formData
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao enviar dados para o Google Sheets');
+                }
+                
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('Erro:', error);
+                throw error;
+            } finally {
+                // Esconder overlay de carregamento
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+        
+        // Função para gerar PDF (simulação)
+        async function generatePDF(formData) {
+            // Em um cenário real, isso seria implementado no Google Apps Script
+            // Aqui simulamos o retorno de um URL de PDF
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve('https://drive.google.com/file/d/12345abcde/view');
+                }, 2000);
             });
         }
         
-        function showWhatsAppModal() {
-            whatsappModal.classList.add('active');
-        }
-        
-        function hideWhatsAppModal() {
-            whatsappModal.classList.remove('active');
-        }
-        
-        // Função para enviar via WhatsApp
-        async function sendViaWhatsApp() {
-            const phoneNumber = document.getElementById('whatsappNumber').value.replace(/\D/g, '');
-            
-            if (!phoneNumber) {
-                showToast('Por favor, informe um número de telefone válido', 'error');
-                return;
-            }
-            
+        // Função para enviar o formulário
+        async function submitForm() {
             if (!validateForm()) {
-                hideWhatsAppModal();
                 return;
             }
-            
-            showToast('Gerando PDF para envio...');
             
             try {
-                // Gerar o documento como imagem
-                const cardElement = document.querySelector('.card');
+                const formData = collectFormData();
+                const result = await sendToGoogleSheets(formData);
                 
-                html2canvas(cardElement, {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                if (result.success) {
+                    // Mostrar mensagem de sucesso
+                    Swal.fire({
+                        title: 'Sucesso!',
+                        text: 'Formulário enviado com sucesso e PDF enviado por e-mail',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
                     
-                    // Criar link WhatsApp com imagem em base64
-                    const whatsappMessage = encodeURIComponent('Segue minha ficha cadastral completa:');
-                    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${whatsappMessage}`;
+                    // Limpar formulário
+                    document.getElementById('employeeForm').reset();
+                    uploadedFiles = [];
+                    updateFileList();
                     
-                    // Abrir nova janela para envio
-                    const newWindow = window.open(whatsappUrl, '_blank');
+                    // Remover todos os dependentes e experiências adicionais
+                    document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
+                    document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
                     
-                    if (!newWindow) {
-                        showToast('Por favor, permita popups para enviar o documento', 'error');
-                        return;
-                    }
+                    // Resetar contadores
+                    dependentCounter = 1;
+                    experienceCounter = 1;
                     
-                    // Tentar enviar a imagem após a abertura da janela
-                    setTimeout(() => {
-                        try {
-                            // Criar link para download da imagem
-                            const downloadLink = document.createElement('a');
-                            downloadLink.href = imgData;
-                            downloadLink.download = 'ficha-cadastral.jpg';
-                            
-                            // Simular clique para iniciar download
-                            document.body.appendChild(downloadLink);
-                            downloadLink.click();
-                            document.body.removeChild(downloadLink);
-                            
-                            showToast('Abra o WhatsApp e envie a imagem anexada');
-                        } catch (error) {
-                            console.error('Erro ao preparar imagem:', error);
-                            showToast('Complete o envio anexando o documento no WhatsApp', 'info');
-                        }
-                    }, 2000);
-                    
-                    hideWhatsAppModal();
-                });
-                
+                    // Atualizar títulos
+                    updateDependenteTitles();
+                    updateExperienciaTitles();
+                } else {
+                    throw new Error(result.message || 'Erro desconhecido');
+                }
             } catch (error) {
-                console.error('Erro ao enviar via WhatsApp:', error);
-                showToast('Erro ao enviar via WhatsApp', 'error');
-                hideWhatsAppModal();
+                Swal.fire({
+                    title: 'Erro!',
+                    text: 'Ocorreu um erro ao enviar o formulário: ' + error.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         }
         
-        function submitForm() {
-            if (validateForm()) {
-                document.getElementById('successMessage').style.display = 'block';
-                showToast('Formulário enviado com sucesso!');
+        // Função para limpar formulário
+        function resetForm() {
+            if (confirm('Tem certeza que deseja limpar todos os dados do formulário?')) {
+                document.getElementById('employeeForm').reset();
+                uploadedFiles = [];
+                updateFileList();
                 
-                // Scroll para a mensagem de sucesso
-                document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+                // Remover todos os dependentes e experiências adicionais
+                document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
+                document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
+                
+                // Resetar contadores
+                dependentCounter = 1;
+                experienceCounter = 1;
+                
+                // Atualizar títulos
+                updateDependenteTitles();
+                updateExperienciaTitles();
+                
+                showToast('Formulário limpo com sucesso!');
             }
         }
         
@@ -1685,22 +1688,6 @@
                 }
                 e.target.value = value;
             });
-            
-            // Máscara para o campo de WhatsApp
-            const whatsappInput = document.getElementById('whatsappNumber');
-            whatsappInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 11) value = value.slice(0, 11);
-                
-                if (value.length > 10) {
-                    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                } else if (value.length > 6) {
-                    value = value.replace(/(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
-                } else if (value.length > 2) {
-                    value = value.replace(/(\d{2})(\d+)/, '($1) $2');
-                }
-                e.target.value = value;
-            });
         }
         
         function setupEventListeners() {
@@ -1717,13 +1704,8 @@
             document.getElementById('dropArea').addEventListener('drop', handleFileDrop);
             
             // Botões de ação
-            document.getElementById('generatePdf').addEventListener('click', generatePdf);
-            document.getElementById('sendWhatsApp').addEventListener('click', showWhatsAppModal);
             document.getElementById('submitForm').addEventListener('click', submitForm);
-            
-            // Botões do modal WhatsApp
-            document.getElementById('cancelWhatsApp').addEventListener('click', hideWhatsAppModal);
-            document.getElementById('confirmSend').addEventListener('click', sendViaWhatsApp);
+            document.getElementById('resetForm').addEventListener('click', resetForm);
             
             // Remover dependentes e experiências (delegação de eventos)
             document.getElementById('dependentesContainer').addEventListener('click', function(e) {
