@@ -1469,7 +1469,7 @@
                 formData.pdfUrl = pdfUrl;
                 
                 // Enviar dados para o Google Sheets
-                const response = await fetch(SCRIPT_URL, {
+                const response = await fetch("https://script.google.com/macros/s/AKfycbylDq3Ir7IZpQkBS6PK1m2jsPdu1hUDsBmyLLonJx8UJpamrO1cu0Nj-MMtYKvlmXg/exec", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
