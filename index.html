@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* Conteúdo do CSS (pasted_content_3.txt) */
         * {
             margin: 0;
             padding: 0;
@@ -350,155 +351,69 @@
         }
         
         .btn-remove {
-            background: #f44336;
+            background: linear-gradient(to right, #dc3545, #c82333);
             color: white;
+            padding: 8px 15px;
             border: none;
-            border-radius: 5px;
-            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 5px;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            font-size: 14px;
         }
         
         .btn-remove:hover {
-            background: #d32f2f;
-            transform: scale(1.05);
-        }
-        
-        .required::after {
-            content: " *";
-            color: #e53935;
-        }
-        
-        .instructions {
-            background: linear-gradient(to right, #fff8e1, #fffde7);
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 6px 6px 0;
-            font-size: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .footer-note {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(to right, #ffebee, #ffcdd2);
-            font-weight: 600;
-            color: #d32f2f;
-            border-top: 1px solid #e0e0e0;
-            font-size: 15px;
-        }
-        
-        .progress-container {
-            display: none;
-            background: #e9ecef;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .progress-bar {
-            height: 18px;
-            background: #dee2e6;
-            border-radius: 10px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(to right, #25D366, #128C7E);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-        
-        .time-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            cursor: pointer;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .time-group:hover {
-            border-color: #1a2980;
-            background-color: #e9f7fe;
-        }
-        
-        .time-separator {
-            font-size: 18px;
-            font-weight: bold;
-            color: #555;
-        }
-        
-        .time-input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-        
-        .time-input-wrapper label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
-            color: #666;
-        }
-        
-        .time-input-wrapper input {
-            cursor: pointer;
+            opacity: 0.9;
         }
         
         .file-list {
             margin-top: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            background-color: #fff;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            border-top: 1px solid #e0e0e0;
+            padding-top: 15px;
         }
         
         .file-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            background: #f9f9f9;
-            border-radius: 6px;
-            margin-bottom: 8px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e0e0e0;
         }
         
         .file-item:last-child {
             border-bottom: none;
-            margin-bottom: 0;
         }
         
         .file-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
         }
         
         .file-icon {
+            font-size: 24px;
             color: #1a2980;
-            font-size: 20px;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: #6c757d;
         }
         
         .file-remove {
-            color: #d32f2f;
             background: none;
             border: none;
+            color: #dc3545;
             cursor: pointer;
             font-size: 18px;
-            padding: 5px;
             transition: all 0.2s;
         }
         
@@ -688,19 +603,11 @@
             .upload-header {
                 flex-direction: column;
                 gap: 15px;
+                align-items: flex-start;
             }
             
             .upload-button {
                 width: 100%;
-            }
-            
-            .date-group {
-                margin-bottom: 15px;
-            }
-            
-            .btn {
-                min-width: 100%;
-            width: 100%;
             }
         }
     </style>
@@ -709,57 +616,39 @@
     <div class="container">
         <div class="card">
             <div class="company-logo">
-                <div class="logo-symbol">S</div>
+                <span class="logo-symbol">R</span>
                 <div class="logo-text">
-                    <div class="company-name">SELLES</div>
-                    <div class="company-description">ASSESSORIA CONTABIL</div>
+                    <span class="company-name">RAUL VILERA</span>
+                    <span class="company-description">Consultoria e Serviços</span>
                 </div>
             </div>
             
             <div class="header">
-                <h1><i class="fas fa-user-tie"></i> Ficha Cadastral Completa</h1>
+                <h1>FICHA CADASTRAL COMPLETA</h1>
             </div>
             
             <div class="company-info">
-                <div>
-                    <i class="fas fa-building"></i>
-                    <span>Empresa: Escritório Selles Assessoria Contábil</span>
-                </div>
-                <div>
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>Endereço: Rua: 5, 2245 -Centro - Jales/SP</span>
-                </div>
-                <div>
-                    <i class="fas fa-phone"></i>
-                    <span>Telefone: (17) 3632-3016</span>
-                </div>
-                <div>
-                    <i class="fas fa-envelope"></i>
-                    <span>Email: escrsel@gmail.com</span>
-                </div>
+                <div><i class="fas fa-map-marker-alt"></i> Rua Teste, 123 - Centro - São Paulo/SP</div>
+                <div><i class="fas fa-phone"></i> (11) 99999-9999</div>
+                <div><i class="fas fa-envelope"></i> contato@raulvilera.com.br</div>
             </div>
             
-            <div class="form-title">
-                <i class="fas fa-id-card"></i> Formulário de Cadastro
-            </div>
-            
-            <form id="employeeForm">
+            <form id="fichaCadastralForm">
+                <div class="form-title">
+                    <i class="fas fa-user-circle"></i> Dados Pessoais
+                </div>
+                
                 <!-- Seção de Dados Pessoais -->
                 <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-user"></i> Dados Pessoais
-                    </div>
-                    
                     <div class="form-row">
-                        <div class="form-group medium">
+                        <div class="form-group large">
                             <label for="nome" class="required">Nome Completo</label>
                             <input type="text" id="nome" name="nome" required>
-                            <div class="error-message" id="nome-error">Por favor, insira seu nome completo</div>
                         </div>
-                        <div class="form-group medium">
+                        <div class="form-group small">
                             <label for="cpf" class="required">CPF</label>
                             <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required>
-                            <div class="error-message" id="cpf-error">CPF inválido</div>
+                            <span class="error-message" id="cpf-error">CPF inválido.</span>
                         </div>
                     </div>
                     
@@ -776,29 +665,29 @@
                             <label for="dataEmissao" class="required">Data de Emissão</label>
                             <input type="date" id="dataEmissao" name="dataEmissao" required>
                         </div>
-                    </div>
-                    
-                    <div class="form-row">
                         <div class="form-group small">
                             <label for="dataNascimento" class="required">Data de Nascimento</label>
                             <input type="date" id="dataNascimento" name="dataNascimento" required>
                         </div>
-                        <div class="form-group small">
-                            <label for="naturalidade" class="required">Naturalidade</label>
-                            <input type="text" id="naturalidade" name="naturalidade" required>
-                        </div>
-                        <div class="form-group small">
-                            <label for="nacionalidade" class="required">Nacionalidade</label>
-                            <input type="text" id="nacionalidade" name="nacionalidade" value="Brasileiro" required>
-                        </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group medium">
+                            <label for="naturalidade" class="required">Naturalidade (Cidade/Estado)</label>
+                            <input type="text" id="naturalidade" name="naturalidade" required>
+                        </div>
+                        <div class="form-group medium">
+                            <label for="nacionalidade" class="required">Nacionalidade</label>
+                            <input type="text" id="nacionalidade" name="nacionalidade" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group full">
                             <label for="nomePai">Nome do Pai</label>
                             <input type="text" id="nomePai" name="nomePai">
                         </div>
-                        <div class="form-group medium">
+                        <div class="form-group full">
                             <label for="nomeMae" class="required">Nome da Mãe</label>
                             <input type="text" id="nomeMae" name="nomeMae" required>
                         </div>
@@ -813,7 +702,7 @@
                                 <option value="casado">Casado(a)</option>
                                 <option value="divorciado">Divorciado(a)</option>
                                 <option value="viuvo">Viúvo(a)</option>
-                                <option value="separado">Separado(a)</option>
+                                <option value="uniao_estavel">União Estável</option>
                             </select>
                         </div>
                         <div class="form-group small">
@@ -823,48 +712,47 @@
                                 <option value="masculino">Masculino</option>
                                 <option value="feminino">Feminino</option>
                                 <option value="outro">Outro</option>
-                                <option value="naoInformar">Prefiro não informar</option>
                             </select>
                         </div>
                         <div class="form-group small">
                             <label for="tipoSanguineo">Tipo Sanguíneo</label>
                             <select id="tipoSanguineo" name="tipoSanguineo">
                                 <option value="">Selecione</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
+                                <option value="a+">A+</option>
+                                <option value="a-">A-</option>
+                                <option value="b+">B+</option>
+                                <option value="b-">B-</option>
+                                <option value="ab+">AB+</option>
+                                <option value="ab-">AB-</option>
+                                <option value="o+">O+</option>
+                                <option value="o-">O-</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 
+                <div class="form-title">
+                    <i class="fas fa-map-marked-alt"></i> Endereço e Contato
+                </div>
+                
                 <!-- Seção de Endereço -->
                 <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-map-marker-alt"></i> Endereço
-                    </div>
-                    
                     <div class="form-row">
-                        <div class="form-group medium">
+                        <div class="form-group xsmall">
                             <label for="cep" class="required">CEP</label>
                             <input type="text" id="cep" name="cep" placeholder="00000-000" required>
                         </div>
-                        <div class="form-group medium">
+                        <div class="form-group large">
                             <label for="logradouro" class="required">Logradouro</label>
                             <input type="text" id="logradouro" name="logradouro" required>
+                        </div>
+                        <div class="form-group xsmall">
+                            <label for="numero" class="required">Número</label>
+                            <input type="text" id="numero" name="numero" required>
                         </div>
                     </div>
                     
                     <div class="form-row">
-                        <div class="form-group small">
-                            <label for="numero" class="required">Número</label>
-                            <input type="text" id="numero" name="numero" required>
-                        </div>
                         <div class="form-group medium">
                             <label for="complemento">Complemento</label>
                             <input type="text" id="complemento" name="complemento">
@@ -882,53 +770,17 @@
                         </div>
                         <div class="form-group medium">
                             <label for="estado" class="required">Estado</label>
-                            <select id="estado" name="estado" required>
-                                <option value="">Selecione</option>
-                                <option value="AC">Acre</option>
-                                <option value="AL">Alagoas</option>
-                                <option value="AP">Amapá</option>
-                                <option value="AM">Amazonas</option>
-                                <option value="BA">Bahia</option>
-                                <option value="CE">Ceará</option>
-                                <option value="DF">Distrito Federal</option>
-                                <option value="ES">Espírito Santo</option>
-                                <option value="GO">Goiás</option>
-                                <option value="MA">Maranhão</option>
-                                <option value="MT">Mato Grosso</option>
-                                <option value="MS">Mato Grosso do Sul</option>
-                                <option value="MG">Minas Gerais</option>
-                                <option value="PA">Pará</option>
-                                <option value="PB">Paraíba</option>
-                                <option value="PR">Paraná</option>
-                                <option value="PE">Pernambuco</option>
-                                <option value="PI">Piauí</option>
-                                <option value="RJ">Rio de Janeiro</option>
-                                <option value="RN">Rio Grande do Norte</option>
-                                <option value="RS">Rio Grande do Sul</option>
-                                <option value="RO">Rondônia</option>
-                                <option value="RR">Roraima</option>
-                                <option value="SC">Santa Catarina</option>
-                                <option value="SP">São Paulo</option>
-                                <option value="SE">Sergipe</option>
-                                <option value="TO">Tocantins</option>
-                            </select>
+                            <input type="text" id="estado" name="estado" required>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Seção de Contato (com 2 celulares) -->
-                <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-phone"></i> Contato
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group medium">
                             <label for="celular1" class="required">Celular 1</label>
-                            <input type="tel" id="celular1" name="celular1" placeholder="(00) 00000-0000" value="(17) 99611-6514" required>
+                            <input type="tel" id="celular1" name="celular1" placeholder="(00) 00000-0000" required>
                         </div>
                         <div class="form-group medium">
-                            <label for="celular2">Celular 2</label>
+                            <label for="celular2">Celular 2 (Opcional)</label>
                             <input type="tel" id="celular2" name="celular2" placeholder="(00) 00000-0000">
                         </div>
                     </div>
@@ -936,62 +788,54 @@
                     <div class="form-row">
                         <div class="form-group full">
                             <label for="email" class="required">E-mail</label>
-                            <input type="email" id="email" name="email" placeholder="seu.email@exemplo.com" required>
+                            <input type="email" id="email" name="email" required>
                         </div>
                     </div>
                 </div>
                 
+                <div class="form-title">
+                    <i class="fas fa-graduation-cap"></i> Formação Acadêmica
+                </div>
+                
                 <!-- Seção de Formação Acadêmica -->
                 <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-graduation-cap"></i> Formação Acadêmica
-                    </div>
-                    
                     <div class="form-row">
-                        <div class="form-group medium">
+                        <div class="form-group small">
                             <label for="escolaridade" class="required">Escolaridade</label>
                             <select id="escolaridade" name="escolaridade" required>
                                 <option value="">Selecione</option>
-                                <option value="fundamental">Fundamental Incompleto</option>
-                                <option value="fundamentalCompleto">Fundamental Completo</option>
-                                <option value="medio">Médio Incompleto</option>
-                                <option value="medioCompleto">Médio Completo</option>
-                                <option value="superior">Superior Incompleto</option>
-                                <option value="superiorCompleto">Superior Completo</option>
-                                <option value="posGraduacao">Pós-graduação</option>
+                                <option value="fundamental">Fundamental</option>
+                                <option value="medio">Médio</option>
+                                <option value="superior_incompleto">Superior Incompleto</option>
+                                <option value="superior_completo">Superior Completo</option>
+                                <option value="pos_graduacao">Pós-Graduação</option>
                                 <option value="mestrado">Mestrado</option>
                                 <option value="doutorado">Doutorado</option>
                             </select>
                         </div>
                         <div class="form-group medium">
-                            <label for="curso">Curso Superior</label>
+                            <label for="curso">Curso Superior (se aplicável)</label>
                             <input type="text" id="curso" name="curso">
                         </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group full">
+                        <div class="form-group medium">
                             <label for="instituicao">Instituição de Ensino</label>
                             <input type="text" id="instituicao" name="instituicao">
                         </div>
-                    </div>
-                    
-                    <div class="form-row">
                         <div class="form-group small">
                             <label for="anoConclusao">Ano de Conclusão</label>
-                            <input type="number" id="anoConclusao" name="anoConclusao" min="1950" max="2025">
+                            <input type="number" id="anoConclusao" name="anoConclusao" min="1900" max="2099">
                         </div>
                     </div>
                 </div>
                 
+                <div class="form-title">
+                    <i class="fas fa-briefcase"></i> Experiência Profissional
+                </div>
+                
                 <!-- Seção de Experiência Profissional -->
                 <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-briefcase"></i> Experiência Profissional
-                    </div>
-                    
                     <div class="instructions">
-                        <p><i class="fas fa-info-circle"></i> Liste suas experiências profissionais mais relevantes, começando pela mais recente.</p>
+                        <p><i class="fas fa-info-circle"></i> Adicione suas experiências profissionais mais relevantes, começando pela mais recente.</p>
                     </div>
                     
                     <div id="experienciasContainer">
@@ -1024,12 +868,12 @@
                     </button>
                 </div>
                 
+                <div class="form-title">
+                    <i class="fas fa-users"></i> Dependentes (Opcional)
+                </div>
+                
                 <!-- Seção de Dependentes (opcional) -->
                 <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-users"></i> Dependentes (Opcional)
-                    </div>
-                    
                     <div class="instructions">
                         <p><i class="fas fa-info-circle"></i> Adicione informações sobre seus dependentes legais (cônjuge, filhos, etc.).</p>
                     </div>
@@ -1079,12 +923,12 @@
                     </button>
                 </div>
                 
+                <div class="form-title">
+                    <i class="fas fa-file-upload"></i> Documentos
+                </div>
+                
                 <!-- Seção de Documentos -->
                 <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-file-upload"></i> Documentos
-                    </div>
-                    
                     <div class="upload-container">
                         <div class="upload-header">
                             <h3><i class="fas fa-cloud-upload-alt"></i> Upload de Documentos</h3>
@@ -1118,12 +962,12 @@
                     </div>
                 </div>
                 
+                <div class="form-title">
+                    <i class="fas fa-file-signature"></i> Declarações Finais (Opcional)
+                </div>
+                
                 <!-- Seção de Declarações Finais (opcional) -->
                 <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-file-signature"></i> Declarações Finais (Opcional)
-                    </div>
-                    
                     <div class="form-row">
                         <div class="form-group full">
                             <div class="date-group">
@@ -1163,7 +1007,7 @@
                 
                 <!-- Botões de Ação -->
                 <div class="btn-group">
-                    <button type="reset" id="resetForm" class="btn btn-secondary">
+                    <button type="button" id="resetForm" class="btn btn-secondary">
                         <i class="fas fa-trash"></i> Limpar
                     </button>
                     <button type="button" id="submitForm" class="btn btn-primary">
@@ -1196,16 +1040,16 @@
         let dependentCounter = 1;
         let experienceCounter = 1;
         
-        // IDs das planilhas e e-mail de destino
+        // IDs das planilhas e e-mail de destino (Manter como placeholders)
         const SPREADSHEET_ID = '1yOSsmS9p9BJpBZnpYODswd-rh1cml13haK3WsZMFtds';
         const SHEET_NAME = 'dados';
         const TEMPLATE_ID = '1ZAodQmDn0fqyzmWiFrjnngw-zbvVcPda';
         const EMAIL_DESTINO = 'vilera@prof.educacao.sp.gov.br';
         
-        // URL do Google Apps Script (deverá ser implementado separadamente)
+        // URL do Google Apps Script (MUITO IMPORTANTE: SUBSTITUA ESTE VALOR PELO SEU URL DE IMPLANTAÇÃO DO GAS)
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdnkR81SA8IyYMp8_Ewd89A5P6_OSPnv5YwaO20k1m0910OMHTNCfEA-eSCFCOJ6mW/exec';
         
-        // Funções para dependentes
+        // Funções para dependentes (mantidas do original)
         function addDependente() {
             dependentCounter++;
             const container = document.getElementById('dependentesContainer');
@@ -1260,7 +1104,7 @@
             dependentCounter = dependentes.length;
         }
         
-        // Funções para experiências
+        // Funções para experiências (mantidas do original)
         function addExperiencia() {
             experienceCounter++;
             const container = document.getElementById('experienciasContainer');
@@ -1297,7 +1141,7 @@
             experienceCounter = experiencias.length;
         }
         
-        // Funções para upload de arquivos
+        // Funções para upload de arquivos (mantidas do original)
         function triggerFileInput() {
             document.getElementById('fileInput').click();
         }
@@ -1400,7 +1244,7 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
         
-        // Função para coletar todos os dados do formulário
+        // Função para coletar todos os dados do formulário (mantida do original)
         function collectFormData() {
             const formData = {};
             
@@ -1450,28 +1294,23 @@
                 });
             }
             
-            // Coletar arquivos
+            // Coletar arquivos (apenas os nomes, pois o upload real é complexo e deve ser feito no GAS)
             formData.arquivos = uploadedFiles.map(file => file.name);
             
             return formData;
         }
         
-        // Função para enviar dados para o Google Sheets
+        // FUNÇÃO DE ENVIO CORRIGIDA (INTEGRADA DO frontend_script_corrected_2.js)
         async function sendToGoogleSheets(formData) {
             try {
                 // Mostrar overlay de carregamento
                 document.getElementById('loadingOverlay').style.display = 'flex';
                 
-                // Gerar PDF (manter a lógica original, se for necessária)
-                // const pdfUrl = await generatePDF(formData);
-                // formData.pdfUrl = pdfUrl;
-
-                // Enviar dados para o Google Sheets
-                // O Google Apps Script espera o corpo da requisição como um objeto JSON.
-                const response = await fetch(SCRIPT_URL, { // Usando SCRIPT_URL
+                // Enviar dados para o Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json', // Especificar o tipo de conteúdo como JSON
+                        'Content-Type': 'application/json', // O GAS espera JSON no corpo da requisição
                     },
                     body: JSON.stringify(formData) // Enviar os dados como uma string JSON
                 });
@@ -1482,20 +1321,27 @@
                 // O script do Google Apps deve retornar um JSON com sucesso ou erro.
                 const result = await response.json();
 
-                if (response.ok && result.status === 'success') {
+                if (response.ok && result.success) { // O GAS corrigido retorna { success: true, ... }
                     Swal.fire({
                         icon: 'success',
                         title: 'Sucesso!',
                         text: 'Formulário enviado com sucesso!',
                         confirmButtonColor: '#1a2980'
                     }).then(() => {
-                        // Limpar formulário e resetar estados
-                        document.getElementById('fichaCadastralForm').reset();
+                        // Lógica de limpeza do formulário
+                        const form = document.getElementById('fichaCadastralForm');
+                        if (form) {
+                            form.reset();
+                        }
+                        
+                        // Resetar estados de arquivos e elementos dinâmicos
                         uploadedFiles = [];
                         updateFileList();
+                        
                         // Remover todos os dependentes e experiências adicionais
                         document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
                         document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
+                        
                         // Resetar contadores e títulos
                         dependentCounter = 1;
                         experienceCounter = 1;
@@ -1504,7 +1350,7 @@
                     });
                 } else {
                     // Se a resposta não for 'ok' ou o status for 'error'
-                    const errorMessage = result.message || 'Erro desconhecido ao processar a requisição.';
+                    const errorMessage = result.error || 'Erro desconhecido ao processar a requisição.';
                     Swal.fire({
                         icon: 'error',
                         title: 'Erro!',
@@ -1525,12 +1371,11 @@
                 });
             }
         }
-
-        // Função para lidar com o envio do formulário (substituindo a função submitForm e o listener)
+        
+        // Função para lidar com o envio do formulário
         document.getElementById('fichaCadastralForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Usar a validação existente
             if (!validateForm()) {
                 showToast('Por favor, preencha todos os campos obrigatórios corretamente.', 'error');
                 return;
@@ -1546,23 +1391,10 @@
             document.getElementById('fichaCadastralForm').dispatchEvent(new Event('submit'));
         });
         
-        // Função para gerar PDF (simulação)
-        async function generatePDF(formData) {
-            // Em um cenário real, isso seria implementado no Google Apps Script
-            // Aqui simulamos o retorno de um URL de PDF
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve('https://drive.google.com/file/d/12345abcde/view');
-                }, 2000);
-            });
-        }
-        
-        
-        
-        // Função para limpar formulário
+        // Função para limpar formulário (mantida do original)
         function resetForm() {
             if (confirm('Tem certeza que deseja limpar todos os dados do formulário?')) {
-                document.getElementById('employeeForm').reset();
+                document.getElementById('fichaCadastralForm').reset();
                 uploadedFiles = [];
                 updateFileList();
                 
@@ -1582,7 +1414,7 @@
             }
         }
         
-        // Funções de validação
+        // Funções de validação (mantidas do original)
         function validateForm() {
             let isValid = true;
             
@@ -1611,25 +1443,27 @@
             });
             
             // Validação especial para CPF
-            const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
+            const cpfInput = document.getElementById('cpf');
+            const cpf = cpfInput.value.replace(/\D/g, '');
             if (cpf.length !== 11) {
                 isValid = false;
-                document.getElementById('cpf').classList.add('input-error');
+                cpfInput.classList.add('input-error');
                 document.getElementById('cpf-error').style.display = 'block';
             }
             
             // Validação especial para e-mail
-            const email = document.getElementById('email').value;
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value;
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (email && !emailRegex.test(email)) {
                 isValid = false;
-                document.getElementById('email').classList.add('input-error');
+                emailInput.classList.add('input-error');
             }
             
             return isValid;
         }
         
-        // Função auxiliar para mostrar mensagens
+        // Função auxiliar para mostrar mensagens (mantida do original)
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
@@ -1644,7 +1478,7 @@
             }, 3000);
         }
         
-        // Configurar máscaras de entrada
+        // Configurar máscaras de entrada (mantidas do original)
         function setupInputMasks() {
             // Configurar máscara para CPF
             const cpfInput = document.getElementById('cpf');
@@ -1706,8 +1540,7 @@
             document.getElementById('dropArea').addEventListener('dragover', handleDragOver);
             document.getElementById('dropArea').addEventListener('drop', handleFileDrop);
             
-            // O listener para 'submitForm' foi movido para dentro da nova função 'sendToGoogleSheets' para melhor controle do fluxo.
-            // O listener para o botão 'submitForm' agora apenas dispara o evento 'submit' do formulário.
+            // Botão de Limpar
             document.getElementById('resetForm').addEventListener('click', resetForm);
             
             // Remover dependentes e experiências (delegação de eventos)
