@@ -835,7 +835,7 @@
 
     <script>
         // URL do seu Google Apps Script (DEVE SER SUBSTITUÍDA PELA URL DE IMPLANTAÇÃO DO SEU SCRIPT)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPLJWZinUSJtTl-JEkh8uVg7rWIddpKfIV6FBShVr_UnewU-8o8haF0jw3Z362mHA8/exec'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzHDNJl-4N6EjtIQ24R_scLdPTtI7lxeGpbLuUfLPB1PfxwnPK5iIl2FC3caB9Tzg3p/exec'; 
 
         // Variável global para armazenar arquivos (mantida do original)
         let uploadedFiles = [];
@@ -907,7 +907,7 @@
         // FUNÇÃO DE ENVIO CORRIGIDA (CORRIGIDO: Remoção do Content-Type e melhor tratamento de erro/alerta)
         async function sendToGoogleSheets(formData) {
             // Alerta para o usuário substituir a URL
-            if (SCRIPT_URL === 'SUA_URL_DE_IMPLANTAÇÃO_DO_APPS_SCRIPT') {
+            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzHDNJl-4N6EjtIQ24R_scLdPTtI7lxeGpbLuUfLPB1PfxwnPK5iIl2FC3caB9Tzg3p/exec') {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Atenção!',
