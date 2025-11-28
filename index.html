@@ -9,7 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Seu CSS completo aqui */
         * {
             margin: 0;
             padding: 0;
@@ -18,7 +17,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1a2980, #26d0ce );
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
             min-height: 100vh;
             padding: 20px;
             display: flex;
@@ -136,7 +135,7 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 25px; /* Aumentei o espaçamento */
+            margin-bottom: 25px;
         }
         
         form {
@@ -144,8 +143,8 @@
         }
         
         .form-section {
-            margin-bottom: 40px; /* Aumentei o espaçamento */
-            padding-bottom: 25px; /* Aumentei o espaçamento */
+            margin-bottom: 40px;
+            padding-bottom: 25px;
             border-bottom: 1px solid #e0e0e0;
         }
         
@@ -154,7 +153,7 @@
             color: white;
             padding: 10px 15px;
             border-radius: 6px;
-            margin-bottom: 25px; /* Aumentei o espaçamento */
+            margin-bottom: 25px;
             display: inline-flex;
             align-items: center;
             gap: 10px;
@@ -217,8 +216,24 @@
             outline: none;
         }
         
-        /* Estilo para campos de data - permitir clique em toda a área */
-        input[type="date"] {
+        /* Melhoria: Campos de data com clique em toda a área */
+        input[type="date"], input[type="month"] {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        /* Remover o ícone nativo do calendário em alguns navegadores */
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="month"]::-webkit-calendar-picker-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: auto;
+            height: auto;
+            color: transparent;
+            background: transparent;
             cursor: pointer;
         }
         
