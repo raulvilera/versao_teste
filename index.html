@@ -136,6 +136,7 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
+            margin-bottom: 25px; /* Aumentei o espaçamento */
         }
         
         form {
@@ -143,8 +144,8 @@
         }
         
         .form-section {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
+            margin-bottom: 40px; /* Aumentei o espaçamento */
+            padding-bottom: 25px; /* Aumentei o espaçamento */
             border-bottom: 1px solid #e0e0e0;
         }
         
@@ -153,7 +154,7 @@
             color: white;
             padding: 10px 15px;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 25px; /* Aumentei o espaçamento */
             display: inline-flex;
             align-items: center;
             gap: 10px;
@@ -214,6 +215,11 @@
             border-color: #1a2980;
             box-shadow: 0 0 0 4px rgba(26, 41, 128, 0.15);
             outline: none;
+        }
+        
+        /* Estilo para campos de data - permitir clique em toda a área */
+        input[type="date"] {
+            cursor: pointer;
         }
         
         .upload-container {
@@ -464,7 +470,7 @@
             width: 100%;
             height: 100%;
             background: rgba(255, 255, 255, 0.8);
-            display: none; /* Inicialmente oculto */
+            display: none;
             justify-content: center;
             align-items: center;
             z-index: 9999;
@@ -490,6 +496,44 @@
             font-size: 18px;
             color: #1a2980;
             font-weight: bold;
+        }
+        
+        /* Estilo para o campo de tipo sanguíneo */
+        .tipo-sanguineo-container {
+            position: relative;
+        }
+        
+        .tipo-sanguineo-popup {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .tipo-sanguineo-popup.show {
+            display: block;
+        }
+        
+        .tipo-sanguineo-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .tipo-sanguineo-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .tipo-sanguineo-option:last-child {
+            border-bottom: none;
         }
         
         /* Responsividade */
@@ -611,9 +655,19 @@
                                 <option value="Outro">Outro</option>
                             </select>
                         </div>
-                        <div class="form-group xsmall">
+                        <div class="form-group xsmall tipo-sanguineo-container">
                             <label for="tipoSanguineo">Tipo Sanguíneo</label>
-                            <input type="text" id="tipoSanguineo">
+                            <input type="text" id="tipoSanguineo" readonly placeholder="Clique para selecionar">
+                            <div class="tipo-sanguineo-popup" id="tipoSanguineoPopup">
+                                <div class="tipo-sanguineo-option" data-value="A+">A+</div>
+                                <div class="tipo-sanguineo-option" data-value="A-">A-</div>
+                                <div class="tipo-sanguineo-option" data-value="B+">B+</div>
+                                <div class="tipo-sanguineo-option" data-value="B-">B-</div>
+                                <div class="tipo-sanguineo-option" data-value="AB+">AB+</div>
+                                <div class="tipo-sanguineo-option" data-value="AB-">AB-</div>
+                                <div class="tipo-sanguineo-option" data-value="O+">O+</div>
+                                <div class="tipo-sanguineo-option" data-value="O-">O-</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -835,14 +889,14 @@
 
     <script>
         // URL do seu Google Apps Script (DEVE SER SUBSTITUÍDA PELA URL DE IMPLANTAÇÃO DO SEU SCRIPT)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNykktcztmDLFEJEQpVsKSyfnC6D1xKPgrbMT3RpwZuoQAQFHSyb2p-QZHVBlPjOP9/exec'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzpaeblvI3uKQrcfJmtfIMIq-FuMRdskHbIfbkccLk84TdMtDAQL7HOZWEqvSo55l5u/exec'; 
 
         // Variável global para armazenar arquivos (mantida do original)
         let uploadedFiles = [];
         let dependentCounter = 1;
         let experienceCounter = 1;
 
-        // Função para coletar todos os dados do formulário (CORRIGIDA)
+        // Função para coletar todos os dados do formulário
         function collectFormData() {
             const formData = {};
             
@@ -860,7 +914,7 @@
                 formData[field] = document.getElementById(field)?.value || '';
             });
             
-            // Coletar experiências (CORRIGIDO: Adicionando verificação de preenchimento)
+            // Coletar experiências
             formData.experiencias = [];
             const empresaInputs = document.querySelectorAll('input[name="empresa[]"]');
             const cargoInputs = document.querySelectorAll('input[name="cargo[]"]');
@@ -879,7 +933,7 @@
                 }
             }
             
-            // Coletar dependentes (CORRIGIDO: Adicionando verificação de preenchimento)
+            // Coletar dependentes
             formData.dependentes = [];
             const dependenteNomeInputs = document.querySelectorAll('input[name="dependenteNome[]"]');
             const dependenteParentescoInputs = document.querySelectorAll('select[name="dependenteParentesco[]"]');
@@ -904,10 +958,10 @@
             return formData;
         }
         
-        // FUNÇÃO DE ENVIO CORRIGIDA (CORRIGIDO: Remoção do Content-Type e melhor tratamento de erro/alerta)
+        // FUNÇÃO DE ENVIO CORRIGIDA
         async function sendToGoogleSheets(formData) {
             // Alerta para o usuário substituir a URL
-            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxl6kxh2KtfbYoc-QlJa-jytrlTcMtRAVOOZV41-nur-cYSM3hbmmu1sG5TNMBFzMaZ/exec') {
+            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzpaeblvI3uKQrcfJmtfIMIq-FuMRdskHbIfbkccLk84TdMtDAQL7HOZWEqvSo55l5u/exec') {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Atenção!',
@@ -924,9 +978,7 @@
                 // Enviar dados para o Google Apps Script
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    // CORREÇÃO: Removendo o Content-Type para evitar problemas de preflight/CORS em algumas configurações do GAS
-                    // headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(formData) // Enviar os dados como uma string JSON
+                    body: JSON.stringify(formData)
                 });
 
                 // Ocultar overlay de carregamento
@@ -1070,7 +1122,7 @@
             dependentCounter = titles.length;
         }
 
-        // Funções de Upload (apenas coleta nomes, o upload real é complexo e não está no escopo)
+        // Funções de Upload
         function triggerFileInput() {
             document.getElementById('fileInput').click();
         }
@@ -1166,7 +1218,7 @@
 
         // Corrigindo o listener do botão de envio para usar o novo listener de submit do form
         document.getElementById('submitForm').addEventListener('click', function(e) {
-            e.preventDefault(); // Previne o comportamento padrão do botão
+            e.preventDefault();
             document.getElementById('fichaCadastralForm').dispatchEvent(new Event('submit'));
         });
         
@@ -1303,7 +1355,69 @@
                     value = value.replace(/(\d{5})(\d+)/, '$1-$2');
                 }
                 e.target.value = value;
+                
+                // Buscar endereço quando o CEP estiver completo
+                if (value.length === 8) {
+                    buscarEndereco(value);
+                }
             });
+        }
+        
+        // Função para buscar endereço pelo CEP
+        function buscarEndereco(cep) {
+            // Limpar o traço do CEP para a requisição
+            cep = cep.replace('-', '');
+            
+            // Fazer requisição à API ViaCEP
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.erro) {
+                        // Preencher os campos com os dados retornados
+                        document.getElementById('logradouro').value = data.logradouro || '';
+                        document.getElementById('bairro').value = data.bairro || '';
+                        document.getElementById('cidade').value = data.localidade || '';
+                        document.getElementById('estado').value = data.uf || '';
+                    } else {
+                        showToast('CEP não encontrado.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar CEP:', error);
+                    showToast('Erro ao buscar CEP. Verifique a conexão.', 'error');
+                });
+        }
+        
+        // Função para gerenciar o popup do tipo sanguíneo
+        function setupTipoSanguineo() {
+            const tipoSanguineoInput = document.getElementById('tipoSanguineo');
+            const tipoSanguineoPopup = document.getElementById('tipoSanguineoPopup');
+            
+            // Abrir popup ao clicar no campo
+            tipoSanguineoInput.addEventListener('click', function() {
+                tipoSanguineoPopup.classList.toggle('show');
+            });
+            
+            // Fechar popup ao clicar em uma opção
+            document.querySelectorAll('.tipo-sanguineo-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    tipoSanguineoInput.value = this.getAttribute('data-value');
+                    tipoSanguineoPopup.classList.remove('show');
+                });
+            });
+            
+            // Fechar popup ao clicar fora
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.tipo-sanguineo-container')) {
+                    tipoSanguineoPopup.classList.remove('show');
+                }
+            });
+        }
+        
+        // Permitir clique na área de upload para abrir o seletor de arquivos
+        function setupUploadAreaClick() {
+            const dropArea = document.getElementById('dropArea');
+            dropArea.addEventListener('click', triggerFileInput);
         }
         
         function setupEventListeners() {
@@ -1336,6 +1450,12 @@
                     updateExperienciaTitles();
                 }
             });
+            
+            // Configurar tipo sanguíneo
+            setupTipoSanguineo();
+            
+            // Configurar área de upload para clicar
+            setupUploadAreaClick();
         }
         
         // Inicialização quando o DOM estiver carregado
