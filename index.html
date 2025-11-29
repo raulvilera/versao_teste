@@ -362,52 +362,64 @@
             padding: 14px 30px;
             border: none;
             border-radius: 8px;
-            font-size: 17px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 16px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            min-width: 280px;
+            gap: 8px;
         }
         
         .btn-primary {
             background: linear-gradient(to right, #1a2980, #26d0ce);
             color: white;
-            box-shadow: 0 5px 15px rgba(26, 41, 128, 0.25);
+            box-shadow: 0 4px 15px rgba(26, 41, 128, 0.4);
         }
         
         .btn-primary:hover {
             opacity: 0.9;
-            transform: translateY(-3px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 41, 128, 0.5);
         }
         
-        .loading-overlay {
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.5);
+        }
+        
+        /* Estilo para a sobreposição de carregamento */
+        #loadingOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.6);
             display: none; /* Inicialmente oculto */
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            color: white;
             flex-direction: column;
-            font-size: 20px;
+            color: white;
+            font-size: 1.2em;
         }
         
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #1a2980;
             border-radius: 50%;
-            border-top: 4px solid #fff;
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         @keyframes spin {
@@ -416,49 +428,65 @@
         }
         
         /* Responsividade */
-        @media (max-width: 768px) {
-            .form-group.medium, .form-group.small, .form-group.xsmall {
-                flex: 0 0 100%;
+        @media (max-width: 992px) {
+            .form-group.medium {
+                flex: 0 0 calc(100% - 20px);
             }
-            .company-info {
-                justify-content: center;
+            .form-group.small, .form-group.xsmall {
+                flex: 0 0 calc(50% - 20px);
             }
-            .btn-group .btn {
-                min-width: 100%;
+            .header {
+                padding-left: 30px;
+            }
+            .company-logo {
+                position: static;
+                margin-bottom: 15px;
+                background: none;
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .form-group.small, .form-group.xsmall {
+                flex: 0 0 calc(100% - 20px);
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-
-    <div class="loading-overlay" id="loadingOverlay">
+    <div id="loadingOverlay">
         <div class="spinner"></div>
-        <p>Processando dados e gerando PDF...</p>
-        <p style="font-size: 14px; margin-top: 10px;">Isso pode levar alguns segundos.</p>
+        <p>Processando envio... Por favor, aguarde.</p>
     </div>
 
     <div class="container">
         <div class="card">
             <div class="company-logo">
-                <span class="logo-symbol">E.M</span>
+                <span class="logo-symbol">LOGO</span>
                 <div class="logo-text">
                     <span class="company-name">Nome da Empresa</span>
                     <span class="company-description">Ficha Cadastral</span>
                 </div>
             </div>
-            
             <div class="header">
                 <h1><i class="fas fa-file-alt"></i> Ficha Cadastral Completa</h1>
             </div>
-            
             <div class="company-info">
-                <div><i class="fas fa-map-marker-alt"></i> Endereço: Rua Exemplo, 123</div>
-                <div><i class="fas fa-phone"></i> Telefone: (11) 9999-8888</div>
-                <div><i class="fas fa-envelope"></i> Email: contato@empresa.com</div>
+                <div><i class="fas fa-phone-alt"></i> (XX) XXXX-XXXX</div>
+                <div><i class="fas fa-envelope"></i> contato@empresa.com</div>
+                <div><i class="fas fa-map-marker-alt"></i> Endereço Completo</div>
             </div>
 
             <form id="fichaCadastralForm">
-                
+                <h2 class="form-title"><i class="fas fa-user-check"></i> Dados Pessoais e Documentos</h2>
+
                 <!-- Seção 1: Dados Pessoais -->
                 <div class="form-section">
                     <h2 class="section-title"><i class="fas fa-user"></i> Dados Pessoais</h2>
@@ -475,11 +503,11 @@
                             <label for="rg">RG <span style="color: red;">*</span></label>
                             <input type="text" id="rg" name="rg" required>
                         </div>
-                        <div class="form-group small">
+                        <div class="form-group xsmall">
                             <label for="orgaoEmissor">Órgão Emissor</label>
                             <input type="text" id="orgaoEmissor" name="orgaoEmissor">
                         </div>
-                        <div class="form-group small">
+                        <div class="form-group xsmall">
                             <label for="dataEmissao">Data Emissão RG</label>
                             <input type="date" id="dataEmissao" name="dataEmissao">
                         </div>
@@ -487,7 +515,7 @@
                             <label for="dataNascimento">Data Nascimento <span style="color: red;">*</span></label>
                             <input type="date" id="dataNascimento" name="dataNascimento" required>
                         </div>
-                        <div class="form-group small">
+                        <div class="form-group medium">
                             <label for="naturalidade">Naturalidade</label>
                             <input type="text" id="naturalidade" name="naturalidade">
                         </div>
@@ -737,8 +765,8 @@
     </div>
 
     <script>
-        // URL de implantação do Google Apps Script (O USUÁRIO DEVE SUBSTITUIR ESTA URL)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFyhXq00-NRBi2k5qkiIQUQJb1Mx289gryeYUVZ4JdOxFJTdVLmBn5JJmJSLVSfmI3/exec'; 
+        // ** ATENÇÃO: SUBSTITUA ESTA URL PELA URL DE IMPLANTAÇÃO DO SEU GOOGLE APPS SCRIPT **
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpIXYnDukBRDqrCVeIB9dsTgE3wCj990jjO7SDu55Ba6mjXKJNnJ9w144e5nWRPL2y/exec'; 
 
         let uploadedFiles = [];
         let experienceCounter = 1;
@@ -818,9 +846,12 @@
             });
             
             // Adiciona máscara aos campos de CPF de dependentes já existentes
-            document.getElementById('dependenteCpf1').addEventListener('input', (e) => {
-                e.target.value = maskCPF(e.target.value);
-            });
+            const dependenteCpf1 = document.getElementById('dependenteCpf1');
+            if (dependenteCpf1) {
+                dependenteCpf1.addEventListener('input', (e) => {
+                    e.target.value = maskCPF(e.target.value);
+                });
+            }
         }
 
         function maskCPF(value) {
@@ -984,10 +1015,12 @@
             items.forEach((item, index) => {
                 const title = item.querySelector('.section-subtitle');
                 const newIndex = index + 1;
+                // Corrigido: Garante que o botão de remover só aparece a partir do segundo item
                 title.innerHTML = `Experiência ${newIndex} ${newIndex > 1 ? `<button type="button" class="file-remove remove-experiencia" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button>` : ''}`;
                 
                 // Atualiza os atributos name e id dos inputs
                 item.querySelectorAll('input, select').forEach(input => {
+                    // O regex deve ser mais específico para evitar problemas com 'dataInicio' e 'dataTermino'
                     const baseName = input.name.replace(/\d+$/, '');
                     input.name = baseName + newIndex;
                     input.id = baseName + newIndex;
@@ -1003,11 +1036,13 @@
             items.forEach((item, index) => {
                 const title = item.querySelector('.section-subtitle');
                 const newIndex = index + 1;
+                // Corrigido: Garante que o botão de remover só aparece a partir do segundo item
                 title.innerHTML = `Dependente ${newIndex} ${newIndex > 1 ? `<button type="button" class="file-remove remove-dependente" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button>` : ''}`;
 
                 // Atualiza os atributos name e id dos inputs
                 item.querySelectorAll('input, select').forEach(input => {
-                    const baseName = input.name.replace(/\d+$/, '').replace('dependente', '');
+                    // O regex deve ser mais específico para evitar problemas com 'dependenteNome' e 'dependenteCpf'
+                    const baseName = input.name.replace(/\d+$/, '');
                     input.name = baseName + newIndex;
                     input.id = baseName + newIndex;
                     const label = item.querySelector(`label[for="${baseName}${newIndex}"]`);
@@ -1025,6 +1060,16 @@
         function handleFileSelect(e) {
             const files = e.target.files;
             for (let i = 0; i < files.length; i++) {
+                // Adiciona uma verificação de tamanho (10MB)
+                if (files[i].size > 10 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Arquivo muito grande',
+                        text: `O arquivo "${files[i].name}" excede o limite de 10MB e não será anexado.`,
+                        confirmButtonColor: '#1a2980'
+                    });
+                    continue;
+                }
                 uploadedFiles.push(files[i]);
             }
             updateFileList();
@@ -1045,6 +1090,16 @@
             e.currentTarget.style.backgroundColor = '#f8f9fa';
             const files = e.dataTransfer.files;
             for (let i = 0; i < files.length; i++) {
+                // Adiciona uma verificação de tamanho (10MB)
+                if (files[i].size > 10 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Arquivo muito grande',
+                        text: `O arquivo "${files[i].name}" excede o limite de 10MB e não será anexado.`,
+                        confirmButtonColor: '#1a2980'
+                    });
+                    continue;
+                }
                 uploadedFiles.push(files[i]);
             }
             updateFileList();
@@ -1102,12 +1157,10 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // --- Função de Envio Principal (Mantida) ---
+        // --- Função de Envio Principal (Corrigida para melhor feedback) ---
 
         async function sendDataToGoogleSheets(e) {
             e.preventDefault();
-
-// A verificação de SCRIPT_URL foi removida, pois o usuário já a substituiu e a verificação estava causando um erro de lógica.
 
             const form = e.target;
             if (!form.checkValidity()) {
@@ -1140,8 +1193,12 @@
                     const inputs = item.querySelectorAll('input, select');
                     const dep = {};
                     inputs.forEach(input => {
-                        const baseName = input.name.replace(/\d+$/, '').replace('dependente', ''); // Ex: Nome, Parentesco, etc.
-                        dep[baseName.charAt(0).toLowerCase() + baseName.slice(1)] = input.value; // Converte para camelCase
+                        // O nome do input já foi corrigido para incluir o índice (ex: dependenteNome1)
+                        // Precisamos extrair o nome base (ex: Nome, Parentesco, etc.)
+                        const baseName = input.name.replace(/\d+$/, '');
+                        // Converte para camelCase (ex: dependenteNome -> nome)
+                        const key = baseName.replace('dependente', '').toLowerCase();
+                        dep[key] = input.value;
                     });
                     // Adiciona apenas se tiver pelo menos o nome do dependente
                     if (dep.nome) {
@@ -1175,14 +1232,14 @@
 
                 // 4. Adicionar arquivos
                 uploadedFiles.forEach((file, index) => {
-                    // O nome do campo deve ser 'file' ou 'file' + index para o GAS
+                    // O nome do campo deve ser 'file' + index para o GAS
                     formData.append(`file${index + 1}`, file, file.name);
                 });
                 formData.append('fileCount', uploadedFiles.length);
 
 
                 // 5. Enviar para o Google Apps Script
-                const response = await fetch(SCRIPT_URL, {
+                const response = await fetch("https://script.google.com/macros/s/AKfycbxpIXYnDukBRDqrCVeIB9dsTgE3wCj990jjO7SDu55Ba6mjXKJNnJ9w144e5nWRPL2y/exec", {
                     method: 'POST',
                     // Não defina 'Content-Type' para 'multipart/form-data'. O navegador fará isso automaticamente.
                     body: formData
@@ -1190,13 +1247,19 @@
 
                 document.getElementById('loadingOverlay').style.display = 'none';
 
+                // Verifica se a resposta foi bem-sucedida (status 200-299)
+                if (!response.ok) {
+                    // Se a resposta não for OK, lança um erro com o status
+                    throw new Error(`Erro de rede: Status ${response.status} ${response.statusText}`);
+                }
+
                 const result = await response.json();
 
-                if (response.ok && result.success) {
+                if (result.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Sucesso!',
-                        text: 'Formulário enviado com sucesso! O PDF foi gerado e o registro salvo.',
+                        text: 'Formulário enviado com sucesso! O PDF foi gerado e o registro salvo. Verifique seu e-mail para a cópia do PDF.',
                         confirmButtonColor: '#1a2980'
                     }).then(() => {
                         // Lógica de limpeza do formulário (usando a função dedicada)
@@ -1217,7 +1280,7 @@
                 console.error('Erro ao enviar para o Google Sheets:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Erro!',
+                    title: 'Erro de Conexão!',
                     text: `Ocorreu um erro de conexão ou processamento: ${error.message}. Verifique se a SCRIPT_URL está correta e se o App Script foi implantado corretamente.`,
                     confirmButtonColor: '#d33'
                 });
