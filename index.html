@@ -853,7 +853,7 @@
         let uploadedFiles = [];
         
         // *** PASSO CRÍTICO: SUBSTITUA ESTA URL PELA URL DE IMPLANTAÇÃO DO SEU GOOGLE APPS SCRIPT ***
-        const SCRIPT_URL = 'SUA_URL_DE_IMPLANTACAO_AQUI'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8o2fsfmn1PF4aGquFObghWKyCzv5qdFituSTNiDDheJ8zaukMnS1WVvEGfbs_ihKR/exec'; 
 
         // =================================================================================================
         // FUNÇÕES DE VALIDAÇÃO E BUSCA DE CEP (CORRIGIDAS)
@@ -1054,7 +1054,7 @@
             }
             
             // 2. Validação da URL (CRÍTICO)
-            if (SCRIPT_URL === 'SUA_URL_DE_IMPLANTACAO_AQUI' || !SCRIPT_URL.startsWith('https://script.google.com/macros/s/')) {
+            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbx8o2fsfmn1PF4aGquFObghWKyCzv5qdFituSTNiDDheJ8zaukMnS1WVvEGfbs_ihKR/exec' || !SCRIPT_URL.startsWith('https://script.google.com/macros/s/')) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro Crítico de Configuração',
