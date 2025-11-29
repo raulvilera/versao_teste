@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ficha Cadastral Completa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- SweetAlert2 para mensagens de feedback -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* Estilos CSS (Preservados do anexo original) */
         * {
             margin: 0;
             padding: 0;
@@ -216,6 +216,18 @@
             outline: none;
         }
         
+        /* Estilo para o erro de validação */
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none; /* Oculto por padrão */
+        }
+
+        .input-error {
+            border-color: #dc3545 !important;
+        }
+        
         /* Melhoria: Campos de data com clique em toda a área */
         input[type="date"], input[type="month"] {
             cursor: pointer;
@@ -347,44 +359,11 @@
         
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-        }
-        
-        .btn-add {
-            background: linear-gradient(to right, #4CAF50, #2E7D32);
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3);
-            transition: all 0.3s;
-        }
-        
-        .btn-add:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 12px rgba(76, 175, 80, 0.4);
-        }
-        
-        .input-error {
-            border-color: #d33 !important;
-            box-shadow: 0 0 0 4px rgba(221, 51, 51, 0.15) !important;
-        }
-        
-        .error-message {
-            color: #d33;
-            font-size: 13px;
-            margin-top: 5px;
-            display: none;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
         
         .file-list {
-            margin-top: 15px;
+            margin-top: 20px;
             border-top: 1px solid #e0e0e0;
             padding-top: 15px;
         }
@@ -393,12 +372,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 15px;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 10px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
         }
         
         .file-info {
@@ -419,77 +398,54 @@
         
         .file-size {
             font-size: 12px;
-            color: #6c757d;
+            color: #666;
         }
         
         .file-remove {
             background: none;
             border: none;
-            color: #d33;
+            color: #dc3545;
             cursor: pointer;
             font-size: 18px;
             transition: color 0.2s;
         }
         
         .file-remove:hover {
-            color: #a00;
+            color: #c82333;
         }
         
-        .toast {
-            visibility: hidden;
-            min-width: 250px;
-            margin-left: -125px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 2px;
-            padding: 16px;
-            position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px;
-            font-size: 17px;
-            box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        .section-subtitle {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a2980;
+            margin-bottom: 15px;
+            border-left: 4px solid #26d0ce;
+            padding-left: 10px;
+            display: flex;
+            align-items: center;
         }
         
-        .toast.show {
-            visibility: visible;
-            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        .dependente-card, .experiencia-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fcfcfc;
         }
         
-        @-webkit-keyframes fadein {
-            from {bottom: 0; opacity: 0;} 
-            to {bottom: 30px; opacity: 1;}
-        }
-        
-        @keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-        
-        @-webkit-keyframes fadeout {
-            from {bottom: 30px; opacity: 1;} 
-            to {bottom: 0; opacity: 0;}
-        }
-        
-        @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
-        
+        /* Estilo para o overlay de carregamento */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: none;
+            background: rgba(255, 255, 255, 0.9);
+            display: none; /* Inicialmente oculto */
             justify-content: center;
             align-items: center;
-            z-index: 9999;
             flex-direction: column;
+            z-index: 9999;
         }
         
         .spinner {
@@ -498,7 +454,7 @@
             border-radius: 50%;
             width: 60px;
             height: 60px;
-            animation: spin 2s linear infinite;
+            animation: spin 1s linear infinite;
         }
         
         @keyframes spin {
@@ -695,41 +651,34 @@
                         <div class="form-group xsmall">
                             <label for="cep">CEP <span style="color: red;">*</span></label>
                             <input type="text" id="cep" required>
-                            <span class="error-message" id="cep-error">Campo obrigatório.</span>
                         </div>
-                        <div class="form-group large">
-                            <label for="logradouro">Logradouro <span style="color: red;">*</span></label>
-                            <input type="text" id="logradouro" required>
-                            <span class="error-message" id="logradouro-error">Campo obrigatório.</span>
+                        <div class="form-group medium">
+                            <label for="logradouro">Logradouro</label>
+                            <input type="text" id="logradouro">
                         </div>
                         <div class="form-group xsmall">
-                            <label for="numero">Número <span style="color: red;">*</span></label>
-                            <input type="text" id="numero" required>
-                            <span class="error-message" id="numero-error">Campo obrigatório.</span>
+                            <label for="numero">Número</label>
+                            <input type="text" id="numero">
                         </div>
                         <div class="form-group xsmall">
                             <label for="complemento">Complemento</label>
                             <input type="text" id="complemento">
                         </div>
                         <div class="form-group xsmall">
-                            <label for="bairro">Bairro <span style="color: red;">*</span></label>
-                            <input type="text" id="bairro" required>
-                            <span class="error-message" id="bairro-error">Campo obrigatório.</span>
+                            <label for="bairro">Bairro</label>
+                            <input type="text" id="bairro">
                         </div>
                         <div class="form-group xsmall">
-                            <label for="cidade">Cidade <span style="color: red;">*</span></label>
-                            <input type="text" id="cidade" required>
-                            <span class="error-message" id="cidade-error">Campo obrigatório.</span>
+                            <label for="cidade">Cidade</label>
+                            <input type="text" id="cidade">
                         </div>
                         <div class="form-group xsmall">
-                            <label for="estado">Estado <span style="color: red;">*</span></label>
-                            <input type="text" id="estado" required>
-                            <span class="error-message" id="estado-error">Campo obrigatório.</span>
+                            <label for="estado">Estado</label>
+                            <input type="text" id="estado">
                         </div>
                         <div class="form-group xsmall">
                             <label for="celular1">Celular 1 <span style="color: red;">*</span></label>
                             <input type="tel" id="celular1" required>
-                            <span class="error-message" id="celular1-error">Campo obrigatório.</span>
                         </div>
                         <div class="form-group xsmall">
                             <label for="celular2">Celular 2</label>
@@ -738,7 +687,6 @@
                         <div class="form-group medium">
                             <label for="email">E-mail <span style="color: red;">*</span></label>
                             <input type="email" id="email" required>
-                            <span class="error-message" id="email-error">E-mail inválido.</span>
                         </div>
                     </div>
                 </div>
@@ -748,17 +696,18 @@
                 </div>
                 <div class="form-section">
                     <div class="form-row">
-                        <div class="form-group xsmall">
-                            <label for="escolaridade">Escolaridade <span style="color: red;">*</span></label>
-                            <select id="escolaridade" required>
+                        <div class="form-group medium">
+                            <label for="escolaridade">Escolaridade</label>
+                            <select id="escolaridade">
                                 <option value="">Selecione</option>
-                                <option value="Fundamental">Fundamental</option>
-                                <option value="Médio">Médio</option>
+                                <option value="Fundamental Incompleto">Fundamental Incompleto</option>
+                                <option value="Fundamental Completo">Fundamental Completo</option>
+                                <option value="Médio Incompleto">Médio Incompleto</option>
+                                <option value="Médio Completo">Médio Completo</option>
                                 <option value="Superior Incompleto">Superior Incompleto</option>
                                 <option value="Superior Completo">Superior Completo</option>
-                                <option value="Pós-graduação">Pós-graduação</option>
+                                <option value="Pós-Graduação">Pós-Graduação</option>
                             </select>
-                            <span class="error-message" id="escolaridade-error">Campo obrigatório.</span>
                         </div>
                         <div class="form-group medium">
                             <label for="curso">Curso Superior</label>
@@ -770,7 +719,7 @@
                         </div>
                         <div class="form-group xsmall">
                             <label for="anoConclusao">Ano Conclusão</label>
-                            <input type="number" id="anoConclusao" min="1900" max="2100">
+                            <input type="text" id="anoConclusao">
                         </div>
                     </div>
                 </div>
@@ -779,7 +728,7 @@
                     <i class="fas fa-briefcase"></i> Experiências Profissionais
                 </div>
                 <div class="form-section" id="experienciasContainer">
-                    <!-- Experiência 1 (inicial) -->
+                    <!-- Experiência 1 (Inicial) -->
                     <div class="experiencia-item">
                         <h4 class="section-subtitle">Experiência 1</h4>
                         <div class="form-row">
@@ -801,21 +750,22 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Novas experiências serão adicionadas aqui -->
-                    <button type="button" class="btn-add" id="addExperiencia"><i class="fas fa-plus"></i> Adicionar Experiência</button>
+                    <button type="button" class="btn btn-secondary" id="addExperiencia" style="min-width: 200px; margin-top: 10px;">
+                        <i class="fas fa-plus"></i> Adicionar Experiência
+                    </button>
                 </div>
 
                 <div class="form-title">
                     <i class="fas fa-users"></i> Dependentes
                 </div>
                 <div class="form-section" id="dependentesContainer">
-                    <!-- Dependente 1 (inicial) -->
+                    <!-- Dependente 1 (Inicial) -->
                     <div class="dependente-card">
                         <h4 class="section-subtitle">Dependente 1</h4>
                         <div class="form-row">
                             <div class="form-group medium">
                                 <label for="dependenteNome1">Nome Completo</label>
-                                <input type="text" id="dependenteNome1" name="dependenteNome[]">
+                                <input type="text" id="dependenteNome1" name="nomeDependente[]">
                             </div>
                             <div class="form-group xsmall">
                                 <label for="dependenteParentesco1">Parentesco</label>
@@ -829,232 +779,383 @@
                             </div>
                             <div class="form-group xsmall">
                                 <label for="dependenteNascimento1">Data Nascimento</label>
-                                <input type="date" id="dependenteNascimento1" name="dependenteNascimento[]">
+                                <input type="date" id="dependenteNascimento1" name="nascimentoDependente[]">
                             </div>
                             <div class="form-group xsmall">
                                 <label for="dependenteCpf1">CPF</label>
-                                <input type="text" id="dependenteCpf1" name="dependenteCpf[]">
+                                <input type="text" id="dependenteCpf1" name="cpfDependente[]">
                             </div>
                         </div>
                     </div>
-                    <!-- Novos dependentes serão adicionados aqui -->
-                    <button type="button" class="btn-add" id="addDependente"><i class="fas fa-plus"></i> Adicionar Dependente</button>
+                    <button type="button" class="btn btn-secondary" id="addDependente" style="min-width: 200px; margin-top: 10px;">
+                        <i class="fas fa-plus"></i> Adicionar Dependente
+                    </button>
                 </div>
 
                 <div class="form-title">
-                    <i class="fas fa-paperclip"></i> Documentos Anexados
+                    <i class="fas fa-upload"></i> Anexos e Declarações
                 </div>
                 <div class="form-section">
                     <div class="upload-container">
                         <div class="upload-header">
-                            <p>Anexe documentos importantes (RG, CPF, Comprovante de Residência, etc.).</p>
-                            <button type="button" class="upload-button" id="uploadBtn"><i class="fas fa-upload"></i> Selecionar Arquivos</button>
+                            <h4 class="section-subtitle" style="margin: 0; border: none; padding: 0;">Upload de Documentos</h4>
+                            <input type="file" id="fileInput" multiple style="display: none;">
+                            <button type="button" class="upload-button" id="uploadBtn">
+                                <i class="fas fa-cloud-upload-alt"></i> Selecionar Arquivos
+                            </button>
                         </div>
-                        <input type="file" id="fileInput" multiple style="display: none;">
                         <div class="upload-area" id="dropArea">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <h3>Arraste e solte arquivos aqui</h3>
-                            <p>ou clique em "Selecionar Arquivos"</p>
+                            <i class="fas fa-file-upload"></i>
+                            <h3>Arraste e solte seus arquivos aqui</h3>
+                            <p>Ou clique para selecionar. (PDF, Imagens)</p>
                         </div>
                         <div class="file-list" id="fileList">
-                            <!-- Lista de arquivos anexados -->
+                            <!-- Arquivos anexados serão listados aqui -->
                         </div>
                     </div>
-                </div>
-
-                <div class="form-title">
-                    <i class="fas fa-signature"></i> Declaração e Autorização
-                </div>
-                <div class="form-section">
-                    <div class="form-row">
+                    
+                    <div class="form-row" style="margin-top: 30px;">
                         <div class="form-group medium">
-                            <label for="dataDeclaracao">Data da Declaração <span style="color: red;">*</span></label>
-                            <input type="date" id="dataDeclaracao" required>
-                            <span class="error-message" id="dataDeclaracao-error">Campo obrigatório.</span>
+                            <label for="dataDeclaracao">Data da Declaração</label>
+                            <input type="date" id="dataDeclaracao">
                         </div>
                         <div class="form-group medium">
-                            <label for="cidadeDeclaracao">Cidade da Declaração <span style="color: red;">*</span></label>
-                            <input type="text" id="cidadeDeclaracao" required>
-                            <span class="error-message" id="cidadeDeclaracao-error">Campo obrigatório.</span>
+                            <label for="cidadeDeclaracao">Cidade da Declaração</label>
+                            <input type="text" id="cidadeDeclaracao">
                         </div>
                         <div class="form-group medium">
-                            <label for="dataAutorizacao">Data da Autorização <span style="color: red;">*</span></label>
-                            <input type="date" id="dataAutorizacao" required>
-                            <span class="error-message" id="dataAutorizacao-error">Campo obrigatório.</span>
+                            <label for="dataAutorizacao">Data da Autorização</label>
+                            <input type="date" id="dataAutorizacao">
                         </div>
                         <div class="form-group medium">
-                            <label for="cidadeAutorizacao">Cidade da Autorização <span style="color: red;">*</span></label>
-                            <input type="text" id="cidadeAutorizacao" required>
-                            <span class="error-message" id="cidadeAutorizacao-error">Campo obrigatório.</span>
+                            <label for="cidadeAutorizacao">Cidade da Autorização</label>
+                            <input type="text" id="cidadeAutorizacao">
                         </div>
                     </div>
                 </div>
 
                 <div class="btn-group">
-                    <button type="button" class="btn btn-secondary" id="resetForm"><i class="fas fa-eraser"></i> Limpar Formulário</button>
-                    <button type="submit" class="btn btn-primary" id="submitForm"><i class="fas fa-paper-plane"></i> Enviar e Gerar PDF</button>
+                    <button type="submit" class="btn btn-primary" id="submitForm">
+                        <i class="fas fa-paper-plane"></i> Enviar Ficha e Gerar PDF
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="resetForm">
+                        <i class="fas fa-redo"></i> Limpar Formulário
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="toast" class="toast">
-        <span id="toastMessage"></span>
-    </div>
-
     <script>
-        // URL do seu Google Apps Script (DEVE SER SUBSTITUÍDA PELA URL DE IMPLANTAÇÃO DO SEU SCRIPT)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzX7yvrf7-AZJhqvwy_N8ohEYlem7PifA5SPFDxEIamqbQ5eEUW7MmXgCA4PO4oCT5x/exec'; 
-
-        // Variável global para armazenar arquivos (mantida do original)
-        let uploadedFiles = [];
+        // Variáveis globais para controle
         let dependentCounter = 1;
         let experienceCounter = 1;
-
-        // Função para coletar todos os dados do formulário
-        function collectFormData() {
-            const formData = {};
-            
-            // Coletar dados básicos
-            const fields = [
-                'nome', 'cpf', 'rg', 'orgaoEmissor', 'dataEmissao', 'dataNascimento',
-                'naturalidade', 'nacionalidade', 'nomePai', 'nomeMae', 'estadoCivil',
-                'genero', 'tipoSanguineo', 'cep', 'logradouro', 'numero', 'complemento',
-                'bairro', 'cidade', 'estado', 'celular1', 'celular2', 'email',
-                'escolaridade', 'curso', 'instituicao', 'anoConclusao',
-                'dataDeclaracao', 'cidadeDeclaracao', 'dataAutorizacao', 'cidadeAutorizacao'
-            ];
-            
-            fields.forEach(field => {
-                formData[field] = document.getElementById(field)?.value || '';
-            });
-            
-            // Coletar experiências
-            formData.experiencias = [];
-            const empresaInputs = document.querySelectorAll('input[name="empresa[]"]');
-            const cargoInputs = document.querySelectorAll('input[name="cargo[]"]');
-            const dataInicioInputs = document.querySelectorAll('input[name="dataInicio[]"]');
-            const dataTerminoInputs = document.querySelectorAll('input[name="dataTermino[]"]');
-            
-            for (let i = 0; i < empresaInputs.length; i++) {
-                // Adiciona a experiência apenas se o campo "Empresa" não estiver vazio
-                if (empresaInputs[i].value.trim() !== '') {
-                    formData.experiencias.push({
-                        empresa: empresaInputs[i].value,
-                        cargo: cargoInputs[i].value,
-                        dataInicio: dataInicioInputs[i].value,
-                        dataTermino: dataTerminoInputs[i].value
-                    });
-                }
-            }
-            
-            // Coletar dependentes
-            formData.dependentes = [];
-            const dependenteNomeInputs = document.querySelectorAll('input[name="dependenteNome[]"]');
-            const dependenteParentescoInputs = document.querySelectorAll('select[name="dependenteParentesco[]"]');
-            const dependenteNascimentoInputs = document.querySelectorAll('input[name="dependenteNascimento[]"]');
-            const dependenteCpfInputs = document.querySelectorAll('input[name="dependenteCpf[]"]');
-            
-            for (let i = 0; i < dependenteNomeInputs.length; i++) {
-                // Adiciona o dependente apenas se o campo "Nome Completo" não estiver vazio
-                if (dependenteNomeInputs[i].value.trim() !== '') {
-                    formData.dependentes.push({
-                        nome: dependenteNomeInputs[i].value,
-                        parentesco: dependenteParentescoInputs[i].value,
-                        nascimento: dependenteNascimentoInputs[i].value,
-                        cpf: dependenteCpfInputs[i].value
-                    });
-                }
-            }
-            
-            // Coletar arquivos (apenas os nomes)
-            formData.arquivos = uploadedFiles.map(file => file.name);
-            
-            return formData;
-        }
+        let uploadedFiles = [];
         
-        // FUNÇÃO DE ENVIO CORRIGIDA
-        async function sendToGoogleSheets(formData) {
-            // Alerta para o usuário substituir a URL
-            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzX7yvrf7-AZJhqvwy_N8ohEYlem7PifA5SPFDxEIamqbQ5eEUW7MmXgCA4PO4oCT5x/exec') {
+        // *** PASSO CRÍTICO: SUBSTITUA ESTA URL PELA URL DE IMPLANTAÇÃO DO SEU GOOGLE APPS SCRIPT ***
+        const SCRIPT_URL = 'SUA_URL_DE_IMPLANTACAO_AQUI'; 
+
+        // =================================================================================================
+        // FUNÇÕES DE VALIDAÇÃO E BUSCA DE CEP (CORRIGIDAS)
+        // =================================================================================================
+
+        // Função de validação de CPF (mais robusta)
+        function validarCPF(cpf) {
+            cpf = cpf.replace(/[^\d]+/g, ''); // Remove caracteres não numéricos
+            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; // Verifica 11 dígitos e CPFs repetidos
+            
+            let soma = 0;
+            let resto;
+            
+            // Validação do primeiro dígito
+            for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(9, 10))) return false;
+            
+            soma = 0;
+            
+            // Validação do segundo dígito
+            for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(10, 11))) return false;
+            
+            return true;
+        }
+
+        // Função para exibir/ocultar mensagem de erro do CPF
+        function toggleCpfError(isValid) {
+            const cpfInput = document.getElementById('cpf');
+            const cpfError = document.getElementById('cpf-error');
+            
+            if (cpfInput && cpfError) {
+                if (cpfInput.value.replace(/\D/g, '').length === 11 && !isValid) {
+                    cpfError.style.display = 'block';
+                    cpfInput.classList.add('input-error');
+                } else {
+                    cpfError.style.display = 'none';
+                    cpfInput.classList.remove('input-error');
+                }
+            }
+        }
+
+        // Função para buscar endereço pelo CEP (ViaCEP)
+        function buscarEndereco(cep) {
+            cep = cep.replace(/\D/g, ''); // Remove caracteres não numéricos
+            
+            if (cep.length !== 8) return;
+
+            // Exibir um indicador de carregamento (opcional, mas bom para UX)
+            const logradouroInput = document.getElementById('logradouro');
+            if (logradouroInput) logradouroInput.value = 'Buscando...';
+
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.erro) {
+                        // Preencher os campos com os dados retornados
+                        document.getElementById('logradouro').value = data.logradouro || '';
+                        document.getElementById('bairro').value = data.bairro || '';
+                        document.getElementById('cidade').value = data.localidade || '';
+                        document.getElementById('estado').value = data.uf || '';
+                        
+                        // Focar no campo Número após o preenchimento
+                        document.getElementById('numero').focus();
+                    } else {
+                        // Limpar campos e notificar erro
+                        document.getElementById('logradouro').value = '';
+                        document.getElementById('bairro').value = '';
+                        document.getElementById('cidade').value = '';
+                        document.getElementById('estado').value = '';
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'CEP não encontrado',
+                            text: 'Por favor, preencha os campos de endereço manualmente.',
+                            confirmButtonColor: '#1a2980'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar CEP:', error);
+                    document.getElementById('logradouro').value = '';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro de Conexão',
+                        text: 'Erro ao buscar CEP. Verifique sua conexão com a internet.',
+                        confirmButtonColor: '#1a2980'
+                    });
+                });
+        }
+
+        // =================================================================================================
+        // FUNÇÃO DE ENVIO (PRESERVADA E CONSOLIDADA)
+        // =================================================================================================
+
+        // Função auxiliar para coletar dados do formulário
+        function coletarDadosDoFormulario() {
+            // Coleta de dados simples (campos de texto/seleção)
+            const data = {
+                nome: document.getElementById('nome').value,
+                cpf: document.getElementById('cpf').value,
+                rg: document.getElementById('rg').value,
+                orgaoEmissor: document.getElementById('orgaoEmissor').value,
+                dataEmissao: document.getElementById('dataEmissao').value,
+                dataNascimento: document.getElementById('dataNascimento').value,
+                naturalidade: document.getElementById('naturalidade').value,
+                nacionalidade: document.getElementById('nacionalidade').value,
+                nomePai: document.getElementById('nomePai').value,
+                nomeMae: document.getElementById('nomeMae').value,
+                estadoCivil: document.getElementById('estadoCivil').value,
+                genero: document.getElementById('genero').value,
+                tipoSanguineo: document.getElementById('tipoSanguineo').value,
+                cep: document.getElementById('cep').value,
+                logradouro: document.getElementById('logradouro').value,
+                numero: document.getElementById('numero').value,
+                complemento: document.getElementById('complemento').value,
+                bairro: document.getElementById('bairro').value,
+                cidade: document.getElementById('cidade').value,
+                estado: document.getElementById('estado').value,
+                celular1: document.getElementById('celular1').value,
+                celular2: document.getElementById('celular2').value,
+                email: document.getElementById('email').value,
+                escolaridade: document.getElementById('escolaridade').value,
+                curso: document.getElementById('curso').value,
+                instituicao: document.getElementById('instituicao').value,
+                anoConclusao: document.getElementById('anoConclusao').value,
+                dataDeclaracao: document.getElementById('dataDeclaracao').value,
+                cidadeDeclaracao: document.getElementById('cidadeDeclaracao').value,
+                dataAutorizacao: document.getElementById('dataAutorizacao').value,
+                cidadeAutorizacao: document.getElementById('cidadeAutorizacao').value
+            };
+            
+            // Coleta de dados dinâmicos (Experiências)
+            const experiencias = [];
+            document.querySelectorAll('#experienciasContainer .experiencia-item').forEach(item => {
+                const empresaInput = item.querySelector('input[name="empresa[]"]');
+                const cargoInput = item.querySelector('input[name="cargo[]"]');
+                const dataInicioInput = item.querySelector('input[name="dataInicio[]"]');
+                const dataTerminoInput = item.querySelector('input[name="dataTermino[]"]');
+
+                if (empresaInput.value || cargoInput.value) {
+                    experiencias.push({
+                        empresa: empresaInput.value,
+                        cargo: cargoInput.value,
+                        dataInicio: dataInicioInput.value,
+                        dataTermino: dataTerminoInput.value
+                    });
+                }
+            });
+            data.experiencias = experiencias;
+
+            // Coleta de dados dinâmicos (Dependentes)
+            const dependentes = [];
+            document.querySelectorAll('#dependentesContainer .dependente-card').forEach(item => {
+                const nomeInput = item.querySelector('input[name="nomeDependente[]"]');
+                const parentescoInput = item.querySelector('select[name="dependenteParentesco[]"]');
+                const nascimentoInput = item.querySelector('input[name="nascimentoDependente[]"]');
+                const cpfInput = item.querySelector('input[name="cpfDependente[]"]');
+
+                if (nomeInput.value) {
+                    dependentes.push({
+                        nome: nomeInput.value,
+                        parentesco: parentescoInput.value,
+                        nascimento: nascimentoInput.value,
+                        cpf: cpfInput.value
+                    });
+                }
+            });
+            data.dependentes = dependentes;
+
+            // Coleta de nomes de arquivos (para registro na planilha)
+            data.arquivos = uploadedFiles.map(file => file.name); 
+            
+            return data;
+        }
+
+        // Função principal para enviar o formulário
+        async function enviarFormulario(event) {
+            if (event) event.preventDefault(); 
+
+            // 1. Coleta os dados
+            const dadosDoFormulario = coletarDadosDoFormulario();
+            
+            // 1.1. Validação de CPF antes do envio
+            const cpfValue = document.getElementById('cpf').value;
+            if (cpfValue.replace(/\D/g, '').length === 11 && !validarCPF(cpfValue)) {
+                toggleCpfError(false); // Exibe o erro
                 Swal.fire({
-                    icon: 'warning',
-                    title: 'Atenção!',
-                    text: 'Por favor, substitua a variável SCRIPT_URL no código JavaScript pela URL de implantação do seu Google Apps Script.',
+                    icon: 'error',
+                    title: 'Erro de Validação',
+                    text: 'O CPF inserido é inválido. Por favor, corrija antes de enviar.',
+                    confirmButtonColor: '#1a2980'
+                });
+                return;
+            }
+            
+            // 2. Validação da URL (CRÍTICO)
+            if (SCRIPT_URL === 'SUA_URL_DE_IMPLANTACAO_AQUI' || !SCRIPT_URL.startsWith('https://script.google.com/macros/s/')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro Crítico de Configuração',
+                    text: 'Por favor, substitua a variável SCRIPT_URL no código JavaScript pela URL de implantação do seu Google Apps Script. O link não foi implantado corretamente.',
                     confirmButtonColor: '#1a2980'
                 });
                 return;
             }
 
+            // 3. Configuração do Fetch
             try {
-                // Mostrar overlay de carregamento
-                document.getElementById('loadingOverlay').style.display = 'flex';
+                // Exibe mensagem de processamento usando SweetAlert2
+                Swal.fire({
+                    title: 'Processando...',
+                    text: 'Enviando dados, gerando PDF e enviando e-mail. Por favor, aguarde.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 
-                // Enviar dados para o Google Apps Script
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify(formData)
+                    mode: 'cors', // Essencial para requisições cross-origin
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8', 
+                    },
+                    body: JSON.stringify(dadosDoFormulario)
                 });
 
-                // Ocultar overlay de carregamento
-                document.getElementById('loadingOverlay').style.display = 'none';
+                // 4. Trata a resposta HTTP
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
+                }
 
-                // O script do Google Apps deve retornar um JSON com sucesso ou erro.
                 const result = await response.json();
 
-                if (response.ok && result.success) {
+                // 5. Exibe o resultado para o usuário
+                if (result.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Sucesso!',
-                        text: 'Formulário enviado com sucesso! O PDF foi gerado e o registro salvo.',
+                        html: `Dados salvos, PDF gerado e e-mail enviado com sucesso. <br> <a href="${result.pdfUrl}" target="_blank">Ver PDF Gerado</a>`,
                         confirmButtonColor: '#1a2980'
                     }).then(() => {
-                        // Lógica de limpeza do formulário
-                        const form = document.getElementById('fichaCadastralForm');
-                        if (form) {
-                            form.reset();
-                        }
-                        
-                        // Resetar estados de arquivos e elementos dinâmicos
-                        uploadedFiles = [];
-                        updateFileList();
-                        
-                        // Remover todos os dependentes e experiências adicionais
-                        document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
-                        document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
-                        
-                        // Resetar contadores e títulos
-                        dependentCounter = 1;
-                        experienceCounter = 1;
-                        updateDependenteTitles();
-                        updateExperienciaTitles();
+                        // Limpar o formulário e elementos dinâmicos
+                        resetForm();
                     });
                 } else {
-                    // Se a resposta não for 'ok' ou o status for 'error'
-                    const errorMessage = result.error || 'Erro desconhecido ao processar a requisição.';
+                    // Erro retornado pelo Apps Script
                     Swal.fire({
                         icon: 'error',
-                        title: 'Erro!',
-                        text: `Ocorreu um erro ao enviar o formulário: ${errorMessage}`,
-                        confirmButtonColor: '#d33'
+                        title: 'Erro no Processamento',
+                        text: `Erro: ${result.error}. Verifique os logs do Google Apps Script.`,
+                        confirmButtonColor: '#1a2980'
                     });
                 }
 
             } catch (error) {
-                // Ocultar overlay de carregamento em caso de falha
-                document.getElementById('loadingOverlay').style.display = 'none';
-                console.error('Erro ao enviar para o Google Sheets:', error);
+                // Erro de conexão (Failed to fetch) ou outro erro de processamento
+                console.error('Erro de Fetch/Processamento:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Erro!',
-                    text: `Ocorreu um erro de conexão ou processamento: ${error.message}. Verifique se a SCRIPT_URL está correta e se o App Script foi implantado corretamente.`,
-                    confirmButtonColor: '#d33'
+                    title: 'Erro de Conexão/Processamento',
+                    text: `Erro: ${error.message}. Verifique se a SCRIPT_URL está correta e se o App Script foi implantado corretamente.`,
+                    confirmButtonColor: '#1a2980'
                 });
             }
         }
-        
-        // Funções auxiliares (Adicionar Experiência, Adicionar Dependente, Upload, etc.)
-        
+
+        // =================================================================================================
+        // FUNÇÕES AUXILIARES (Preservadas e Integradas)
+        // =================================================================================================
+
+        // Função para limpar o formulário e elementos dinâmicos
+        function resetForm() {
+            const form = document.getElementById('fichaCadastralForm');
+            if (form) {
+                form.reset();
+            }
+            
+            // Resetar estados de arquivos e elementos dinâmicos
+            uploadedFiles = [];
+            updateFileList();
+            
+            // Remover todos os dependentes e experiências adicionais (mantendo apenas o primeiro item)
+            document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
+            document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
+            
+            // Resetar contadores e títulos
+            dependentCounter = 1;
+            experienceCounter = 1;
+            updateDependenteTitles();
+            updateExperienciaTitles();
+            
+            // Ocultar erro de CPF
+            toggleCpfError(true);
+        }
+
+        // Função para adicionar experiência
         function addExperiencia() {
             experienceCounter++;
             const container = document.getElementById('experienciasContainer');
@@ -1085,6 +1186,7 @@
             updateExperienciaTitles();
         }
 
+        // Função para adicionar dependente
         function addDependente() {
             dependentCounter++;
             const container = document.getElementById('dependentesContainer');
@@ -1095,7 +1197,7 @@
                 <div class="form-row">
                     <div class="form-group medium">
                         <label for="dependenteNome${dependentCounter}">Nome Completo</label>
-                        <input type="text" id="dependenteNome${dependentCounter}" name="dependenteNome[]">
+                        <input type="text" id="dependenteNome${dependentCounter}" name="nomeDependente[]">
                     </div>
                     <div class="form-group xsmall">
                         <label for="dependenteParentesco${dependentCounter}">Parentesco</label>
@@ -1109,11 +1211,11 @@
                     </div>
                     <div class="form-group xsmall">
                         <label for="dependenteNascimento${dependentCounter}">Data Nascimento</label>
-                        <input type="date" id="dependenteNascimento${dependentCounter}" name="dependenteNascimento[]">
+                        <input type="date" id="dependenteNascimento${dependentCounter}" name="nascimentoDependente[]">
                     </div>
                     <div class="form-group xsmall">
                         <label for="dependenteCpf${dependentCounter}">CPF</label>
-                        <input type="text" id="dependenteCpf${dependentCounter}" name="dependenteCpf[]">
+                        <input type="text" id="dependenteCpf${dependentCounter}" name="cpfDependente[]">
                     </div>
                 </div>
             `;
@@ -1121,6 +1223,7 @@
             updateDependenteTitles();
         }
 
+        // Funções de atualização de títulos (para manter a numeração correta)
         function updateExperienciaTitles() {
             const titles = document.querySelectorAll('#experienciasContainer .section-subtitle');
             titles.forEach((title, index) => {
@@ -1137,7 +1240,7 @@
             dependentCounter = titles.length;
         }
 
-        // Funções de Upload
+        // Funções de Upload (Preservadas)
         function triggerFileInput() {
             document.getElementById('fileInput').click();
         }
@@ -1204,203 +1307,20 @@
             document.querySelectorAll('.file-remove').forEach(button => {
                 button.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    uploadedFiles.splice(index, 1);
-                    updateFileList();
+                    if (!isNaN(index)) {
+                        uploadedFiles.splice(index, 1);
+                        updateFileList();
+                    }
                 });
             });
         }
-        
+
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
             const k = 1024;
             const sizes = ['Bytes', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-        
-        // Função para lidar com o envio do formulário
-        document.getElementById('fichaCadastralForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                showToast('Por favor, preencha todos os campos obrigatórios corretamente.', 'error');
-                return;
-            }
-            
-            const formData = collectFormData();
-            await sendToGoogleSheets(formData);
-        });
-
-        // Corrigindo o listener do botão de envio para usar o novo listener de submit do form
-        document.getElementById('submitForm').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('fichaCadastralForm').dispatchEvent(new Event('submit'));
-        });
-        
-        // Função para limpar formulário
-        function resetForm() {
-            if (confirm('Tem certeza que deseja limpar todos os dados do formulário?')) {
-                document.getElementById('fichaCadastralForm').reset();
-                uploadedFiles = [];
-                updateFileList();
-                
-                // Remover todos os dependentes e experiências adicionais
-                document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
-                document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
-                
-                // Resetar contadores
-                dependentCounter = 1;
-                experienceCounter = 1;
-                
-                // Atualizar títulos
-                updateDependenteTitles();
-                updateExperienciaTitles();
-                
-                showToast('Formulário limpo com sucesso!');
-            }
-        }
-        
-        // Funções de validação
-        function validateForm() {
-            let isValid = true;
-            
-            // Resetar erros
-            document.querySelectorAll('.error-message').forEach(el => {
-                el.style.display = 'none';
-            });
-            document.querySelectorAll('input, select').forEach(el => {
-                el.classList.remove('input-error');
-            });
-            
-            // Validar campos obrigatórios
-            const requiredFields = document.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    isValid = false;
-                    field.classList.add('input-error');
-                    
-                    // Mostrar mensagem de erro se existir
-                    const errorId = field.id + '-error';
-                    const errorElement = document.getElementById(errorId);
-                    if (errorElement) {
-                        errorElement.style.display = 'block';
-                    }
-                }
-            });
-            
-            // Validação especial para CPF
-            const cpfInput = document.getElementById('cpf');
-            const cpf = cpfInput.value.replace(/\D/g, '');
-            if (cpf.length !== 11) {
-                isValid = false;
-                cpfInput.classList.add('input-error');
-                document.getElementById('cpf-error').style.display = 'block';
-            }
-            
-            // Validação especial para e-mail
-            const emailInput = document.getElementById('email');
-            const email = emailInput.value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (email && !emailRegex.test(email)) {
-                isValid = false;
-                emailInput.classList.add('input-error');
-            }
-            
-            return isValid;
-        }
-        
-        // Função auxiliar para mostrar mensagens
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toastMessage.textContent = message;
-            toast.style.backgroundColor = type === 'error' ? '#f44336' : 
-                                          type === 'info' ? '#2196F3' : '#4CAF50';
-            toast.style.display = 'flex';
-            
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-        
-        // Configurar máscaras de entrada
-        function setupInputMasks() {
-            // Configurar máscara para CPF
-            const cpfInput = document.getElementById('cpf');
-            cpfInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 11) value = value.slice(0, 11);
-                
-                if (value.length > 9) {
-                    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-                } else if (value.length > 6) {
-                    value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
-                } else if (value.length > 3) {
-                    value = value.replace(/(\d{3})(\d+)/, '$1.$2');
-                }
-                e.target.value = value;
-            });
-            
-            // Configurar máscara para telefone
-            const phoneInputs = document.querySelectorAll('input[type="tel"]');
-            phoneInputs.forEach(input => {
-                input.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 11) value = value.slice(0, 11);
-                    
-                    if (value.length > 10) {
-                        value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                    } else if (value.length > 6) {
-                        value = value.replace(/(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
-                    } else if (value.length > 2) {
-                        value = value.replace(/(\d{2})(\d+)/, '($1) $2');
-                    }
-                    e.target.value = value;
-                });
-            });
-            
-            // Configurar máscara para CEP
-            const cepInput = document.getElementById('cep');
-            cepInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 8) value = value.slice(0, 8);
-                
-                if (value.length > 5) {
-                    value = value.replace(/(\d{5})(\d+)/, '$1-$2');
-                }
-                e.target.value = value;
-                
-                // Buscar endereço quando o CEP estiver completo
-                if (value.length === 8) {
-                    buscarEndereco(value);
-                }
-            });
-        }
-        
-        // Função para buscar endereço pelo CEP
-        function buscarEndereco(cep) {
-            // Limpar o traço do CEP para a requisição
-            cep = cep.replace('-', '');
-            
-            // Fazer requisição à API ViaCEP
-            fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.erro) {
-                        // Preencher os campos com os dados retornados
-                        document.getElementById('logradouro').value = data.logradouro || '';
-                        document.getElementById('bairro').value = data.bairro || '';
-                        document.getElementById('cidade').value = data.localidade || '';
-                        document.getElementById('estado').value = data.uf || '';
-                    } else {
-                        showToast('CEP não encontrado.', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao buscar CEP:', error);
-                    showToast('Erro ao buscar CEP. Verifique a conexão.', 'error');
-                });
         }
         
         // Função para gerenciar o popup do tipo sanguíneo
@@ -1429,10 +1349,49 @@
             });
         }
         
-        // Permitir clique na área de upload para abrir o seletor de arquivos
-        function setupUploadAreaClick() {
-            const dropArea = document.getElementById('dropArea');
-            dropArea.addEventListener('click', triggerFileInput);
+        // Função para configurar os listeners de CPF e CEP
+        function setupValidationAndCepListeners() {
+            const cpfInput = document.getElementById('cpf');
+            const cepInput = document.getElementById('cep');
+
+            // Listener para validação de CPF em tempo real
+            if (cpfInput) {
+                cpfInput.addEventListener('input', function() {
+                    // A validação completa só é feita após o CPF estar completo
+                    if (this.value.replace(/\D/g, '').length === 11) {
+                        const isValid = validarCPF(this.value);
+                        toggleCpfError(isValid);
+                    } else {
+                        toggleCpfError(true); // Oculta o erro enquanto não estiver completo
+                    }
+                });
+                // Garante que o erro é exibido ao sair do campo se estiver inválido
+                cpfInput.addEventListener('blur', function() {
+                    if (this.value.replace(/\D/g, '').length === 11) {
+                        const isValid = validarCPF(this.value);
+                        toggleCpfError(isValid);
+                    }
+                });
+            }
+
+            // Listener para busca de CEP
+            if (cepInput) {
+                cepInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    
+                    // Configurar máscara para CEP
+                    if (value.length > 8) value = value.slice(0, 8);
+                    if (value.length > 5) {
+                        value = value.replace(/(\d{5})(\d+)/, '$1-$2');
+                    }
+                    e.target.value = value;
+
+                    // Buscar endereço quando o CEP estiver completo (8 dígitos)
+                    if (value.length === 9) { // 8 dígitos + hífen
+                        buscarEndereco(value);
+                    }
+                });
+            }
         }
         
         function setupEventListeners() {
@@ -1451,7 +1410,7 @@
             // Botão de Limpar
             document.getElementById('resetForm').addEventListener('click', resetForm);
             
-            // Remover dependentes e experiências (delegação de eventos)
+            // Delegação de eventos para remover dependentes e experiências
             document.getElementById('dependentesContainer').addEventListener('click', function(e) {
                 if (e.target.closest('.remove-dependente')) {
                     e.target.closest('.dependente-card').remove();
@@ -1470,18 +1429,22 @@
             setupTipoSanguineo();
             
             // Configurar área de upload para clicar
-            setupUploadAreaClick();
+            document.getElementById('dropArea').addEventListener('click', triggerFileInput);
+            
+            // Adicionar listener de submit ao formulário
+            const form = document.getElementById('fichaCadastralForm');
+            if (form) {
+                form.addEventListener('submit', enviarFormulario);
+            }
+            
+            // Configurar validação e CEP
+            setupValidationAndCepListeners();
         }
         
         // Inicialização quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
-            setupInputMasks();
             setupEventListeners();
-            // Adicionar ID ao formulário para o novo listener
-            document.querySelector('form').id = 'fichaCadastralForm';
         });
     </script>
 </body>
 </html>
-
-
