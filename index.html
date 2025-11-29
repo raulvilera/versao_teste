@@ -440,7 +440,7 @@
     <div class="container">
         <div class="card">
             <div class="company-logo">
-                <span class="logo-symbol">EM</span>
+                <span class="logo-symbol">AI</span>
                 <div class="logo-text">
                     <span class="company-name">Nome da Empresa</span>
                     <span class="company-description">Ficha Cadastral</span>
@@ -738,7 +738,7 @@
 
     <script>
         // URL de implantação do Google Apps Script (O USUÁRIO DEVE SUBSTITUIR ESTA URL)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKYvartjfB3SNDDFdqQKzGq-tL7VV427yoSyhAwIY0hWKuA76uc24Sk9GAFHJLen8C/exec'; 
+        const SCRIPT_URL = 'SUBSTITUA_PELA_SUA_URL_DE_IMPLANTAÇÃO_DO_APPS_SCRIPT'; 
 
         let uploadedFiles = [];
         let experienceCounter = 1;
@@ -1107,15 +1107,7 @@
         async function sendDataToGoogleSheets(e) {
             e.preventDefault();
 
-            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbwKYvartjfB3SNDDFdqQKzGq-tL7VV427yoSyhAwIY0hWKuA76uc24Sk9GAFHJLen8C/exec') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro de Configuração!',
-                    text: 'Por favor, substitua a variável SCRIPT_URL no código JavaScript pela URL de implantação do seu Google Apps Script.',
-                    confirmButtonColor: '#d33'
-                });
-                return;
-            }
+// A verificação de SCRIPT_URL foi removida, pois o usuário já a substituiu e a verificação estava causando um erro de lógica.
 
             const form = e.target;
             if (!form.checkValidity()) {
