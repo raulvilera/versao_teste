@@ -841,7 +841,7 @@
         let uploadedFiles = [];
         
         // *** PASSO CRÍTICO: SUBSTITUA ESTA URL PELA URL DE IMPLANTAÇÃO DO SEU GOOGLE APPS SCRIPT ***
-        const SCRIPT_URL = 'SUA_URL_DE_IMPLANTACAO_AQUI'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWGfKdehwNz0s5mkj4qvuaYx0lfROxQdWkHGiWpNZ8GoUf52N5ORAS1qo75v54mIwv/exec'; 
 
         // =================================================================================================
         // FUNÇÃO DE ENVIO (CORRIGIDA E CONSOLIDADA)
@@ -941,7 +941,7 @@
             const dadosDoFormulario = coletarDadosDoFormulario();
             
             // 2. Validação da URL
-            if (SCRIPT_URL === 'SUA_URL_DE_IMPLANTACAO_AQUI' || !SCRIPT_URL.startsWith('https://script.google.com/macros/s/')) {
+            if (SCRIPT_URL === 'SUA_URL_DE_IMPLANTACAO_AQUI' || !SCRIPT_URL.startsWith('https://script.google.com/macros/s/AKfycbwWGfKdehwNz0s5mkj4qvuaYx0lfROxQdWkHGiWpNZ8GoUf52N5ORAS1qo75v54mIwv/exec')) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro Crítico de Configuração',
