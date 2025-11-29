@@ -216,6 +216,18 @@
             outline: none;
         }
         
+        /* Estilo para o erro de validação */
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none; /* Oculto por padrão */
+        }
+
+        .input-error {
+            border-color: #dc3545 !important;
+        }
+        
         /* Melhoria: Campos de data com clique em toda a área */
         input[type="date"], input[type="month"] {
             cursor: pointer;
@@ -787,11 +799,11 @@
                     <div class="upload-container">
                         <div class="upload-header">
                             <h4 class="section-subtitle" style="margin: 0; border: none; padding: 0;">Upload de Documentos</h4>
+                            <input type="file" id="fileInput" multiple style="display: none;">
                             <button type="button" class="upload-button" id="uploadBtn">
                                 <i class="fas fa-cloud-upload-alt"></i> Selecionar Arquivos
                             </button>
                         </div>
-                        <input type="file" id="fileInput" multiple style="display: none;">
                         <div class="upload-area" id="dropArea">
                             <i class="fas fa-file-upload"></i>
                             <h3>Arraste e solte seus arquivos aqui</h3>
@@ -841,10 +853,103 @@
         let uploadedFiles = [];
         
         // *** PASSO CRÍTICO: SUBSTITUA ESTA URL PELA URL DE IMPLANTAÇÃO DO SEU GOOGLE APPS SCRIPT ***
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWGfKdehwNz0s5mkj4qvuaYx0lfROxQdWkHGiWpNZ8GoUf52N5ORAS1qo75v54mIwv/exec'; 
+        const SCRIPT_URL = 'SUA_URL_DE_IMPLANTACAO_AQUI'; 
 
         // =================================================================================================
-        // FUNÇÃO DE ENVIO (CORRIGIDA E CONSOLIDADA)
+        // FUNÇÕES DE VALIDAÇÃO E BUSCA DE CEP (CORRIGIDAS)
+        // =================================================================================================
+
+        // Função de validação de CPF (mais robusta)
+        function validarCPF(cpf) {
+            cpf = cpf.replace(/[^\d]+/g, ''); // Remove caracteres não numéricos
+            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; // Verifica 11 dígitos e CPFs repetidos
+            
+            let soma = 0;
+            let resto;
+            
+            // Validação do primeiro dígito
+            for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(9, 10))) return false;
+            
+            soma = 0;
+            
+            // Validação do segundo dígito
+            for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(10, 11))) return false;
+            
+            return true;
+        }
+
+        // Função para exibir/ocultar mensagem de erro do CPF
+        function toggleCpfError(isValid) {
+            const cpfInput = document.getElementById('cpf');
+            const cpfError = document.getElementById('cpf-error');
+            
+            if (cpfInput && cpfError) {
+                if (cpfInput.value.replace(/\D/g, '').length === 11 && !isValid) {
+                    cpfError.style.display = 'block';
+                    cpfInput.classList.add('input-error');
+                } else {
+                    cpfError.style.display = 'none';
+                    cpfInput.classList.remove('input-error');
+                }
+            }
+        }
+
+        // Função para buscar endereço pelo CEP (ViaCEP)
+        function buscarEndereco(cep) {
+            cep = cep.replace(/\D/g, ''); // Remove caracteres não numéricos
+            
+            if (cep.length !== 8) return;
+
+            // Exibir um indicador de carregamento (opcional, mas bom para UX)
+            const logradouroInput = document.getElementById('logradouro');
+            if (logradouroInput) logradouroInput.value = 'Buscando...';
+
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.erro) {
+                        // Preencher os campos com os dados retornados
+                        document.getElementById('logradouro').value = data.logradouro || '';
+                        document.getElementById('bairro').value = data.bairro || '';
+                        document.getElementById('cidade').value = data.localidade || '';
+                        document.getElementById('estado').value = data.uf || '';
+                        
+                        // Focar no campo Número após o preenchimento
+                        document.getElementById('numero').focus();
+                    } else {
+                        // Limpar campos e notificar erro
+                        document.getElementById('logradouro').value = '';
+                        document.getElementById('bairro').value = '';
+                        document.getElementById('cidade').value = '';
+                        document.getElementById('estado').value = '';
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'CEP não encontrado',
+                            text: 'Por favor, preencha os campos de endereço manualmente.',
+                            confirmButtonColor: '#1a2980'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar CEP:', error);
+                    document.getElementById('logradouro').value = '';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro de Conexão',
+                        text: 'Erro ao buscar CEP. Verifique sua conexão com a internet.',
+                        confirmButtonColor: '#1a2980'
+                    });
+                });
+        }
+
+        // =================================================================================================
+        // FUNÇÃO DE ENVIO (PRESERVADA E CONSOLIDADA)
         // =================================================================================================
 
         // Função auxiliar para coletar dados do formulário
@@ -887,13 +992,11 @@
             // Coleta de dados dinâmicos (Experiências)
             const experiencias = [];
             document.querySelectorAll('#experienciasContainer .experiencia-item').forEach(item => {
-                // Coleta os inputs dentro do item de experiência
                 const empresaInput = item.querySelector('input[name="empresa[]"]');
                 const cargoInput = item.querySelector('input[name="cargo[]"]');
                 const dataInicioInput = item.querySelector('input[name="dataInicio[]"]');
                 const dataTerminoInput = item.querySelector('input[name="dataTermino[]"]');
 
-                // Adiciona apenas se houver pelo menos o nome da empresa ou cargo
                 if (empresaInput.value || cargoInput.value) {
                     experiencias.push({
                         empresa: empresaInput.value,
@@ -908,13 +1011,11 @@
             // Coleta de dados dinâmicos (Dependentes)
             const dependentes = [];
             document.querySelectorAll('#dependentesContainer .dependente-card').forEach(item => {
-                // Coleta os inputs dentro do item de dependente
                 const nomeInput = item.querySelector('input[name="nomeDependente[]"]');
                 const parentescoInput = item.querySelector('select[name="dependenteParentesco[]"]');
                 const nascimentoInput = item.querySelector('input[name="nascimentoDependente[]"]');
                 const cpfInput = item.querySelector('input[name="cpfDependente[]"]');
 
-                // Adiciona apenas se houver pelo menos o nome do dependente
                 if (nomeInput.value) {
                     dependentes.push({
                         nome: nomeInput.value,
@@ -934,18 +1035,30 @@
 
         // Função principal para enviar o formulário
         async function enviarFormulario(event) {
-            // Previne o comportamento padrão de envio do formulário
             if (event) event.preventDefault(); 
 
             // 1. Coleta os dados
             const dadosDoFormulario = coletarDadosDoFormulario();
             
-            // 2. Validação da URL
-            if (SCRIPT_URL === 'SUA_URL_DE_IMPLANTACAO_AQUI' || !SCRIPT_URL.startsWith('https://script.google.com/macros/s/AKfycbwWGfKdehwNz0s5mkj4qvuaYx0lfROxQdWkHGiWpNZ8GoUf52N5ORAS1qo75v54mIwv/exec')) {
+            // 1.1. Validação de CPF antes do envio
+            const cpfValue = document.getElementById('cpf').value;
+            if (cpfValue.replace(/\D/g, '').length === 11 && !validarCPF(cpfValue)) {
+                toggleCpfError(false); // Exibe o erro
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro de Validação',
+                    text: 'O CPF inserido é inválido. Por favor, corrija antes de enviar.',
+                    confirmButtonColor: '#1a2980'
+                });
+                return;
+            }
+            
+            // 2. Validação da URL (CRÍTICO)
+            if (SCRIPT_URL === 'SUA_URL_DE_IMPLANTACAO_AQUI' || !SCRIPT_URL.startsWith('https://script.google.com/macros/s/')) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro Crítico de Configuração',
-                    text: 'Por favor, substitua a variável SCRIPT_URL no código JavaScript pela URL de implantação do seu Google Apps Script.',
+                    text: 'Por favor, substitua a variável SCRIPT_URL no código JavaScript pela URL de implantação do seu Google Apps Script. O link não foi implantado corretamente.',
                     confirmButtonColor: '#1a2980'
                 });
                 return;
@@ -968,7 +1081,6 @@
                     mode: 'cors', // Essencial para requisições cross-origin
                     cache: 'no-cache',
                     headers: {
-                        // Apps Script espera text/plain para JSON no postData
                         'Content-Type': 'text/plain;charset=utf-8', 
                     },
                     body: JSON.stringify(dadosDoFormulario)
@@ -1015,7 +1127,7 @@
         }
 
         // =================================================================================================
-        // FUNÇÕES AUXILIARES (Preservadas do anexo original)
+        // FUNÇÕES AUXILIARES (Preservadas e Integradas)
         // =================================================================================================
 
         // Função para limpar o formulário e elementos dinâmicos
@@ -1038,6 +1150,9 @@
             experienceCounter = 1;
             updateDependenteTitles();
             updateExperienciaTitles();
+            
+            // Ocultar erro de CPF
+            toggleCpfError(true);
         }
 
         // Função para adicionar experiência
@@ -1067,7 +1182,6 @@
                     </div>
                 </div>
             `;
-            // Insere antes do botão "Adicionar Experiência"
             container.insertBefore(newExp, document.getElementById('addExperiencia'));
             updateExperienciaTitles();
         }
@@ -1105,7 +1219,6 @@
                     </div>
                 </div>
             `;
-            // Insere antes do botão "Adicionar Dependente"
             container.insertBefore(newDep, document.getElementById('addDependente'));
             updateDependenteTitles();
         }
@@ -1209,33 +1322,6 @@
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
-
-        // Função para buscar endereço pelo CEP
-        function buscarEndereco(cep) {
-            // Limpar o traço do CEP para a requisição
-            cep = cep.replace(/\D/g, '');
-            
-            if (cep.length !== 8) return;
-
-            // Fazer requisição à API ViaCEP
-            fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.erro) {
-                        // Preencher os campos com os dados retornados
-                        document.getElementById('logradouro').value = data.logradouro || '';
-                        document.getElementById('bairro').value = data.bairro || '';
-                        document.getElementById('cidade').value = data.localidade || '';
-                        document.getElementById('estado').value = data.uf || '';
-                    } else {
-                        // showToast('CEP não encontrado.', 'error'); // Usando SweetAlert2
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao buscar CEP:', error);
-                    // showToast('Erro ao buscar CEP. Verifique a conexão.', 'error'); // Usando SweetAlert2
-                });
-        }
         
         // Função para gerenciar o popup do tipo sanguíneo
         function setupTipoSanguineo() {
@@ -1263,58 +1349,49 @@
             });
         }
         
-        // Configurar máscaras de entrada e eventos
-        function setupInputMasks() {
-            // Configurar máscara para CPF
+        // Função para configurar os listeners de CPF e CEP
+        function setupValidationAndCepListeners() {
             const cpfInput = document.getElementById('cpf');
-            cpfInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 11) value = value.slice(0, 11);
-                
-                if (value.length > 9) {
-                    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-                } else if (value.length > 6) {
-                    value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
-                } else if (value.length > 3) {
-                    value = value.replace(/(\d{3})(\d+)/, '$1.$2');
-                }
-                e.target.value = value;
-            });
-            
-            // Configurar máscara para telefone
-            const phoneInputs = document.querySelectorAll('input[type="tel"]');
-            phoneInputs.forEach(input => {
-                input.addEventListener('input', function(e) {
+            const cepInput = document.getElementById('cep');
+
+            // Listener para validação de CPF em tempo real
+            if (cpfInput) {
+                cpfInput.addEventListener('input', function() {
+                    // A validação completa só é feita após o CPF estar completo
+                    if (this.value.replace(/\D/g, '').length === 11) {
+                        const isValid = validarCPF(this.value);
+                        toggleCpfError(isValid);
+                    } else {
+                        toggleCpfError(true); // Oculta o erro enquanto não estiver completo
+                    }
+                });
+                // Garante que o erro é exibido ao sair do campo se estiver inválido
+                cpfInput.addEventListener('blur', function() {
+                    if (this.value.replace(/\D/g, '').length === 11) {
+                        const isValid = validarCPF(this.value);
+                        toggleCpfError(isValid);
+                    }
+                });
+            }
+
+            // Listener para busca de CEP
+            if (cepInput) {
+                cepInput.addEventListener('input', function(e) {
                     let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 11) value = value.slice(0, 11);
                     
-                    if (value.length > 10) {
-                        value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                    } else if (value.length > 6) {
-                        value = value.replace(/(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
-                    } else if (value.length > 2) {
-                        value = value.replace(/(\d{2})(\d+)/, '($1) $2');
+                    // Configurar máscara para CEP
+                    if (value.length > 8) value = value.slice(0, 8);
+                    if (value.length > 5) {
+                        value = value.replace(/(\d{5})(\d+)/, '$1-$2');
                     }
                     e.target.value = value;
+
+                    // Buscar endereço quando o CEP estiver completo (8 dígitos)
+                    if (value.length === 9) { // 8 dígitos + hífen
+                        buscarEndereco(value);
+                    }
                 });
-            });
-            
-            // Configurar máscara para CEP e busca automática
-            const cepInput = document.getElementById('cep');
-            cepInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 8) value = value.slice(0, 8);
-                
-                if (value.length > 5) {
-                    value = value.replace(/(\d{5})(\d+)/, '$1-$2');
-                }
-                e.target.value = value;
-                
-                // Buscar endereço quando o CEP estiver completo
-                if (value.length === 9) {
-                    buscarEndereco(value);
-                }
-            });
+            }
         }
         
         function setupEventListeners() {
@@ -1359,11 +1436,13 @@
             if (form) {
                 form.addEventListener('submit', enviarFormulario);
             }
+            
+            // Configurar validação e CEP
+            setupValidationAndCepListeners();
         }
         
         // Inicialização quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
-            setupInputMasks();
             setupEventListeners();
         });
     </script>
