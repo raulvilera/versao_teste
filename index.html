@@ -764,528 +764,499 @@
         </div>
     </div>
 
-    <script>
-        // ** ATENÇÃO: SUBSTITUA ESTA URL PELA URL DE IMPLANTAÇÃO DO SEU GOOGLE APPS SCRIPT **
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby49-aA6GD66QfjhOOcq7gltiF4SYT4rqM-S8nA_uixuiPg4jVz4rm0hY-e7JTw4h1P/exec'; 
+   <script>
+/* =====================================================================
+    CONFIGURAÇÃO PRINCIPAL
+===================================================================== */
+const SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycby49-aA6GD66QfjhOOcq7gltiF4SYT4rqM-S8nA_uixuiPg4jVz4rm0hY-e7JTw4h1P/exec";
 
-        let uploadedFiles = [];
-        let experienceCounter = 1;
-        let dependentCounter = 1;
+let uploadedFiles = [];
+let experienceCounter = 1;
+let dependentCounter = 1;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('fichaCadastralForm');
-            const fileInput = document.getElementById('fileInput');
-            const dropArea = document.getElementById('dropArea');
-            const cepInput = document.getElementById('cep');
-            
-            // Event Listeners
-            form.addEventListener('submit', sendDataToGoogleSheets);
-            fileInput.addEventListener('change', handleFileSelect);
-            dropArea.addEventListener('dragover', handleDragOver);
-            dropArea.addEventListener('drop', handleFileDrop);
-            dropArea.addEventListener('click', triggerFileInput);
-            document.getElementById('addExperiencia').addEventListener('click', addExperiencia);
-            document.getElementById('addDependente').addEventListener('click', addDependente);
-            
-            // Event delegation para remover itens dinâmicos
-            document.getElementById('experienciasContainer').addEventListener('click', handleRemoveItem);
-            document.getElementById('dependentesContainer').addEventListener('click', handleRemoveItem);
+/* =====================================================================
+    INICIALIZAÇÃO
+===================================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+    applyMasks();
 
-            // Event Listener para consulta de CEP
-            cepInput.addEventListener('blur', fetchAddressByCEP);
-            
-            // Event Listener para limpar formulário
-            document.getElementById('clearFormButton').addEventListener('click', clearForm);
+    document.getElementById("fichaCadastralForm").addEventListener("submit", sendDataToGoogleSheets);
+    document.getElementById("fileInput").addEventListener("change", handleFileSelect);
+    document.getElementById("dropArea").addEventListener("dragover", handleDragOver);
+    document.getElementById("dropArea").addEventListener("drop", handleFileDrop);
+    document.getElementById("dropArea").addEventListener("click", () =>
+        document.getElementById("fileInput").click()
+    );
+    document.getElementById("addExperiencia").addEventListener("click", addExperiencia);
+    document.getElementById("addDependente").addEventListener("click", addDependente);
 
-            // Aplica máscaras
-            applyMasks();
+    // Delegação para itens dinâmicos
+    document.getElementById("experienciasContainer").addEventListener("click", handleRemoveItem);
+    document.getElementById("dependentesContainer").addEventListener("click", handleRemoveItem);
+
+    // CEP
+    document.getElementById("cep").addEventListener("blur", fetchAddressByCEP);
+
+    // Botão limpar
+    document.getElementById("clearFormButton").addEventListener("click", clearForm);
+});
+
+/* =====================================================================
+    FORMULÁRIO - LIMPAR
+===================================================================== */
+function clearForm() {
+    document.getElementById("fichaCadastralForm").reset();
+
+    uploadedFiles = [];
+    updateFileList();
+
+    document.querySelectorAll(".experiencia-item:not(:first-child)").forEach((e) => e.remove());
+    document.querySelectorAll(".dependente-card:not(:first-child)").forEach((e) => e.remove());
+
+    experienceCounter = 1;
+    dependentCounter = 1;
+
+    updateExperienciaTitles();
+    updateDependenteTitles();
+
+    Swal.fire({
+        icon: "info",
+        title: "Formulário Limpo",
+        text: "Todos os campos foram redefinidos.",
+        confirmButtonColor: "#1a2980",
+    });
+}
+
+/* =====================================================================
+    MÁSCARAS
+===================================================================== */
+function applyMasks() {
+    const mask = {
+        cpf: maskCPF,
+        cep: maskCEP,
+        celular1: maskPhone,
+        celular2: maskPhone,
+    };
+
+    for (const id in mask) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener("input", (e) => {
+                e.target.value = mask[id](e.target.value);
+            });
+        }
+    }
+}
+
+function maskCPF(v) {
+    return v
+        .replace(/\D/g, "")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
+function maskCEP(v) {
+    return v.replace(/\D/g, "").replace(/^(\d{5})(\d)/, "$1-$2");
+}
+
+function maskPhone(v) {
+    v = v.replace(/\D/g, "");
+    if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4}).*/, "($1) $2-$3");
+    if (v.length > 6) return v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+    if (v.length > 2) return v.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+    return v;
+}
+
+/* =====================================================================
+    BUSCAR CEP (ViaCEP)
+===================================================================== */
+async function fetchAddressByCEP() {
+    const cep = document.getElementById("cep").value.replace(/\D/g, "");
+    if (cep.length !== 8) return;
+
+    const fields = ["logradouro", "bairro", "cidade", "estado"];
+    fields.forEach((id) => (document.getElementById(id).value = "..."));
+
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+
+        if (data.erro) throw new Error("CEP não encontrado");
+
+        document.getElementById("logradouro").value = data.logradouro || "";
+        document.getElementById("bairro").value = data.bairro || "";
+        document.getElementById("cidade").value = data.localidade || "";
+        document.getElementById("estado").value = data.uf || "";
+        document.getElementById("numero").focus();
+    } catch (err) {
+        Swal.fire({
+            icon: "warning",
+            title: "CEP Inválido",
+            text: "CEP não encontrado.",
+            confirmButtonColor: "#1a2980",
+        });
+        fields.forEach((id) => (document.getElementById(id).value = ""));
+    }
+}
+
+/* =====================================================================
+    EXPERIÊNCIAS - CAMPOS DINÂMICOS
+===================================================================== */
+function addExperiencia() {
+    experienceCounter++;
+    const container = document.getElementById("experienciasContainer");
+
+    const div = document.createElement("div");
+    div.className = "experiencia-item";
+    div.innerHTML = `
+        <h4 class="section-subtitle">Experiência ${experienceCounter}
+            <button type="button" class="file-remove remove-experiencia">
+                <i class="fas fa-times"></i> Remover
+            </button>
+        </h4>
+
+        <div class="form-row">
+            <div class="form-group medium">
+                <label>Empresa</label>
+                <input type="text" name="empresa${experienceCounter}">
+            </div>
+            <div class="form-group medium">
+                <label>Cargo</label>
+                <input type="text" name="cargo${experienceCounter}">
+            </div>
+            <div class="form-group xsmall">
+                <label>Data Início</label>
+                <input type="month" name="dataInicio${experienceCounter}">
+            </div>
+            <div class="form-group xsmall">
+                <label>Data Término</label>
+                <input type="month" name="dataTermino${experienceCounter}">
+            </div>
+        </div>
+    `;
+
+    container.appendChild(div);
+    updateExperienciaTitles();
+}
+
+function updateExperienciaTitles() {
+    const items = document.querySelectorAll("#experienciasContainer .experiencia-item");
+
+    items.forEach((item, index) => {
+        const num = index + 1;
+        const title = item.querySelector(".section-subtitle");
+
+        title.innerHTML =
+            num === 1
+                ? `Experiência ${num}`
+                : `Experiência ${num} <button type="button" class="file-remove remove-experiencia"><i class="fas fa-times"></i> Remover</button>`;
+    });
+
+    experienceCounter = items.length;
+}
+
+/* =====================================================================
+    DEPENDENTES - CAMPOS DINÂMICOS
+===================================================================== */
+function addDependente() {
+    dependentCounter++;
+    const container = document.getElementById("dependentesContainer");
+
+    const div = document.createElement("div");
+    div.className = "dependente-card";
+
+    div.innerHTML = `
+        <h4 class="section-subtitle">Dependente ${dependentCounter}
+            <button type="button" class="file-remove remove-dependente">
+                <i class="fas fa-times"></i> Remover
+            </button>
+        </h4>
+
+        <div class="form-row">
+            <div class="form-group medium">
+                <label>Nome Completo</label>
+                <input type="text" name="dependenteNome${dependentCounter}">
+            </div>
+
+            <div class="form-group xsmall">
+                <label>Parentesco</label>
+                <select name="dependenteParentesco${dependentCounter}">
+                    <option value="">Selecione</option>
+                    <option value="Filho">Filho(a)</option>
+                    <option value="Cônjuge">Cônjuge</option>
+                    <option value="Pai/Mãe">Pai/Mãe</option>
+                    <option value="Outro">Outro</option>
+                </select>
+            </div>
+
+            <div class="form-group xsmall">
+                <label>Data Nascimento</label>
+                <input type="date" name="dependenteNascimento${dependentCounter}">
+            </div>
+
+            <div class="form-group xsmall">
+                <label>CPF</label>
+                <input type="text" name="dependenteCpf${dependentCounter}" maxlength="14">
+            </div>
+        </div>
+    `;
+
+    container.appendChild(div);
+
+    const cpfField = div.querySelector(`input[name="dependenteCpf${dependentCounter}"]`);
+    cpfField.addEventListener("input", (e) => (e.target.value = maskCPF(e.target.value)));
+
+    updateDependenteTitles();
+}
+
+function updateDependenteTitles() {
+    const cards = document.querySelectorAll("#dependentesContainer .dependente-card");
+
+    cards.forEach((card, index) => {
+        const num = index + 1;
+        const title = card.querySelector(".section-subtitle");
+
+        title.innerHTML =
+            num === 1
+                ? `Dependente ${num}`
+                : `Dependente ${num} <button type="button" class="file-remove remove-dependente"><i class="fas fa-times"></i> Remover</button>`;
+    });
+
+    dependentCounter = cards.length;
+}
+
+/* =====================================================================
+    REMOVER ITENS DINÂMICOS
+===================================================================== */
+function handleRemoveItem(e) {
+    if (e.target.closest(".remove-experiencia")) {
+        e.target.closest(".experiencia-item").remove();
+        updateExperienciaTitles();
+    }
+    if (e.target.closest(".remove-dependente")) {
+        e.target.closest(".dependente-card").remove();
+        updateDependenteTitles();
+    }
+}
+
+/* =====================================================================
+    UPLOAD DE ARQUIVOS
+===================================================================== */
+function handleFileSelect(e) {
+    addFiles(e.target.files);
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.style.background = "#eef6ff";
+}
+
+function handleFileDrop(e) {
+    e.preventDefault();
+    addFiles(e.dataTransfer.files);
+}
+
+function addFiles(files) {
+    for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) {
+            Swal.fire({
+                icon: "warning",
+                title: "Arquivo muito grande",
+                text: `"${file.name}" excede 10MB.`,
+                confirmButtonColor: "#1a2980",
+            });
+            continue;
+        }
+        uploadedFiles.push(file);
+    }
+    updateFileList();
+}
+
+function updateFileList() {
+    const list = document.getElementById("fileList");
+    list.innerHTML = "";
+
+    uploadedFiles.forEach((file, index) => {
+        const ext = file.name.split(".").pop().toLowerCase();
+        const icon =
+            ext === "pdf"
+                ? "fa-file-pdf"
+                : ["jpg", "jpeg", "png"].includes(ext)
+                ? "fa-file-image"
+                : ext === "doc" || ext === "docx"
+                ? "fa-file-word"
+                : "fa-file";
+
+        const div = document.createElement("div");
+        div.className = "file-item";
+        div.innerHTML = `
+            <div class="file-info">
+                <i class="fas ${icon} file-icon"></i>
+                <div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+            </div>
+            <button type="button" class="file-remove" data-index="${index}">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        div.querySelector("button").addEventListener("click", () => {
+            uploadedFiles.splice(index, 1);
+            updateFileList();
         });
 
-        // --- Função de Limpar Formulário ---
-        function clearForm() {
-            const form = document.getElementById('fichaCadastralForm');
-            if (form) {
-                form.reset();
-            }
-            
-            // Resetar estados de arquivos e elementos dinâmicos
-            uploadedFiles = [];
-            updateFileList();
-            
-            // Remover todos os dependentes e experiências adicionais
-            document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
-            document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
-            
-            // Resetar contadores e títulos
-            experienceCounter = 1;
-            dependentCounter = 1;
-            updateExperienciaTitles();
-            updateDependenteTitles();
+        list.appendChild(div);
+    });
+}
 
+function formatFileSize(b) {
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    if (b === 0) return "0 Bytes";
+    const i = Math.floor(Math.log(b) / Math.log(1024));
+    return (b / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
+}
+
+/* =====================================================================
+    ENVIO AO GOOGLE APPS SCRIPT (SEM CORS)
+===================================================================== */
+async function sendDataToGoogleSheets(e) {
+    e.preventDefault();
+
+    const form = e.target;
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    document.getElementById("loadingOverlay").style.display = "flex";
+
+    try {
+        /* ---------------------------------------------
+            COLETAR CAMPOS ESTÁTICOS
+        --------------------------------------------- */
+        const staticFields = [
+            "nome",
+            "cpf",
+            "rg",
+            "orgaoEmissor",
+            "dataEmissao",
+            "dataNascimento",
+            "naturalidade",
+            "nacionalidade",
+            "nomePai",
+            "nomeMae",
+            "estadoCivil",
+            "genero",
+            "tipoSanguineo",
+            "cep",
+            "logradouro",
+            "numero",
+            "complemento",
+            "bairro",
+            "cidade",
+            "estado",
+            "celular1",
+            "celular2",
+            "email",
+            "escolaridade",
+            "curso",
+            "instituicao",
+            "anoConclusao",
+            "dataDeclaracao",
+            "cidadeDeclaracao",
+            "dataAutorizacao",
+            "cidadeAutorizacao",
+        ];
+
+        const staticData = {};
+        for (const id of staticFields) {
+            const el = document.getElementById(id);
+            staticData[id] = el ? el.value : "";
+        }
+
+        /* ---------------------------------------------
+            EXPERIÊNCIAS
+        --------------------------------------------- */
+        const experiencias = [...document.querySelectorAll("#experienciasContainer .experiencia-item")].map(
+            (item) => {
+                const obj = {};
+                item.querySelectorAll("input").forEach((input) => {
+                    obj[input.name.replace(/\d+$/, "")] = input.value;
+                });
+                return obj;
+            }
+        );
+
+        /* ---------------------------------------------
+            DEPENDENTES
+        --------------------------------------------- */
+        const dependentes = [...document.querySelectorAll("#dependentesContainer .dependente-card")].map(
+            (item) => {
+                const obj = {};
+                item.querySelectorAll("input, select").forEach((input) => {
+                    obj[input.name.replace("dependente", "").replace(/\d+$/, "").toLowerCase()] =
+                        input.value;
+                });
+                return obj;
+            }
+        );
+
+        /* ---------------------------------------------
+            MONTAR FormData (sem CORS)
+        --------------------------------------------- */
+        const formData = new FormData();
+        formData.append("staticData", JSON.stringify(staticData));
+        formData.append("experiencias", JSON.stringify(experiencias));
+        formData.append("dependentes", JSON.stringify(dependentes));
+
+        uploadedFiles.forEach((file, i) => formData.append(`file${i + 1}`, file));
+        formData.append("fileCount", uploadedFiles.length);
+
+        /* ---------------------------------------------
+            ENVIAR
+        --------------------------------------------- */
+        const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: formData,
+        });
+
+        document.getElementById("loadingOverlay").style.display = "none";
+
+        if (!response.ok) throw new Error(`Status ${response.status}`);
+
+        const result = await response.json();
+
+        if (result.success) {
             Swal.fire({
-                icon: 'info',
-                title: 'Formulário Limpo',
-                text: 'Todos os campos foram redefinidos.',
-                confirmButtonColor: '#1a2980'
+                icon: "success",
+                title: "Sucesso!",
+                text: "Formulário enviado com sucesso!",
+                confirmButtonColor: "#1a2980",
+            }).then(clearForm);
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Erro!",
+                text: result.error || "Erro desconhecido.",
+                confirmButtonColor: "#d33",
             });
         }
+    } catch (err) {
+        document.getElementById("loadingOverlay").style.display = "none";
+        Swal.fire({
+            icon: "error",
+            title: "Erro de Conexão!",
+            text: err.message,
+            confirmButtonColor: "#d33",
+        });
+    }
+}
+</script>
 
-        // --- Funções de Máscara ---
-        function applyMasks() {
-            document.getElementById('cpf').addEventListener('input', (e) => {
-                e.target.value = maskCPF(e.target.value);
-            });
-            document.getElementById('cep').addEventListener('input', (e) => {
-                e.target.value = maskCEP(e.target.value);
-            });
-            document.getElementById('celular1').addEventListener('input', (e) => {
-                e.target.value = maskPhone(e.target.value);
-            });
-            document.getElementById('celular2').addEventListener('input', (e) => {
-                e.target.value = maskPhone(e.target.value);
-            });
-            
-            // Adiciona máscara aos campos de CPF de dependentes já existentes
-            const dependenteCpf1 = document.getElementById('dependenteCpf1');
-            if (dependenteCpf1) {
-                dependenteCpf1.addEventListener('input', (e) => {
-                    e.target.value = maskCPF(e.target.value);
-                });
-            }
-        }
-
-        function maskCPF(value) {
-            return value.replace(/\D/g, '')
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-        }
-
-        function maskCEP(value) {
-            return value.replace(/\D/g, '')
-                .replace(/^(\d{5})(\d)/, '$1-$2');
-        }
-
-        function maskPhone(value) {
-            value = value.replace(/\D/g, '');
-            if (value.length > 10) {
-                return value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
-            } else if (value.length > 6) {
-                return value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
-            } else if (value.length > 2) {
-                return value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-            } else {
-                return value;
-            }
-        }
-
-        // --- Funções de Consulta de CEP (ViaCEP) ---
-        async function fetchAddressByCEP() {
-            const cepInput = document.getElementById('cep');
-            let cep = cepInput.value.replace(/\D/g, '');
-
-            if (cep.length !== 8) {
-                return; // Ignora se o CEP não tiver 8 dígitos
-            }
-
-            // Preenche os campos com "..." enquanto consulta
-            document.getElementById('logradouro').value = '...';
-            document.getElementById('bairro').value = '...';
-            document.getElementById('cidade').value = '...';
-            document.getElementById('estado').value = '...';
-
-            try {
-                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await response.json();
-
-                if (data.erro) {
-                    throw new Error('CEP não encontrado.');
-                }
-
-                document.getElementById('logradouro').value = data.logradouro || '';
-                document.getElementById('bairro').value = data.bairro || '';
-                document.getElementById('cidade').value = data.localidade || '';
-                document.getElementById('estado').value = data.uf || '';
-                document.getElementById('numero').focus(); // Foca no campo número
-
-            } catch (error) {
-                console.error('Erro ao consultar CEP:', error);
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'CEP Inválido',
-                    text: 'Não foi possível encontrar o endereço para o CEP informado. Por favor, preencha manualmente.',
-                    confirmButtonColor: '#1a2980'
-                });
-                // Limpa os campos em caso de erro
-                document.getElementById('logradouro').value = '';
-                document.getElementById('bairro').value = '';
-                document.getElementById('cidade').value = '';
-                document.getElementById('estado').value = '';
-                document.getElementById('numero').focus();
-            }
-        }
-
-        // --- Funções de Campos Dinâmicos (Mantidas) ---
-
-        function addExperiencia() {
-            experienceCounter++;
-            const container = document.getElementById('experienciasContainer');
-            const newExp = document.createElement('div');
-            newExp.className = 'experiencia-item';
-            newExp.innerHTML = `
-                <h4 class="section-subtitle">Experiência ${experienceCounter} <button type="button" class="file-remove remove-experiencia" data-index="${experienceCounter}" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button></h4>
-                <div class="form-row">
-                    <div class="form-group medium">
-                        <label for="empresa${experienceCounter}">Empresa</label>
-                        <input type="text" id="empresa${experienceCounter}" name="empresa${experienceCounter}">
-                    </div>
-                    <div class="form-group medium">
-                        <label for="cargo${experienceCounter}">Cargo</label>
-                        <input type="text" id="cargo${experienceCounter}" name="cargo${experienceCounter}">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dataInicio${experienceCounter}">Data Início</label>
-                        <input type="month" id="dataInicio${experienceCounter}" name="dataInicio${experienceCounter}">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dataTermino${experienceCounter}">Data Término</label>
-                        <input type="month" id="dataTermino${experienceCounter}" name="dataTermino${experienceCounter}">
-                    </div>
-                </div>
-            `;
-            container.appendChild(newExp);
-            updateExperienciaTitles();
-        }
-
-        function addDependente() {
-            dependentCounter++;
-            const container = document.getElementById('dependentesContainer');
-            const newDep = document.createElement('div');
-            newDep.className = 'dependente-card';
-            newDep.innerHTML = `
-                <h4 class="section-subtitle">Dependente ${dependentCounter} <button type="button" class="file-remove remove-dependente" data-index="${dependentCounter}" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button></h4>
-                <div class="form-row">
-                    <div class="form-group medium">
-                        <label for="dependenteNome${dependentCounter}">Nome Completo</label>
-                        <input type="text" id="dependenteNome${dependentCounter}" name="dependenteNome${dependentCounter}">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dependenteParentesco${dependentCounter}">Parentesco</label>
-                        <select id="dependenteParentesco${dependentCounter}" name="dependenteParentesco${dependentCounter}">
-                            <option value="">Selecione</option>
-                            <option value="Filho">Filho(a)</option>
-                            <option value="Cônjuge">Cônjuge</option>
-                            <option value="Pai/Mãe">Pai/Mãe</option>
-                            <option value="Outro">Outro</option>
-                        </select>
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dependenteNascimento${dependentCounter}">Data Nascimento</label>
-                        <input type="date" id="dependenteNascimento${dependentCounter}" name="dependenteNascimento${dependentCounter}">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dependenteCpf${dependentCounter}">CPF</label>
-                        <input type="text" id="dependenteCpf${dependentCounter}" name="dependenteCpf${dependentCounter}" maxlength="14">
-                    </div>
-                </div>
-            `;
-            container.appendChild(newDep);
-            updateDependenteTitles();
-            // Reaplicar máscara ao novo campo CPF
-            document.getElementById(`dependenteCpf${dependentCounter}`).addEventListener('input', (e) => {
-                e.target.value = maskCPF(e.target.value);
-            });
-        }
-
-        function handleRemoveItem(e) {
-            if (e.target.closest('.remove-experiencia')) {
-                const item = e.target.closest('.experiencia-item');
-                item.remove();
-                updateExperienciaTitles();
-            } else if (e.target.closest('.remove-dependente')) {
-                const item = e.target.closest('.dependente-card');
-                item.remove();
-                updateDependenteTitles();
-            }
-        }
-
-        function updateExperienciaTitles() {
-            const items = document.querySelectorAll('#experienciasContainer .experiencia-item');
-            experienceCounter = items.length;
-            items.forEach((item, index) => {
-                const title = item.querySelector('.section-subtitle');
-                const newIndex = index + 1;
-                // Corrigido: Garante que o botão de remover só aparece a partir do segundo item
-                title.innerHTML = `Experiência ${newIndex} ${newIndex > 1 ? `<button type="button" class="file-remove remove-experiencia" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button>` : ''}`;
-                
-                // Atualiza os atributos name e id dos inputs
-                item.querySelectorAll('input, select').forEach(input => {
-                    // O regex deve ser mais específico para evitar problemas com 'dataInicio' e 'dataTermino'
-                    const baseName = input.name.replace(/\d+$/, '');
-                    input.name = baseName + newIndex;
-                    input.id = baseName + newIndex;
-                    const label = item.querySelector(`label[for="${baseName}${newIndex}"]`);
-                    if (label) label.setAttribute('for', baseName + newIndex);
-                });
-            });
-        }
-
-        function updateDependenteTitles() {
-            const items = document.querySelectorAll('#dependentesContainer .dependente-card');
-            dependentCounter = items.length;
-            items.forEach((item, index) => {
-                const title = item.querySelector('.section-subtitle');
-                const newIndex = index + 1;
-                // Corrigido: Garante que o botão de remover só aparece a partir do segundo item
-                title.innerHTML = `Dependente ${newIndex} ${newIndex > 1 ? `<button type="button" class="file-remove remove-dependente" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button>` : ''}`;
-
-                // Atualiza os atributos name e id dos inputs
-                item.querySelectorAll('input, select').forEach(input => {
-                    // O regex deve ser mais específico para evitar problemas com 'dependenteNome' e 'dependenteCpf'
-                    const baseName = input.name.replace(/\d+$/, '');
-                    input.name = baseName + newIndex;
-                    input.id = baseName + newIndex;
-                    const label = item.querySelector(`label[for="${baseName}${newIndex}"]`);
-                    if (label) label.setAttribute('for', baseName + newIndex);
-                });
-            });
-        }
-
-        // --- Funções de Upload de Arquivos (Mantidas) ---
-
-        function triggerFileInput() {
-            document.getElementById('fileInput').click();
-        }
-
-        function handleFileSelect(e) {
-            const files = e.target.files;
-            for (let i = 0; i < files.length; i++) {
-                // Adiciona uma verificação de tamanho (10MB)
-                if (files[i].size > 10 * 1024 * 1024) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Arquivo muito grande',
-                        text: `O arquivo "${files[i].name}" excede o limite de 10MB e não será anexado.`,
-                        confirmButtonColor: '#1a2980'
-                    });
-                    continue;
-                }
-                uploadedFiles.push(files[i]);
-            }
-            updateFileList();
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.dataTransfer.dropEffect = 'copy';
-            e.currentTarget.style.borderColor = '#1a2980';
-            e.currentTarget.style.backgroundColor = '#e9f7fe';
-        }
-
-        function handleFileDrop(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.style.borderColor = '#ced4da';
-            e.currentTarget.style.backgroundColor = '#f8f9fa';
-            const files = e.dataTransfer.files;
-            for (let i = 0; i < files.length; i++) {
-                // Adiciona uma verificação de tamanho (10MB)
-                if (files[i].size > 10 * 1024 * 1024) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Arquivo muito grande',
-                        text: `O arquivo "${files[i].name}" excede o limite de 10MB e não será anexado.`,
-                        confirmButtonColor: '#1a2980'
-                    });
-                    continue;
-                }
-                uploadedFiles.push(files[i]);
-            }
-            updateFileList();
-        }
-
-        function updateFileList() {
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            
-            uploadedFiles.forEach((file, index) => {
-                const fileSize = formatFileSize(file.size);
-                const fileExtension = file.name.split('.').pop().toLowerCase();
-                let iconClass = 'fas fa-file';
-                
-                if (['pdf'].includes(fileExtension)) {
-                    iconClass = 'fas fa-file-pdf';
-                } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-                    iconClass = 'fas fa-file-image';
-                } else if (['doc', 'docx'].includes(fileExtension)) {
-                    iconClass = 'fas fa-file-word';
-                }
-                
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <div class="file-info">
-                        <i class="${iconClass} file-icon"></i>
-                        <div>
-                            <div class="file-name">${file.name}</div>
-                            <div class="file-size">${fileSize}</div>
-                        </div>
-                    </div>
-                    <button type="button" class="file-remove" data-file-index="${index}">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                fileList.appendChild(fileItem);
-            });
-            
-            // Adicionar evento de remoção
-            document.querySelectorAll('.file-remove[data-file-index]').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-file-index'));
-                    uploadedFiles.splice(index, 1);
-                    updateFileList();
-                });
-            });
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // --- Função de Envio Principal (Corrigida para melhor feedback) ---
-
-        async function sendDataToGoogleSheets(e) {
-            e.preventDefault();
-
-            const form = e.target;
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            document.getElementById('loadingOverlay').style.display = 'flex';
-
-            try {
-                // 1. Coletar dados de campos dinâmicos (Experiências e Dependentes)
-                const experiencias = [];
-                document.querySelectorAll('#experienciasContainer .experiencia-item').forEach(item => {
-                    const inputs = item.querySelectorAll('input, select');
-                    const exp = {};
-                    inputs.forEach(input => {
-                        // O nome do input já foi corrigido para incluir o índice (ex: empresa1, empresa2)
-                        // Precisamos extrair o nome base (ex: empresa)
-                        const baseName = input.name.replace(/\d+$/, '');
-                        exp[baseName] = input.value;
-                    });
-                    // Adiciona apenas se tiver pelo menos o nome da empresa
-                    if (exp.empresa) {
-                        experiencias.push(exp);
-                    }
-                });
-
-                const dependentes = [];
-                document.querySelectorAll('#dependentesContainer .dependente-card').forEach(item => {
-                    const inputs = item.querySelectorAll('input, select');
-                    const dep = {};
-                    inputs.forEach(input => {
-                        // O nome do input já foi corrigido para incluir o índice (ex: dependenteNome1)
-                        // Precisamos extrair o nome base (ex: Nome, Parentesco, etc.)
-                        const baseName = input.name.replace(/\d+$/, '');
-                        // Converte para camelCase (ex: dependenteNome -> nome)
-                        const key = baseName.replace('dependente', '').toLowerCase();
-                        dep[key] = input.value;
-                    });
-                    // Adiciona apenas se tiver pelo menos o nome do dependente
-                    if (dep.nome) {
-                        dependentes.push(dep);
-                    }
-                });
-
-                // 2. Criar objeto de dados principal para campos estáticos
-                const staticData = {};
-                const staticFields = [
-                    'nome', 'cpf', 'rg', 'orgaoEmissor', 'dataEmissao', 'dataNascimento', 'naturalidade', 'nacionalidade',
-                    'nomePai', 'nomeMae', 'estadoCivil', 'genero', 'tipoSanguineo', 'cep', 'logradouro', 'numero',
-                    'complemento', 'bairro', 'cidade', 'estado', 'celular1', 'celular2', 'email', 'escolaridade',
-                    'curso', 'instituicao', 'anoConclusao', 'dataDeclaracao', 'cidadeDeclaracao', 'dataAutorizacao', 'cidadeAutorizacao'
-                ];
-
-                staticFields.forEach(field => {
-                    const input = document.getElementById(field);
-                    if (input) {
-                        staticData[field] = input.value;
-                    }
-                });
-
-                // 3. Montar o FormData
-                const formData = new FormData();
-                
-                // Adicionar dados estáticos e dinâmicos como JSON strings
-                formData.append('staticData', JSON.stringify(staticData));
-                formData.append('experiencias', JSON.stringify(experiencias));
-                formData.append('dependentes', JSON.stringify(dependentes));
-
-                // 4. Adicionar arquivos
-                uploadedFiles.forEach((file, index) => {
-                    // O nome do campo deve ser 'file' + index para o GAS
-                    formData.append(`file${index + 1}`, file, file.name);
-                });
-                formData.append('fileCount', uploadedFiles.length);
-
-
-                // 5. Enviar para o Google Apps Script
-                const response = await fetch("https://script.google.com/macros/s/AKfycby49-aA6GD66QfjhOOcq7gltiF4SYT4rqM-S8nA_uixuiPg4jVz4rm0hY-e7JTw4h1P/exec", {
-                    method: 'POST',
-                    // Não defina 'Content-Type' para 'multipart/form-data'. O navegador fará isso automaticamente.
-                    body: formData
-                });
-
-                document.getElementById('loadingOverlay').style.display = 'none';
-
-                // Verifica se a resposta foi bem-sucedida (status 200-299)
-                if (!response.ok) {
-                    // Se a resposta não for OK, lança um erro com o status
-                    throw new Error(`Erro de rede: Status ${response.status} ${response.statusText}`);
-                }
-
-                const result = await response.json();
-
-                if (result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Sucesso!',
-                        text: 'Formulário enviado com sucesso! O PDF foi gerado e o registro salvo. Verifique seu e-mail para a cópia do PDF.',
-                        confirmButtonColor: '#1a2980'
-                    }).then(() => {
-                        // Lógica de limpeza do formulário (usando a função dedicada)
-                        clearForm();
-                    });
-                } else {
-                    const errorMessage = result.error || 'Erro desconhecido ao processar a requisição.';
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erro!',
-                        text: `Ocorreu um erro ao enviar o formulário: ${errorMessage}`,
-                        confirmButtonColor: '#d33'
-                    });
-                }
-
-            } catch (error) {
-                document.getElementById('loadingOverlay').style.display = 'none';
-                console.error('Erro ao enviar para o Google Sheets:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro de Conexão!',
-                    text: `Ocorreu um erro de conexão ou processamento: ${error.message}. Verifique se a SCRIPT_URL está correta e se o App Script foi implantado corretamente.`,
-                    confirmButtonColor: '#d33'
-                });
-            }
-        }
-    </script>
 </body>
 </html>
