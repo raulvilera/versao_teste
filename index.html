@@ -908,80 +908,73 @@
 ============================================================ */
 
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzMrIMYO-6n_UGhetg96JYyjNT6Zou1qucvPNUYfn9faq6Lnjeao-22XT5m3UawG45P/exec";
+  "https://script.google.com/macros/s/AKfycbxub7yY0i-pdUxbkBQDxawCyljo4fLpIaraDOKhCtUbmrNGriVmiecD3A2mM0LXkcAe/exec";
 
 let uploadedFiles = [];
 let dependentCounter = 1;
 let experienceCounter = 1;
 
 /* ============================================================
-   FORM DATA – COLETA GERAL
+   COLETA GERAL DO FORM
 ============================================================ */
 
 function collectFormData() {
   const formData = {};
 
-  const basicFields = [
-    "nome", "cpf", "rg", "orgaoEmissor", "dataEmissao", "dataNascimento",
-    "naturalidade", "nacionalidade", "nomePai", "nomeMae", "estadoCivil",
-    "genero", "tipoSanguineo", "cep", "logradouro", "numero", "complemento",
-    "bairro", "cidade", "estado", "celular1", "celular2", "email",
-    "escolaridade", "curso", "instituicao", "anoConclusao",
-    "dataDeclaracao", "cidadeDeclaracao", "dataAutorizacao", "cidadeAutorizacao"
+  const fields = [
+    "nome","cpf","rg","orgaoEmissor","dataEmissao","dataNascimento",
+    "naturalidade","nacionalidade","nomePai","nomeMae","estadoCivil",
+    "genero","tipoSanguineo","cep","logradouro","numero","complemento",
+    "bairro","cidade","estado","celular1","celular2","email",
+    "escolaridade","curso","instituicao","anoConclusao",
+    "dataDeclaracao","cidadeDeclaracao","dataAutorizacao","cidadeAutorizacao"
   ];
 
-  basicFields.forEach(field => {
-    formData[field] = document.getElementById(field)?.value || "";
+  fields.forEach(f => {
+    formData[f] = document.getElementById(f)?.value.trim() || "";
   });
 
-  /* ---------------------------
-     EXPERIÊNCIAS
-  --------------------------- */
-  formData.experiencias = [...document.querySelectorAll('input[name="empresa[]"]')]
-    .map((el, i) => ({
-      empresa: el.value.trim(),
-      cargo: document.querySelectorAll('input[name="cargo[]"]')[i].value.trim(),
-      dataInicio: document.querySelectorAll('input[name="dataInicio[]"]')[i].value,
-      dataTermino: document.querySelectorAll('input[name="dataTermino[]"]')[i].value
-    }))
-    .filter(exp => exp.empresa !== "");
+  /* COLETA EXPERIÊNCIAS */
+  const empresas = [...document.querySelectorAll('input[name="empresa[]"]')];
+  formData.experiencias = empresas.map((empresa, i) => ({
+    empresa: empresa.value.trim(),
+    cargo: document.querySelectorAll('input[name="cargo[]"]')[i].value.trim(),
+    dataInicio: document.querySelectorAll('input[name="dataInicio[]"]')[i].value,
+    dataTermino: document.querySelectorAll('input[name="dataTermino[]"]')[i].value
+  })).filter(exp => exp.empresa !== "");
 
-  /* ---------------------------
-     DEPENDENTES
-  --------------------------- */
-  formData.dependentes = [...document.querySelectorAll('input[name="dependenteNome[]"]')]
-    .map((el, i) => ({
-      nome: el.value.trim(),
-      parentesco: document.querySelectorAll('select[name="dependenteParentesco[]"]')[i].value,
-      nascimento: document.querySelectorAll('input[name="dependenteNascimento[]"]')[i].value,
-      cpf: document.querySelectorAll('input[name="dependenteCpf[]"]')[i].value
-    }))
-    .filter(dep => dep.nome !== "");
+  /* COLETA DEPENDENTES */
+  const deps = [...document.querySelectorAll('input[name="dependenteNome[]"]')];
+  formData.dependentes = deps.map((dep, i) => ({
+    nome: dep.value.trim(),
+    parentesco: document.querySelectorAll('select[name="dependenteParentesco[]"]')[i].value,
+    nascimento: document.querySelectorAll('input[name="dependenteNascimento[]"]')[i].value,
+    cpf: document.querySelectorAll('input[name="dependenteCpf[]"]')[i].value
+  })).filter(dep => dep.nome !== "");
 
-  /* ---------------------------
-     ARQUIVOS
-  --------------------------- */
+  /* ARQUIVOS */
   formData.arquivos = uploadedFiles.map(f => f.name);
 
   return formData;
 }
 
 /* ============================================================
-   ENVIO DOS DADOS PARA GOOGLE APPS SCRIPT
+   ENVIO DOS DADOS PARA APPS SCRIPT
 ============================================================ */
 
 async function sendToGoogleSheets(formData) {
+
   try {
     document.getElementById("loadingOverlay").style.display = "flex";
 
     const response = await fetch(SCRIPT_URL, {
       method: "POST",
-      body: JSON.stringify(formData),
-      headers: { "Content-Type": "application/json" }
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
     });
 
     const result = await response.json();
-
     document.getElementById("loadingOverlay").style.display = "none";
 
     if (response.ok && result.success) {
@@ -995,115 +988,130 @@ async function sendToGoogleSheets(formData) {
       Swal.fire({
         icon: "error",
         title: "Erro!",
-        text: result.error || "Erro ao processar a requisição.",
-        confirmButtonColor: "#d33",
+        text: result.error || "Erro ao enviar dados.",
       });
     }
 
-  } catch (error) {
+  } catch (err) {
     document.getElementById("loadingOverlay").style.display = "none";
     Swal.fire({
       icon: "error",
       title: "Falha de Conexão!",
-      text: "Não foi possível enviar o formulário. Verifique sua internet ou tente novamente.",
-      confirmButtonColor: "#d33",
+      text: "Não foi possível enviar. Tente novamente.",
     });
   }
 }
 
 /* ============================================================
-   DEPENDENTES E EXPERIÊNCIAS (DINÂMICOS)
+   CAMPOS DINÂMICOS — EXPERIÊNCIAS
 ============================================================ */
 
 function addExperiencia() {
   experienceCounter++;
 
   const container = document.getElementById("experienciasContainer");
-  const newBlock = document.createElement("div");
-  newBlock.className = "experiencia-item";
+  const div = document.createElement("div");
+  div.className = "experiencia-item";
 
-  newBlock.innerHTML = `
-      <h4 class="section-subtitle">
-        Experiência ${experienceCounter}
-        <button type="button" class="file-remove remove-experiencia"><i class="fas fa-times"></i> Remover</button>
-      </h4>
+  div.innerHTML = `
+    <h4 class="section-subtitle">
+      Experiência ${experienceCounter}
+      <button type="button" class="file-remove remove-experiencia">
+        <i class="fas fa-times"></i>
+      </button>
+    </h4>
 
-      <div class="form-row">
-        <div class="form-group medium">
-          <label>Empresa</label>
-          <input type="text" name="empresa[]">
-        </div>
-        <div class="form-group medium">
-          <label>Cargo</label>
-          <input type="text" name="cargo[]">
-        </div>
-        <div class="form-group xsmall">
-          <label>Data Início</label>
-          <input type="month" name="dataInicio[]">
-        </div>
-        <div class="form-group xsmall">
-          <label>Data Término</label>
-          <input type="month" name="dataTermino[]">
-        </div>
+    <div class="form-row">
+      <div class="form-group medium">
+        <label>Empresa</label>
+        <input type="text" name="empresa[]">
       </div>
-    `;
 
-  container.insertBefore(newBlock, document.getElementById("addExperiencia"));
+      <div class="form-group medium">
+        <label>Cargo</label>
+        <input type="text" name="cargo[]">
+      </div>
+
+      <div class="form-group xsmall">
+        <label>Data Início</label>
+        <input type="month" name="dataInicio[]">
+      </div>
+
+      <div class="form-group xsmall">
+        <label>Data Término</label>
+        <input type="month" name="dataTermino[]">
+      </div>
+    </div>
+  `;
+
+  container.insertBefore(div, document.getElementById("addExperiencia"));
   updateExperienciaTitles();
 }
+
+/* ============================================================
+   CAMPOS DINÂMICOS — DEPENDENTES
+============================================================ */
 
 function addDependente() {
   dependentCounter++;
 
   const container = document.getElementById("dependentesContainer");
-  const newBlock = document.createElement("div");
-  newBlock.className = "dependente-card";
+  const div = document.createElement("div");
+  div.className = "dependente-card";
 
-  newBlock.innerHTML = `
-      <h4 class="section-subtitle">
-        Dependente ${dependentCounter}
-        <button type="button" class="file-remove remove-dependente"><i class="fas fa-times"></i> Remover</button>
-      </h4>
+  div.innerHTML = `
+    <h4 class="section-subtitle">
+      Dependente ${dependentCounter}
+      <button type="button" class="file-remove remove-dependente">
+        <i class="fas fa-times"></i>
+      </button>
+    </h4>
 
-      <div class="form-row">
-        <div class="form-group medium">
-          <label>Nome Completo</label>
-          <input type="text" name="dependenteNome[]">
-        </div>
-
-        <div class="form-group xsmall">
-          <label>Parentesco</label>
-          <select name="dependenteParentesco[]">
-            <option value="">Selecione</option>
-            <option>Filho(a)</option>
-            <option>Cônjuge</option>
-            <option>Pai/Mãe</option>
-            <option>Outro</option>
-          </select>
-        </div>
-
-        <div class="form-group xsmall">
-          <label>Data Nascimento</label>
-          <input type="date" name="dependenteNascimento[]">
-        </div>
-
-        <div class="form-group xsmall">
-          <label>CPF</label>
-          <input type="text" name="dependenteCpf[]">
-        </div>
+    <div class="form-row">
+      <div class="form-group medium">
+        <label>Nome Completo</label>
+        <input type="text" name="dependenteNome[]">
       </div>
-    `;
 
-  container.insertBefore(newBlock, document.getElementById("addDependente"));
+      <div class="form-group xsmall">
+        <label>Parentesco</label>
+        <select name="dependenteParentesco[]">
+          <option value="">Selecione</option>
+          <option>Filho(a)</option>
+          <option>Cônjuge</option>
+          <option>Pai/Mãe</option>
+          <option>Outro</option>
+        </select>
+      </div>
+
+      <div class="form-group xsmall">
+        <label>Data Nascimento</label>
+        <input type="date" name="dependenteNascimento[]">
+      </div>
+
+      <div class="form-group xsmall">
+        <label>CPF</label>
+        <input type="text" name="dependenteCpf[]">
+      </div>
+    </div>
+  `;
+
+  container.insertBefore(div, document.getElementById("addDependente"));
   updateDependenteTitles();
 }
 
+/* ============================================================
+   TITULAÇÃO DOS BLOCOS DINÂMICOS
+============================================================ */
+
 function updateExperienciaTitles() {
   document.querySelectorAll("#experienciasContainer .section-subtitle")
-    .forEach((title, index) => {
+    .forEach((title, i) => {
       title.innerHTML = `
-        Experiência ${index + 1}
-        <button type="button" class="file-remove remove-experiencia"><i class="fas fa-times"></i></button>
+        Experiência ${i + 1}
+        <button type="button" class="file-remove remove-experiencia">
+          <i class="fas fa-times"></i>
+        </button>
       `;
     });
   experienceCounter = document.querySelectorAll("#experienciasContainer .section-subtitle").length;
@@ -1111,10 +1119,12 @@ function updateExperienciaTitles() {
 
 function updateDependenteTitles() {
   document.querySelectorAll("#dependentesContainer .section-subtitle")
-    .forEach((title, index) => {
+    .forEach((title, i) => {
       title.innerHTML = `
-        Dependente ${index + 1}
-        <button type="button" class="file-remove remove-dependente"><i class="fas fa-times"></i></button>
+        Dependente ${i + 1}
+        <button type="button" class="file-remove remove-dependente">
+          <i class="fas fa-times"></i>
+        </button>
       `;
     });
   dependentCounter = document.querySelectorAll("#dependentesContainer .section-subtitle").length;
@@ -1129,95 +1139,92 @@ function triggerFileInput() {
 }
 
 function handleFileSelect(e) {
-  [...e.target.files].forEach(file => uploadedFiles.push(file));
+  [...e.target.files].forEach(f => uploadedFiles.push(f));
   updateFileList();
 }
 
 function handleFileDrop(e) {
   e.preventDefault();
-  [...e.dataTransfer.files].forEach(file => uploadedFiles.push(file));
+  [...e.dataTransfer.files].forEach(f => uploadedFiles.push(f));
   updateFileList();
 }
 
-function formatFileSize(bytes) {
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  if (bytes === 0) return "0 Bytes";
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return (bytes / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
+function formatFileSize(b) {
+  const s = ["Bytes", "KB", "MB", "GB"];
+  if (b === 0) return "0 Bytes";
+  const i = Math.floor(Math.log(b) / Math.log(1024));
+  return (b / Math.pow(1024, i)).toFixed(2) + " " + s[i];
 }
 
 function updateFileList() {
-  const fileList = document.getElementById("fileList");
-  fileList.innerHTML = "";
+  const list = document.getElementById("fileList");
+  list.innerHTML = "";
 
-  uploadedFiles.forEach((file, index) => {
+  uploadedFiles.forEach((file, i) => {
     const ext = file.name.split(".").pop().toLowerCase();
     const icons = {
       pdf: "fa-file-pdf",
       jpg: "fa-file-image",
       jpeg: "fa-file-image",
       png: "fa-file-image",
-      gif: "fa-file-image",
       doc: "fa-file-word",
       docx: "fa-file-word",
     };
 
-    const item = document.createElement("div");
-    item.className = "file-item";
+    const div = document.createElement("div");
+    div.className = "file-item";
 
-    item.innerHTML = `
-          <div class="file-info">
-            <i class="fas ${icons[ext] || "fa-file"} file-icon"></i>
-            <div>
-              <div class="file-name">${file.name}</div>
-              <div class="file-size">${formatFileSize(file.size)}</div>
-            </div>
-          </div>
-          <button type="button" class="file-remove" data-index="${index}">
-            <i class="fas fa-times"></i>
-          </button>
-        `;
+    div.innerHTML = `
+      <div class="file-info">
+        <i class="fas ${icons[ext] || "fa-file"} file-icon"></i>
+        <div>
+        <div class="file-name">${file.name}</div>
+        <div class="file-size">${formatFileSize(file.size)}</div>
+        </div>
+      </div>
 
-    fileList.appendChild(item);
+      <button type="button" data-index="${i}" class="file-remove">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+
+    list.appendChild(div);
   });
 
   document.querySelectorAll(".file-remove").forEach(btn => {
-    btn.addEventListener("click", function () {
-      uploadedFiles.splice(this.dataset.index, 1);
+    btn.addEventListener("click", () => {
+      uploadedFiles.splice(btn.dataset.index, 1);
       updateFileList();
     });
   });
 }
 
 /* ============================================================
-   FORMULÁRIO – VALIDAÇÃO E RESET
+   VALIDAÇÃO DO FORMULÁRIO
 ============================================================ */
 
 function validateForm() {
+
   let ok = true;
 
-  // Reset visual
-  document.querySelectorAll(".error-message").forEach(el => el.style.display = "none");
-  document.querySelectorAll("input, select").forEach(el => el.classList.remove("input-error"));
+  document.querySelectorAll(".error-message").forEach(e => e.style.display = "none");
+  document.querySelectorAll("input, select").forEach(i => i.classList.remove("input-error"));
 
-  // Verificação dos required
-  document.querySelectorAll("[required]").forEach(field => {
-    if (!field.value.trim()) {
+  document.querySelectorAll("[required]").forEach(f => {
+    if (!f.value.trim()) {
       ok = false;
-      field.classList.add("input-error");
-      const error = document.getElementById(field.id + "-error");
-      if (error) error.style.display = "block";
+      f.classList.add("input-error");
+      const err = document.getElementById(f.id + "-error");
+      if (err) err.style.display = "block";
     }
   });
 
-  // CPF
   const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
   if (cpf.length !== 11) {
     ok = false;
     document.getElementById("cpf").classList.add("input-error");
   }
 
-  // E-mail
   const email = document.getElementById("email").value;
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     ok = false;
@@ -1226,6 +1233,10 @@ function validateForm() {
 
   return ok;
 }
+
+/* ============================================================
+   RESET DO FORMULÁRIO
+============================================================ */
 
 function resetForm() {
   const form = document.getElementById("fichaCadastralForm");
@@ -1240,64 +1251,42 @@ function resetForm() {
   dependentCounter = 1;
   experienceCounter = 1;
 
-  updateDependenteTitles();
   updateExperienciaTitles();
+  updateDependenteTitles();
 }
 
 /* ============================================================
-   UTILITÁRIOS (CEP, máscaras, popup sanguíneo)
+   UTILITÁRIOS (CEP / MÁSCARAS)
 ============================================================ */
-
-function showToast(msg, type = "success") {
-  const toast = document.getElementById("toast");
-  document.getElementById("toastMessage").textContent = msg;
-
-  toast.style.backgroundColor =
-    type === "error"
-      ? "#f44336"
-      : type === "info"
-      ? "#2196F3"
-      : "#4CAF50";
-
-  toast.style.display = "flex";
-
-  setTimeout(() => (toast.style.display = "none"), 3000);
-}
 
 function buscarEndereco(cep) {
   cep = cep.replace(/\D/g, "");
-
-  if (cep.length !== 8) {
-    showToast("CEP inválido!", "error");
-    return;
-  }
+  if (cep.length !== 8) return;
 
   fetch(`https://viacep.com.br/ws/${cep}/json/`)
     .then(r => r.json())
-    .then(data => {
-      if (data.erro) {
-        showToast("CEP não encontrado!", "error");
-      } else {
-        document.getElementById("logradouro").value = data.logradouro || "";
-        document.getElementById("bairro").value = data.bairro || "";
-        document.getElementById("cidade").value = data.localidade || "";
-        document.getElementById("estado").value = data.uf || "";
-      }
+    .then(d => {
+      if (d.erro) return showToast("CEP não encontrado!", "error");
+      document.getElementById("logradouro").value = d.logradouro || "";
+      document.getElementById("bairro").value = d.bairro || "";
+      document.getElementById("cidade").value = d.localidade || "";
+      document.getElementById("estado").value = d.uf || "";
     })
     .catch(() => showToast("Erro ao buscar CEP", "error"));
 }
 
 function setupInputMasks() {
-  // CPF
+
+  /* CPF */
   document.getElementById("cpf").addEventListener("input", e => {
-    let v = e.target.value.replace(/\D/g, "").substring(0, 11);
+    let v = e.target.value.replace(/\D/g, "").slice(0, 11);
     v = v.replace(/(\d{3})(\d)/, "$1.$2")
          .replace(/(\d{3})(\d)/, "$1.$2")
          .replace(/(\d{3})(\d{2})$/, "$1-$2");
     e.target.value = v;
   });
 
-  // Telefones
+  /* Telefones */
   document.querySelectorAll('input[type="tel"]').forEach(input => {
     input.addEventListener("input", e => {
       let v = e.target.value.replace(/\D/g, "").slice(0, 11);
@@ -1311,66 +1300,65 @@ function setupInputMasks() {
     });
   });
 
-  // CEP
+  /* CEP */
   document.getElementById("cep").addEventListener("input", e => {
-    let v = e.target.value.replace(/\D/g, "").substring(0, 8);
+    let v = e.target.value.replace(/\D/g, "").slice(0, 8);
     if (v.length > 5) v = v.replace(/(\d{5})(\d+)/, "$1-$2");
     e.target.value = v;
 
-    if (v.replace(/\D/g, "").length === 8) buscarEndereco(v);
+    if (v.replace(/\D/g, "").length === 8) {
+      buscarEndereco(v);
+    }
   });
 }
 
-function setupTipoSanguineo() {
-  const input = document.getElementById("tipoSanguineo");
-  const popup = document.getElementById("tipoSanguineoPopup");
+function showToast(msg, type = "success") {
+  const toast = document.getElementById("toast");
+  document.getElementById("toastMessage").textContent = msg;
 
-  input.addEventListener("click", () => popup.classList.toggle("show"));
+  toast.style.backgroundColor =
+    type === "error" ? "#e74c3c" : "#2ecc71";
 
-  document.querySelectorAll(".tipo-sanguineo-option").forEach(opt => {
-    opt.addEventListener("click", () => {
-      input.value = opt.dataset.value;
-      popup.classList.remove("show");
-    });
-  });
+  toast.style.display = "flex";
 
-  document.addEventListener("click", e => {
-    if (!e.target.closest(".tipo-sanguineo-container"))
-      popup.classList.remove("show");
-  });
+  setTimeout(() => (toast.style.display = "none"), 3000);
 }
 
 /* ============================================================
-   EVENTOS GERAIS
+   CONFIGURANDO EVENTOS
 ============================================================ */
 
 function setupEventListeners() {
+
+  /* Botões de adicionar blocos */
   document.getElementById("addDependente").addEventListener("click", addDependente);
   document.getElementById("addExperiencia").addEventListener("click", addExperiencia);
 
+  /* Upload */
   document.getElementById("uploadBtn").addEventListener("click", triggerFileInput);
   document.getElementById("fileInput").addEventListener("change", handleFileSelect);
 
   const dropArea = document.getElementById("dropArea");
-  dropArea.addEventListener("dragover", e => e.preventDefault());
+  dropArea.addEventListener("dragover", ev => ev.preventDefault());
   dropArea.addEventListener("drop", handleFileDrop);
 
-  document.getElementById("resetForm").addEventListener("click", resetForm);
-
-  // Remover dependente ou experiência
+  /* Remover dinamicamente */
   document.getElementById("dependentesContainer").addEventListener("click", e => {
-    if (e.target.closest(".remove-dependente"))
+    if (e.target.closest(".remove-dependente")) {
       e.target.closest(".dependente-card").remove();
-    updateDependenteTitles();
+      updateDependenteTitles();
+    }
   });
 
   document.getElementById("experienciasContainer").addEventListener("click", e => {
-    if (e.target.closest(".remove-experiencia"))
+    if (e.target.closest(".remove-experiencia")) {
       e.target.closest(".experiencia-item").remove();
-    updateExperienciaTitles();
+      updateExperienciaTitles();
+    }
   });
 
-  setupTipoSanguineo();
+  /* Máscaras */
+  setupInputMasks();
 }
 
 /* ============================================================
@@ -1378,23 +1366,22 @@ function setupEventListeners() {
 ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("form").id = "fichaCadastralForm";
-
-  setupInputMasks();
   setupEventListeners();
 
-  document.getElementById("fichaCadastralForm").addEventListener("submit", async e => {
-    e.preventDefault();
+  document
+    .getElementById("fichaCadastralForm")
+    .addEventListener("submit", async e => {
+      e.preventDefault();
 
-    if (!validateForm()) {
-      showToast("Preencha todos os campos obrigatórios.", "error");
-      return;
-    }
+      if (!validateForm()) {
+        showToast("Preencha todos os campos obrigatórios.", "error");
+        return;
+      }
 
-    await sendToGoogleSheets(collectFormData());
-  });
+      await sendToGoogleSheets(collectFormData());
+    });
 });
-</script>
+
 
 
 </body>
