@@ -903,584 +903,492 @@
     </div>
 
     <script>
-        // URL do seu Google Apps Script (DEVE SER SUBSTITUÍDA PELA URL DE IMPLANTAÇÃO DO SEU SCRIPT)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXBXfZHxBFZzA_r889jgnTsb2kUAwXvqVSYkrpz6EtsBIkT4LsxRQtAQbvWt59aCcI/exec'; 
+/* ============================================================
+   CONFIGURAÇÃO INICIAL
+============================================================ */
 
-        // Variável global para armazenar arquivos (mantida do original)
-        let uploadedFiles = [];
-        let dependentCounter = 1;
-        let experienceCounter = 1;
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxXBXfZHxBFZzA_r889jgnTsb2kUAwXvqVSYkrpz6EtsBIkT4LsxRQtAQbvWt59aCcI/exec";
 
-        // Função para coletar todos os dados do formulário
-        function collectFormData() {
-            const formData = {};
-            
-            // Coletar dados básicos
-            const fields = [
-                'nome', 'cpf', 'rg', 'orgaoEmissor', 'dataEmissao', 'dataNascimento',
-                'naturalidade', 'nacionalidade', 'nomePai', 'nomeMae', 'estadoCivil',
-                'genero', 'tipoSanguineo', 'cep', 'logradouro', 'numero', 'complemento',
-                'bairro', 'cidade', 'estado', 'celular1', 'celular2', 'email',
-                'escolaridade', 'curso', 'instituicao', 'anoConclusao',
-                'dataDeclaracao', 'cidadeDeclaracao', 'dataAutorizacao', 'cidadeAutorizacao'
-            ];
-            
-            fields.forEach(field => {
-                formData[field] = document.getElementById(field)?.value || '';
-            });
-            
-            // Coletar experiências
-            formData.experiencias = [];
-            const empresaInputs = document.querySelectorAll('input[name="empresa[]"]');
-            const cargoInputs = document.querySelectorAll('input[name="cargo[]"]');
-            const dataInicioInputs = document.querySelectorAll('input[name="dataInicio[]"]');
-            const dataTerminoInputs = document.querySelectorAll('input[name="dataTermino[]"]');
-            
-            for (let i = 0; i < empresaInputs.length; i++) {
-                // Adiciona a experiência apenas se o campo "Empresa" não estiver vazio
-                if (empresaInputs[i].value.trim() !== '') {
-                    formData.experiencias.push({
-                        empresa: empresaInputs[i].value,
-                        cargo: cargoInputs[i].value,
-                        dataInicio: dataInicioInputs[i].value,
-                        dataTermino: dataTerminoInputs[i].value
-                    });
-                }
-            }
-            
-            // Coletar dependentes
-            formData.dependentes = [];
-            const dependenteNomeInputs = document.querySelectorAll('input[name="dependenteNome[]"]');
-            const dependenteParentescoInputs = document.querySelectorAll('select[name="dependenteParentesco[]"]');
-            const dependenteNascimentoInputs = document.querySelectorAll('input[name="dependenteNascimento[]"]');
-            const dependenteCpfInputs = document.querySelectorAll('input[name="dependenteCpf[]"]');
-            
-            for (let i = 0; i < dependenteNomeInputs.length; i++) {
-                // Adiciona o dependente apenas se o campo "Nome Completo" não estiver vazio
-                if (dependenteNomeInputs[i].value.trim() !== '') {
-                    formData.dependentes.push({
-                        nome: dependenteNomeInputs[i].value,
-                        parentesco: dependenteParentescoInputs[i].value,
-                        nascimento: dependenteNascimentoInputs[i].value,
-                        cpf: dependenteCpfInputs[i].value
-                    });
-                }
-            }
-            
-            // Coletar arquivos (apenas os nomes)
-            formData.arquivos = uploadedFiles.map(file => file.name);
-            
-            return formData;
-        }
-        
-        // FUNÇÃO DE ENVIO CORRIGIDA
-        async function sendToGoogleSheets(formData) {
-            // Alerta para o usuário substituir a URL
-            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxXBXfZHxBFZzA_r889jgnTsb2kUAwXvqVSYkrpz6EtsBIkT4LsxRQtAQbvWt59aCcI/exec') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Atenção!',
-                    text: 'Por favor, substitua a variável SCRIPT_URL no código JavaScript pela URL de implantação do seu Google Apps Script.',
-                    confirmButtonColor: '#1a2980'
-                });
-                return;
-            }
+let uploadedFiles = [];
+let dependentCounter = 1;
+let experienceCounter = 1;
 
-            try {
-                // Mostrar overlay de carregamento
-                document.getElementById('loadingOverlay').style.display = 'flex';
-                
-                // Enviar dados para o Google Apps Script
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(formData)
-                });
+/* ============================================================
+   FORM DATA – COLETA GERAL
+============================================================ */
 
-                // Ocultar overlay de carregamento
-                document.getElementById('loadingOverlay').style.display = 'none';
+function collectFormData() {
+  const formData = {};
 
-                // O script do Google Apps deve retornar um JSON com sucesso ou erro.
-                const result = await response.json();
+  const basicFields = [
+    "nome", "cpf", "rg", "orgaoEmissor", "dataEmissao", "dataNascimento",
+    "naturalidade", "nacionalidade", "nomePai", "nomeMae", "estadoCivil",
+    "genero", "tipoSanguineo", "cep", "logradouro", "numero", "complemento",
+    "bairro", "cidade", "estado", "celular1", "celular2", "email",
+    "escolaridade", "curso", "instituicao", "anoConclusao",
+    "dataDeclaracao", "cidadeDeclaracao", "dataAutorizacao", "cidadeAutorizacao"
+  ];
 
-                if (response.ok && result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Sucesso!',
-                        text: 'Formulário enviado com sucesso! O PDF foi gerado e o registro salvo.',
-                        confirmButtonColor: '#1a2980'
-                    }).then(() => {
-                        // Lógica de limpeza do formulário
-                        const form = document.getElementById('fichaCadastralForm');
-                        if (form) {
-                            form.reset();
-                        }
-                        
-                        // Resetar estados de arquivos e elementos dinâmicos
-                        uploadedFiles = [];
-                        updateFileList();
-                        
-                        // Remover todos os dependentes e experiências adicionais
-                        document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
-                        document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
-                        
-                        // Resetar contadores e títulos
-                        dependentCounter = 1;
-                        experienceCounter = 1;
-                        updateDependenteTitles();
-                        updateExperienciaTitles();
-                    });
-                } else {
-                    // Se a resposta não for 'ok' ou o status for 'error'
-                    const errorMessage = result.error || 'Erro desconhecido ao processar a requisição.';
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erro!',
-                        text: `Ocorreu um erro ao enviar o formulário: ${errorMessage}`,
-                        confirmButtonColor: '#d33'
-                    });
-                }
+  basicFields.forEach(field => {
+    formData[field] = document.getElementById(field)?.value || "";
+  });
 
-            } catch (error) {
-                // Ocultar overlay de carregamento em caso de falha
-                document.getElementById('loadingOverlay').style.display = 'none';
-                console.error('Erro ao enviar para o Google Sheets:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro!',
-                    text: `Ocorreu um erro de conexão ou processamento: ${error.message}. Verifique se a SCRIPT_URL está correta e se o App Script foi implantado corretamente.`,
-                    confirmButtonColor: '#d33'
-                });
-            }
-        }
-        
-        // Funções auxiliares (Adicionar Experiência, Adicionar Dependente, Upload, etc.)
-        
-        function addExperiencia() {
-            experienceCounter++;
-            const container = document.getElementById('experienciasContainer');
-            const newExp = document.createElement('div');
-            newExp.className = 'experiencia-item';
-            newExp.innerHTML = `
-                <h4 class="section-subtitle">Experiência ${experienceCounter} <button type="button" class="file-remove remove-experiencia" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button></h4>
-                <div class="form-row">
-                    <div class="form-group medium">
-                        <label for="empresa${experienceCounter}">Empresa</label>
-                        <input type="text" id="empresa${experienceCounter}" name="empresa[]">
-                    </div>
-                    <div class="form-group medium">
-                        <label for="cargo${experienceCounter}">Cargo</label>
-                        <input type="text" id="cargo${experienceCounter}" name="cargo[]">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dataInicio${experienceCounter}">Data Início</label>
-                        <input type="month" id="dataInicio${experienceCounter}" name="dataInicio[]">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dataTermino${experienceCounter}">Data Término</label>
-                        <input type="month" id="dataTermino${experienceCounter}" name="dataTermino[]">
-                    </div>
+  // Experiências
+  formData.experiencias = [...document.querySelectorAll('input[name="empresa[]"]')]
+    .map((el, i) => ({
+      empresa: el.value,
+      cargo: document.querySelectorAll('input[name="cargo[]"]')[i].value,
+      dataInicio: document.querySelectorAll('input[name="dataInicio[]"]')[i].value,
+      dataTermino: document.querySelectorAll('input[name="dataTermino[]"]')[i].value
+    }))
+    .filter(exp => exp.empresa.trim() !== "");
+
+  // Dependentes
+  formData.dependentes = [...document.querySelectorAll('input[name="dependenteNome[]"]')]
+    .map((el, i) => ({
+      nome: el.value,
+      parentesco: document.querySelectorAll('select[name="dependenteParentesco[]"]')[i].value,
+      nascimento: document.querySelectorAll('input[name="dependenteNascimento[]"]')[i].value,
+      cpf: document.querySelectorAll('input[name="dependenteCpf[]"]')[i].value
+    }))
+    .filter(dep => dep.nome.trim() !== "");
+
+  // Arquivos
+  formData.arquivos = uploadedFiles.map(f => f.name);
+
+  return formData;
+}
+
+/* ============================================================
+   ENVIO DOS DADOS PARA GOOGLE APPS SCRIPT
+============================================================ */
+
+async function sendToGoogleSheets(formData) {
+  if (SCRIPT_URL.includes("AKfycbxXBXfZHxBFZzA_r889")) {
+    Swal.fire({
+      icon: "warning",
+      title: "Atenção!",
+      text: "Por favor, substitua a variável SCRIPT_URL no código JavaScript pela URL correta de implantação do seu Google Apps Script.",
+      confirmButtonColor: "#1a2980",
+    });
+    return;
+  }
+
+  try {
+    document.getElementById("loadingOverlay").style.display = "flex";
+
+    const response = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(formData)
+    });
+
+    document.getElementById("loadingOverlay").style.display = "none";
+
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      Swal.fire({
+        icon: "success",
+        title: "Sucesso!",
+        text: "Formulário enviado com sucesso!",
+        confirmButtonColor: "#1a2980",
+      }).then(resetForm);
+
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Erro!",
+        text: result.error || "Erro ao processar a requisição.",
+        confirmButtonColor: "#d33",
+      });
+    }
+  } catch (error) {
+    document.getElementById("loadingOverlay").style.display = "none";
+    Swal.fire({
+      icon: "error",
+      title: "Erro!",
+      text: `Falha de conexão: ${error.message}`,
+      confirmButtonColor: "#d33",
+    });
+  }
+}
+
+/* ============================================================
+   DEPENDENTES E EXPERIÊNCIAS (DINÂMICOS)
+============================================================ */
+
+function addExperiencia() {
+  experienceCounter++;
+  const container = document.getElementById("experienciasContainer");
+
+  const newBlock = document.createElement("div");
+  newBlock.className = "experiencia-item";
+  newBlock.innerHTML = `
+        <h4 class="section-subtitle">Experiência ${experienceCounter}
+            <button type="button" class="file-remove remove-experiencia">
+                <i class="fas fa-times"></i> Remover
+            </button>
+        </h4>
+        <div class="form-row">
+            <div class="form-group medium">
+                <label>Empresa</label>
+                <input type="text" name="empresa[]">
+            </div>
+            <div class="form-group medium">
+                <label>Cargo</label>
+                <input type="text" name="cargo[]">
+            </div>
+            <div class="form-group xsmall">
+                <label>Data Início</label>
+                <input type="month" name="dataInicio[]">
+            </div>
+            <div class="form-group xsmall">
+                <label>Data Término</label>
+                <input type="month" name="dataTermino[]">
+            </div>
+        </div>
+    `;
+  container.insertBefore(newBlock, document.getElementById("addExperiencia"));
+
+  updateExperienciaTitles();
+}
+
+function addDependente() {
+  dependentCounter++;
+  const container = document.getElementById("dependentesContainer");
+
+  const newBlock = document.createElement("div");
+  newBlock.className = "dependente-card";
+  newBlock.innerHTML = `
+        <h4 class="section-subtitle">Dependente ${dependentCounter}
+            <button type="button" class="file-remove remove-dependente">
+                <i class="fas fa-times"></i> Remover
+            </button>
+        </h4>
+        <div class="form-row">
+            <div class="form-group medium">
+                <label>Nome Completo</label>
+                <input type="text" name="dependenteNome[]">
+            </div>
+            <div class="form-group xsmall">
+                <label>Parentesco</label>
+                <select name="dependenteParentesco[]">
+                    <option value="">Selecione</option>
+                    <option>Filho(a)</option>
+                    <option>Cônjuge</option>
+                    <option>Pai/Mãe</option>
+                    <option>Outro</option>
+                </select>
+            </div>
+            <div class="form-group xsmall">
+                <label>Data Nascimento</label>
+                <input type="date" name="dependenteNascimento[]">
+            </div>
+            <div class="form-group xsmall">
+                <label>CPF</label>
+                <input type="text" name="dependenteCpf[]">
+            </div>
+        </div>
+    `;
+  container.insertBefore(newBlock, document.getElementById("addDependente"));
+
+  updateDependenteTitles();
+}
+
+function updateExperienciaTitles() {
+  document.querySelectorAll("#experienciasContainer .section-subtitle")
+    .forEach((title, index) => {
+      title.innerHTML = `Experiência ${index + 1}
+                <button type="button" class="file-remove remove-experiencia">
+                    <i class="fas fa-times"></i> Remover
+                </button>`;
+    });
+  experienceCounter = document.querySelectorAll("#experienciasContainer .section-subtitle").length;
+}
+
+function updateDependenteTitles() {
+  document.querySelectorAll("#dependentesContainer .section-subtitle")
+    .forEach((title, index) => {
+      title.innerHTML = `Dependente ${index + 1}
+                <button type="button" class="file-remove remove-dependente">
+                    <i class="fas fa-times"></i> Remover
+                </button>`;
+    });
+  dependentCounter = document.querySelectorAll("#dependentesContainer .section-subtitle").length;
+}
+
+/* ============================================================
+   UPLOAD DE ARQUIVOS
+============================================================ */
+
+function triggerFileInput() {
+  document.getElementById("fileInput").click();
+}
+
+function handleFileSelect(e) {
+  [...e.target.files].forEach(file => uploadedFiles.push(file));
+  updateFileList();
+}
+
+function handleFileDrop(e) {
+  e.preventDefault();
+  [...e.dataTransfer.files].forEach(file => uploadedFiles.push(file));
+  updateFileList();
+}
+
+function formatFileSize(bytes) {
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  if (bytes === 0) return "0 Bytes";
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
+}
+
+function updateFileList() {
+  const fileList = document.getElementById("fileList");
+  fileList.innerHTML = "";
+
+  uploadedFiles.forEach((file, index) => {
+    const ext = file.name.split(".").pop().toLowerCase();
+    const icons = {
+      pdf: "fa-file-pdf",
+      jpg: "fa-file-image",
+      jpeg: "fa-file-image",
+      png: "fa-file-image",
+      gif: "fa-file-image",
+      doc: "fa-file-word",
+      docx: "fa-file-word",
+    };
+
+    const item = document.createElement("div");
+    item.className = "file-item";
+
+    item.innerHTML = `
+            <div class="file-info">
+                <i class="fas ${icons[ext] || "fa-file"} file-icon"></i>
+                <div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
                 </div>
-            `;
-            container.insertBefore(newExp, document.getElementById('addExperiencia'));
-            updateExperienciaTitles();
-        }
+            </div>
+            <button type="button" class="file-remove" data-index="${index}">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
 
-        function addDependente() {
-            dependentCounter++;
-            const container = document.getElementById('dependentesContainer');
-            const newDep = document.createElement('div');
-            newDep.className = 'dependente-card';
-            newDep.innerHTML = `
-                <h4 class="section-subtitle">Dependente ${dependentCounter} <button type="button" class="file-remove remove-dependente" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button></h4>
-                <div class="form-row">
-                    <div class="form-group medium">
-                        <label for="dependenteNome${dependentCounter}">Nome Completo</label>
-                        <input type="text" id="dependenteNome${dependentCounter}" name="dependenteNome[]">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dependenteParentesco${dependentCounter}">Parentesco</label>
-                        <select id="dependenteParentesco${dependentCounter}" name="dependenteParentesco[]">
-                            <option value="">Selecione</option>
-                            <option value="Filho">Filho(a)</option>
-                            <option value="Cônjuge">Cônjuge</option>
-                            <option value="Pai/Mãe">Pai/Mãe</option>
-                            <option value="Outro">Outro</option>
-                        </select>
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dependenteNascimento${dependentCounter}">Data Nascimento</label>
-                        <input type="date" id="dependenteNascimento${dependentCounter}" name="dependenteNascimento[]">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dependenteCpf${dependentCounter}">CPF</label>
-                        <input type="text" id="dependenteCpf${dependentCounter}" name="dependenteCpf[]">
-                    </div>
-                </div>
-            `;
-            container.insertBefore(newDep, document.getElementById('addDependente'));
-            updateDependenteTitles();
-        }
+    fileList.appendChild(item);
+  });
 
-        function updateExperienciaTitles() {
-            const titles = document.querySelectorAll('#experienciasContainer .section-subtitle');
-            titles.forEach((title, index) => {
-                title.innerHTML = `Experiência ${index + 1} <button type="button" class="file-remove remove-experiencia" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button>`;
-            });
-            experienceCounter = titles.length;
-        }
+  document.querySelectorAll(".file-remove").forEach(btn => {
+    btn.addEventListener("click", function () {
+      uploadedFiles.splice(this.dataset.index, 1);
+      updateFileList();
+    });
+  });
+}
 
-        function updateDependenteTitles() {
-            const titles = document.querySelectorAll('#dependentesContainer .section-subtitle');
-            titles.forEach((title, index) => {
-                title.innerHTML = `Dependente ${index + 1} <button type="button" class="file-remove remove-dependente" style="font-size: 14px; margin-left: 10px;"><i class="fas fa-times"></i> Remover</button>`;
-            });
-            dependentCounter = titles.length;
-        }
+/* ============================================================
+   FORMULÁRIO – VALIDAÇÃO E RESET
+============================================================ */
 
-        // Funções de Upload
-        function triggerFileInput() {
-            document.getElementById('fileInput').click();
-        }
+function validateForm() {
+  let ok = true;
 
-        function handleFileSelect(e) {
-            const files = e.target.files;
-            for (let i = 0; i < files.length; i++) {
-                uploadedFiles.push(files[i]);
-            }
-            updateFileList();
-        }
+  document.querySelectorAll(".error-message").forEach(el => (el.style.display = "none"));
+  document.querySelectorAll("input, select").forEach(el => el.classList.remove("input-error"));
 
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.dataTransfer.dropEffect = 'copy';
-        }
+  document.querySelectorAll("[required]").forEach(field => {
+    if (!field.value.trim()) {
+      ok = false;
+      field.classList.add("input-error");
+      const error = document.getElementById(field.id + "-error");
+      if (error) error.style.display = "block";
+    }
+  });
 
-        function handleFileDrop(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const files = e.dataTransfer.files;
-            for (let i = 0; i < files.length; i++) {
-                uploadedFiles.push(files[i]);
-            }
-            updateFileList();
-        }
+  // CPF simples (apenas tamanho)
+  const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+  if (cpf.length !== 11) {
+    ok = false;
+    document.getElementById("cpf").classList.add("input-error");
+    document.getElementById("cpf-error").style.display = "block";
+  }
 
-        function updateFileList() {
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            
-            uploadedFiles.forEach((file, index) => {
-                const fileSize = formatFileSize(file.size);
-                const fileExtension = file.name.split('.').pop().toLowerCase();
-                let iconClass = 'fas fa-file';
-                
-                if (['pdf'].includes(fileExtension)) {
-                    iconClass = 'fas fa-file-pdf';
-                } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-                    iconClass = 'fas fa-file-image';
-                } else if (['doc', 'docx'].includes(fileExtension)) {
-                    iconClass = 'fas fa-file-word';
-                }
-                
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <div class="file-info">
-                        <i class="${iconClass} file-icon"></i>
-                        <div>
-                            <div class="file-name">${file.name}</div>
-                            <div class="file-size">${fileSize}</div>
-                        </div>
-                    </div>
-                    <button type="button" class="file-remove" data-index="${index}">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                fileList.appendChild(fileItem);
-            });
-            
-            // Adicionar evento de remoção
-            document.querySelectorAll('.file-remove').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    uploadedFiles.splice(index, 1);
-                    updateFileList();
-                });
-            });
-        }
-        
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-        
-        // Função para lidar com o envio do formulário
-        document.getElementById('fichaCadastralForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                showToast('Por favor, preencha todos os campos obrigatórios corretamente.', 'error');
-                return;
-            }
-            
-            const formData = collectFormData();
-            await sendToGoogleSheets(formData);
+  // Email simples
+  const email = document.getElementById("email").value;
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    ok = false;
+    document.getElementById("email").classList.add("input-error");
+  }
+
+  return ok;
+}
+
+function resetForm() {
+  const form = document.getElementById("fichaCadastralForm");
+  form.reset();
+
+  uploadedFiles = [];
+  updateFileList();
+
+  document.querySelectorAll(".experiencia-item:not(:first-child)").forEach(el => el.remove());
+  document.querySelectorAll(".dependente-card:not(:first-child)").forEach(el => el.remove());
+
+  dependentCounter = 1;
+  experienceCounter = 1;
+
+  updateDependenteTitles();
+  updateExperienciaTitles();
+}
+
+/* ============================================================
+   UTILITÁRIOS (toast, CEP, máscaras, tipo sanguíneo)
+============================================================ */
+
+function showToast(msg, type = "success") {
+  const toast = document.getElementById("toast");
+  document.getElementById("toastMessage").textContent = msg;
+
+  toast.style.backgroundColor =
+    type === "error"
+      ? "#f44336"
+      : type === "info"
+      ? "#2196F3"
+      : "#4CAF50";
+
+  toast.style.display = "flex";
+
+  setTimeout(() => (toast.style.display = "none"), 3000);
+}
+
+function buscarEndereco(cep) {
+  cep = cep.replace("-", "");
+
+  fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.erro) {
+        showToast("CEP não encontrado", "error");
+      } else {
+        ["logradouro", "bairro", "cidade", "estado"].forEach(campo => {
+          document.getElementById(campo).value = data[campo] || data.uf || "";
         });
+      }
+    })
+    .catch(() => showToast("Erro ao buscar CEP", "error"));
+}
 
-        // Corrigindo o listener do botão de envio para usar o novo listener de submit do form
-        document.getElementById('submitForm').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('fichaCadastralForm').dispatchEvent(new Event('submit'));
-        });
-        
-        // Função para limpar formulário
-        function resetForm() {
-            if (confirm('Tem certeza que deseja limpar todos os dados do formulário?')) {
-                document.getElementById('fichaCadastralForm').reset();
-                uploadedFiles = [];
-                updateFileList();
-                
-                // Remover todos os dependentes e experiências adicionais
-                document.querySelectorAll('.experiencia-item:not(:first-child)').forEach(el => el.remove());
-                document.querySelectorAll('.dependente-card:not(:first-child)').forEach(el => el.remove());
-                
-                // Resetar contadores
-                dependentCounter = 1;
-                experienceCounter = 1;
-                
-                // Atualizar títulos
-                updateDependenteTitles();
-                updateExperienciaTitles();
-                
-                showToast('Formulário limpo com sucesso!');
-            }
-        }
-        
-        // Funções de validação
-        function validateForm() {
-            let isValid = true;
-            
-            // Resetar erros
-            document.querySelectorAll('.error-message').forEach(el => {
-                el.style.display = 'none';
-            });
-            document.querySelectorAll('input, select').forEach(el => {
-                el.classList.remove('input-error');
-            });
-            
-            // Validar campos obrigatórios
-            const requiredFields = document.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    isValid = false;
-                    field.classList.add('input-error');
-                    
-                    // Mostrar mensagem de erro se existir
-                    const errorId = field.id + '-error';
-                    const errorElement = document.getElementById(errorId);
-                    if (errorElement) {
-                        errorElement.style.display = 'block';
-                    }
-                }
-            });
-            
-            // Validação especial para CPF
-            const cpfInput = document.getElementById('cpf');
-            const cpf = cpfInput.value.replace(/\D/g, '');
-            if (cpf.length !== 11) {
-                isValid = false;
-                cpfInput.classList.add('input-error');
-                document.getElementById('cpf-error').style.display = 'block';
-            }
-            
-            // Validação especial para e-mail
-            const emailInput = document.getElementById('email');
-            const email = emailInput.value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (email && !emailRegex.test(email)) {
-                isValid = false;
-                emailInput.classList.add('input-error');
-            }
-            
-            return isValid;
-        }
-        
-        // Função auxiliar para mostrar mensagens
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toastMessage.textContent = message;
-            toast.style.backgroundColor = type === 'error' ? '#f44336' : 
-                                          type === 'info' ? '#2196F3' : '#4CAF50';
-            toast.style.display = 'flex';
-            
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-        
-        // Configurar máscaras de entrada
-        function setupInputMasks() {
-            // Configurar máscara para CPF
-            const cpfInput = document.getElementById('cpf');
-            cpfInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 11) value = value.slice(0, 11);
-                
-                if (value.length > 9) {
-                    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-                } else if (value.length > 6) {
-                    value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
-                } else if (value.length > 3) {
-                    value = value.replace(/(\d{3})(\d+)/, '$1.$2');
-                }
-                e.target.value = value;
-            });
-            
-            // Configurar máscara para telefone
-            const phoneInputs = document.querySelectorAll('input[type="tel"]');
-            phoneInputs.forEach(input => {
-                input.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 11) value = value.slice(0, 11);
-                    
-                    if (value.length > 10) {
-                        value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                    } else if (value.length > 6) {
-                        value = value.replace(/(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
-                    } else if (value.length > 2) {
-                        value = value.replace(/(\d{2})(\d+)/, '($1) $2');
-                    }
-                    e.target.value = value;
-                });
-            });
-            
-            // Configurar máscara para CEP
-            const cepInput = document.getElementById('cep');
-            cepInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 8) value = value.slice(0, 8);
-                
-                if (value.length > 5) {
-                    value = value.replace(/(\d{5})(\d+)/, '$1-$2');
-                }
-                e.target.value = value;
-                
-                // Buscar endereço quando o CEP estiver completo
-                if (value.length === 8) {
-                    buscarEndereco(value);
-                }
-            });
-        }
-        
-        // Função para buscar endereço pelo CEP
-        function buscarEndereco(cep) {
-            // Limpar o traço do CEP para a requisição
-            cep = cep.replace('-', '');
-            
-            // Fazer requisição à API ViaCEP
-            fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.erro) {
-                        // Preencher os campos com os dados retornados
-                        document.getElementById('logradouro').value = data.logradouro || '';
-                        document.getElementById('bairro').value = data.bairro || '';
-                        document.getElementById('cidade').value = data.localidade || '';
-                        document.getElementById('estado').value = data.uf || '';
-                    } else {
-                        showToast('CEP não encontrado.', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao buscar CEP:', error);
-                    showToast('Erro ao buscar CEP. Verifique a conexão.', 'error');
-                });
-        }
-        
-        // Função para gerenciar o popup do tipo sanguíneo
-        function setupTipoSanguineo() {
-            const tipoSanguineoInput = document.getElementById('tipoSanguineo');
-            const tipoSanguineoPopup = document.getElementById('tipoSanguineoPopup');
-            
-            // Abrir popup ao clicar no campo
-            tipoSanguineoInput.addEventListener('click', function() {
-                tipoSanguineoPopup.classList.toggle('show');
-            });
-            
-            // Fechar popup ao clicar em uma opção
-            document.querySelectorAll('.tipo-sanguineo-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    tipoSanguineoInput.value = this.getAttribute('data-value');
-                    tipoSanguineoPopup.classList.remove('show');
-                });
-            });
-            
-            // Fechar popup ao clicar fora
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.tipo-sanguineo-container')) {
-                    tipoSanguineoPopup.classList.remove('show');
-                }
-            });
-        }
-        
-        // Permitir clique na área de upload para abrir o seletor de arquivos
-        function setupUploadAreaClick() {
-            const dropArea = document.getElementById('dropArea');
-            dropArea.addEventListener('click', triggerFileInput);
-        }
-        
-        function setupEventListeners() {
-            // Botão para adicionar dependente
-            document.getElementById('addDependente').addEventListener('click', addDependente);
-            
-            // Botão para adicionar experiência
-            document.getElementById('addExperiencia').addEventListener('click', addExperiencia);
-            
-            // Upload de arquivos
-            document.getElementById('uploadBtn').addEventListener('click', triggerFileInput);
-            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-            document.getElementById('dropArea').addEventListener('dragover', handleDragOver);
-            document.getElementById('dropArea').addEventListener('drop', handleFileDrop);
-            
-            // Botão de Limpar
-            document.getElementById('resetForm').addEventListener('click', resetForm);
-            
-            // Remover dependentes e experiências (delegação de eventos)
-            document.getElementById('dependentesContainer').addEventListener('click', function(e) {
-                if (e.target.closest('.remove-dependente')) {
-                    e.target.closest('.dependente-card').remove();
-                    updateDependenteTitles();
-                }
-            });
-            
-            document.getElementById('experienciasContainer').addEventListener('click', function(e) {
-                if (e.target.closest('.remove-experiencia')) {
-                    e.target.closest('.experiencia-item').remove();
-                    updateExperienciaTitles();
-                }
-            });
-            
-            // Configurar tipo sanguíneo
-            setupTipoSanguineo();
-            
-            // Configurar área de upload para clicar
-            setupUploadAreaClick();
-        }
-        
-        // Inicialização quando o DOM estiver carregado
-        document.addEventListener('DOMContentLoaded', function() {
-            setupInputMasks();
-            setupEventListeners();
-            // Adicionar ID ao formulário para o novo listener
-            document.querySelector('form').id = 'fichaCadastralForm';
-        });
-    </script>
+function setupInputMasks() {
+  // CPF
+  document.getElementById("cpf").addEventListener("input", e => {
+    let v = e.target.value.replace(/\D/g, "");
+    if (v.length > 11) v = v.slice(0, 11);
+    v = v.replace(/(\d{3})(\d)/, "$1.$2")
+         .replace(/(\d{3})(\d)/, "$1.$2")
+         .replace(/(\d{3})(\d{2})$/, "$1-$2");
+    e.target.value = v;
+  });
+
+  // Telefones
+  document.querySelectorAll('input[type="tel"]').forEach(input => {
+    input.addEventListener("input", e => {
+      let v = e.target.value.replace(/\D/g, "").slice(0, 11);
+      if (v.length > 10)
+        v = v.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+      else if (v.length > 6)
+        v = v.replace(/(\d{2})(\d{4})(\d+)/, "($1) $2-$3");
+      else if (v.length > 2)
+        v = v.replace(/(\d{2})(\d+)/, "($1) $2");
+      e.target.value = v;
+    });
+  });
+
+  // CEP
+  document.getElementById("cep").addEventListener("input", e => {
+    let v = e.target.value.replace(/\D/g, "").slice(0, 8);
+    if (v.length > 5) v = v.replace(/(\d{5})(\d+)/, "$1-$2");
+    e.target.value = v;
+    if (v.length === 9) buscarEndereco(v);
+  });
+}
+
+function setupTipoSanguineo() {
+  const input = document.getElementById("tipoSanguineo");
+  const popup = document.getElementById("tipoSanguineoPopup");
+
+  input.addEventListener("click", () => popup.classList.toggle("show"));
+
+  document.querySelectorAll(".tipo-sanguineo-option").forEach(opt => {
+    opt.addEventListener("click", () => {
+      input.value = opt.dataset.value;
+      popup.classList.remove("show");
+    });
+  });
+
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".tipo-sanguineo-container"))
+      popup.classList.remove("show");
+  });
+}
+
+/* ============================================================
+   EVENTOS GERAIS
+============================================================ */
+
+function setupEventListeners() {
+  document.getElementById("addDependente").addEventListener("click", addDependente);
+  document.getElementById("addExperiencia").addEventListener("click", addExperiencia);
+
+  document.getElementById("uploadBtn").addEventListener("click", triggerFileInput);
+  document.getElementById("fileInput").addEventListener("change", handleFileSelect);
+
+  const dropArea = document.getElementById("dropArea");
+  dropArea.addEventListener("dragover", e => e.preventDefault());
+  dropArea.addEventListener("drop", handleFileDrop);
+
+  document.getElementById("resetForm").addEventListener("click", resetForm);
+
+  document.getElementById("dependentesContainer").addEventListener("click", e => {
+    if (e.target.closest(".remove-dependente"))
+      e.target.closest(".dependente-card").remove();
+    updateDependenteTitles();
+  });
+
+  document.getElementById("experienciasContainer").addEventListener("click", e => {
+    if (e.target.closest(".remove-experiencia"))
+      e.target.closest(".experiencia-item").remove();
+    updateExperienciaTitles();
+  });
+
+  setupTipoSanguineo();
+
+  document.getElementById("submitForm").addEventListener("click", e => {
+    e.preventDefault();
+    document.getElementById("fichaCadastralForm").dispatchEvent(new Event("submit"));
+  });
+}
+
+/* ============================================================
+   INICIALIZAÇÃO
+============================================================ */
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelector("form").id = "fichaCadastralForm";
+
+  setupInputMasks();
+  setupEventListeners();
+
+  document.getElementById("fichaCadastralForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (!validateForm()) {
+      showToast("Preencha todos os campos obrigatórios.", "error");
+      return;
+    }
+    await sendToGoogleSheets(collectFormData());
+  });
+});
+</script>
+
 </body>
 </html>
 
