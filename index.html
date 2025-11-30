@@ -908,14 +908,61 @@
 ============================================================ */
 
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxub7yY0i-pdUxbkBQDxawCyljo4fLpIaraDOKhCtUbmrNGriVmiecD3A2mM0LXkcAe/exec";
+  "https://script.google.com/macros/s/AKfycbzub7yY0i-pdUxbkBQDxawCyljo4fLpIaraDOKhCtUbmrNGriVmiecD3A2mM0LXkcAe/exec";
+// Substitua acima pela sua URL de implantação (se ainda não fez)
 
-let uploadedFiles = [];
+let uploadedFiles = []; // { name, size, type, base64 }
 let dependentCounter = 1;
 let experienceCounter = 1;
 
 /* ============================================================
-   COLETA GERAL DO FORM
+   UTILITÁRIOS
+============================================================ */
+
+function showToast(msg, type = "success") {
+  const toast = document.getElementById("toast");
+  if (!toast) {
+    // fallback simples
+    alert(msg);
+    return;
+  }
+  document.getElementById("toastMessage").textContent = msg;
+  toast.style.backgroundColor = type === "error" ? "#e74c3c" : "#2ecc71";
+  toast.style.display = "flex";
+  setTimeout(() => (toast.style.display = "none"), 3000);
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/* ============================================================
+   CONVERSÃO DE ARQUIVOS PARA BASE64
+============================================================ */
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => {
+      reader.abort();
+      reject(new DOMException("Falha ao ler o arquivo."));
+    };
+    reader.onload = () => {
+      // reader.result tem o formato data:<type>;base64,<base64>
+      const result = reader.result;
+      // extrair apenas a parte base64 para economizar espaço
+      const base64 = result.split(",")[1] || "";
+      resolve(base64);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ============================================================
+   COLETA GERAL DO FORMULÁRIO
 ============================================================ */
 
 function collectFormData() {
@@ -934,452 +981,505 @@ function collectFormData() {
     formData[f] = document.getElementById(f)?.value.trim() || "";
   });
 
-  /* COLETA EXPERIÊNCIAS */
+  /* EXPERIÊNCIAS */
   const empresas = [...document.querySelectorAll('input[name="empresa[]"]')];
   formData.experiencias = empresas.map((empresa, i) => ({
     empresa: empresa.value.trim(),
-    cargo: document.querySelectorAll('input[name="cargo[]"]')[i].value.trim(),
-    dataInicio: document.querySelectorAll('input[name="dataInicio[]"]')[i].value,
-    dataTermino: document.querySelectorAll('input[name="dataTermino[]"]')[i].value
+    cargo: (document.querySelectorAll('input[name="cargo[]"]')[i] || {value: ""}).value.trim(),
+    dataInicio: (document.querySelectorAll('input[name="dataInicio[]"]')[i] || {value: ""}).value,
+    dataTermino: (document.querySelectorAll('input[name="dataTermino[]"]')[i] || {value: ""}).value
   })).filter(exp => exp.empresa !== "");
 
-  /* COLETA DEPENDENTES */
+  /* DEPENDENTES */
   const deps = [...document.querySelectorAll('input[name="dependenteNome[]"]')];
   formData.dependentes = deps.map((dep, i) => ({
     nome: dep.value.trim(),
-    parentesco: document.querySelectorAll('select[name="dependenteParentesco[]"]')[i].value,
-    nascimento: document.querySelectorAll('input[name="dependenteNascimento[]"]')[i].value,
-    cpf: document.querySelectorAll('input[name="dependenteCpf[]"]')[i].value
+    parentesco: (document.querySelectorAll('select[name="dependenteParentesco[]"]')[i] || {value: ""}).value,
+    nascimento: (document.querySelectorAll('input[name="dependenteNascimento[]"]')[i] || {value: ""}).value,
+    cpf: (document.querySelectorAll('input[name="dependenteCpf[]"]')[i] || {value: ""}).value
   })).filter(dep => dep.nome !== "");
 
-  /* ARQUIVOS */
-  formData.arquivos = uploadedFiles.map(f => f.name);
+  /* ARQUIVOS -> enviamos name/type/size/base64 */
+  formData.arquivos = uploadedFiles.map(f => ({
+    name: f.name,
+    type: f.type,
+    size: f.size,
+    base64: f.base64
+  }));
 
   return formData;
 }
 
 /* ============================================================
-   ENVIO DOS DADOS PARA APPS SCRIPT
+   ENVIO PARA APPS SCRIPT (com timeout e diagnósticos)
+   (Envia JSON com arquivos em base64)
 ============================================================ */
 
 async function sendToGoogleSheets(formData) {
+  if (!SCRIPT_URL || SCRIPT_URL.includes("AKfycbxXBXfZHxBFZzA_r889")) {
+    Swal.fire({
+      icon: "warning",
+      title: "Atenção!",
+      text: "Substitua SCRIPT_URL pela URL de implantação do seu Apps Script.",
+      confirmButtonColor: "#1a2980"
+    });
+    return;
+  }
+
+  const controller = new AbortController();
+  const TIMEOUT = 30000; // 30s
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
   try {
-    document.getElementById("loadingOverlay").style.display = "flex";
+    const overlay = document.getElementById("loadingOverlay");
+    if (overlay) overlay.style.display = "flex";
 
-    const response = await fetch(SCRIPT_URL, {
+    const resp = await fetch(SCRIPT_URL, {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
+      signal: controller.signal
     });
 
-    const result = await response.json();
-    document.getElementById("loadingOverlay").style.display = "none";
+    clearTimeout(timeoutId);
+    if (overlay) overlay.style.display = "none";
 
-    if (response.ok && result.success) {
+    const contentType = resp.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const text = await resp.text();
+      console.error("Resposta inesperada do servidor:", text);
+      Swal.fire({
+        icon: "error",
+        title: "Erro no servidor",
+        html: `Resposta inesperada do servidor:<pre style="white-space:pre-wrap">${escapeHtml(text)}</pre>`,
+        confirmButtonColor: "#d33"
+      });
+      return;
+    }
+
+    const result = await resp.json();
+
+    if (resp.ok && result.success) {
       Swal.fire({
         icon: "success",
         title: "Sucesso!",
-        text: "Formulário enviado com sucesso!",
-        confirmButtonColor: "#1a2980",
-      }).then(resetForm);
+        text: result.message || "Formulário enviado com sucesso!",
+        confirmButtonColor: "#1a2980"
+      }).then(() => {
+        if (result.pdfUrl) window.open(result.pdfUrl, "_blank");
+        resetForm();
+      });
     } else {
+      console.error("Erro retornado pelo servidor:", result);
       Swal.fire({
         icon: "error",
         title: "Erro!",
-        text: result.error || "Erro ao enviar dados.",
+        text: result.error || result.message || "Erro ao processar a requisição.",
+        confirmButtonColor: "#d33"
       });
     }
 
   } catch (err) {
-    document.getElementById("loadingOverlay").style.display = "none";
-    Swal.fire({
-      icon: "error",
-      title: "Falha de Conexão!",
-      text: "Não foi possível enviar. Tente novamente.",
-    });
+    clearTimeout(timeoutId);
+    document.getElementById("loadingOverlay")?.style.display = "none";
+    console.error("Erro no envio:", err);
+    if (err.name === "AbortError") {
+      Swal.fire({ icon: "error", title: "Tempo Esgotado", text: "A requisição demorou muito. Tente novamente.", confirmButtonColor: "#d33" });
+    } else {
+      Swal.fire({ icon: "error", title: "Falha de Conexão", text: "Não foi possível conectar ao servidor. Verifique a URL do Apps Script / implantação.", confirmButtonColor: "#d33" });
+    }
   }
 }
 
 /* ============================================================
-   CAMPOS DINÂMICOS — EXPERIÊNCIAS
+   DINÂMICOS: Experiências e Dependentes
 ============================================================ */
 
 function addExperiencia() {
   experienceCounter++;
-
   const container = document.getElementById("experienciasContainer");
-  const div = document.createElement("div");
-  div.className = "experiencia-item";
-
-  div.innerHTML = `
-    <h4 class="section-subtitle">
-      Experiência ${experienceCounter}
-      <button type="button" class="file-remove remove-experiencia">
-        <i class="fas fa-times"></i>
-      </button>
+  const block = document.createElement("div");
+  block.className = "experiencia-item";
+  block.innerHTML = `
+    <h4 class="section-subtitle">Experiência ${experienceCounter}
+      <button type="button" class="file-remove remove-experiencia"><i class="fas fa-times"></i> Remover</button>
     </h4>
-
     <div class="form-row">
-      <div class="form-group medium">
-        <label>Empresa</label>
-        <input type="text" name="empresa[]">
-      </div>
-
-      <div class="form-group medium">
-        <label>Cargo</label>
-        <input type="text" name="cargo[]">
-      </div>
-
-      <div class="form-group xsmall">
-        <label>Data Início</label>
-        <input type="month" name="dataInicio[]">
-      </div>
-
-      <div class="form-group xsmall">
-        <label>Data Término</label>
-        <input type="month" name="dataTermino[]">
-      </div>
+      <div class="form-group medium"><label>Empresa</label><input type="text" name="empresa[]"></div>
+      <div class="form-group medium"><label>Cargo</label><input type="text" name="cargo[]"></div>
+      <div class="form-group xsmall"><label>Data Início</label><input type="month" name="dataInicio[]"></div>
+      <div class="form-group xsmall"><label>Data Término</label><input type="month" name="dataTermino[]"></div>
     </div>
   `;
-
-  container.insertBefore(div, document.getElementById("addExperiencia"));
+  container.insertBefore(block, document.getElementById("addExperiencia"));
   updateExperienciaTitles();
 }
 
-/* ============================================================
-   CAMPOS DINÂMICOS — DEPENDENTES
-============================================================ */
-
 function addDependente() {
   dependentCounter++;
-
   const container = document.getElementById("dependentesContainer");
-  const div = document.createElement("div");
-  div.className = "dependente-card";
-
-  div.innerHTML = `
-    <h4 class="section-subtitle">
-      Dependente ${dependentCounter}
-      <button type="button" class="file-remove remove-dependente">
-        <i class="fas fa-times"></i>
-      </button>
+  const block = document.createElement("div");
+  block.className = "dependente-card";
+  block.innerHTML = `
+    <h4 class="section-subtitle">Dependente ${dependentCounter}
+      <button type="button" class="file-remove remove-dependente"><i class="fas fa-times"></i> Remover</button>
     </h4>
-
     <div class="form-row">
-      <div class="form-group medium">
-        <label>Nome Completo</label>
-        <input type="text" name="dependenteNome[]">
-      </div>
-
-      <div class="form-group xsmall">
-        <label>Parentesco</label>
+      <div class="form-group medium"><label>Nome Completo</label><input type="text" name="dependenteNome[]"></div>
+      <div class="form-group xsmall"><label>Parentesco</label>
         <select name="dependenteParentesco[]">
-          <option value="">Selecione</option>
-          <option>Filho(a)</option>
-          <option>Cônjuge</option>
-          <option>Pai/Mãe</option>
-          <option>Outro</option>
+          <option value="">Selecione</option><option>Filho(a)</option><option>Cônjuge</option><option>Pai/Mãe</option><option>Outro</option>
         </select>
       </div>
-
-      <div class="form-group xsmall">
-        <label>Data Nascimento</label>
-        <input type="date" name="dependenteNascimento[]">
-      </div>
-
-      <div class="form-group xsmall">
-        <label>CPF</label>
-        <input type="text" name="dependenteCpf[]">
-      </div>
+      <div class="form-group xsmall"><label>Data Nascimento</label><input type="date" name="dependenteNascimento[]"></div>
+      <div class="form-group xsmall"><label>CPF</label><input type="text" name="dependenteCpf[]"></div>
     </div>
   `;
-
-  container.insertBefore(div, document.getElementById("addDependente"));
+  container.insertBefore(block, document.getElementById("addDependente"));
   updateDependenteTitles();
 }
 
-/* ============================================================
-   TITULAÇÃO DOS BLOCOS DINÂMICOS
-============================================================ */
-
 function updateExperienciaTitles() {
-  document.querySelectorAll("#experienciasContainer .section-subtitle")
-    .forEach((title, i) => {
-      title.innerHTML = `
-        Experiência ${i + 1}
-        <button type="button" class="file-remove remove-experiencia">
-          <i class="fas fa-times"></i>
-        </button>
-      `;
-    });
+  document.querySelectorAll("#experienciasContainer .section-subtitle").forEach((title, i) => {
+    title.innerHTML = `Experiência ${i+1} <button type="button" class="file-remove remove-experiencia"><i class="fas fa-times"></i></button>`;
+  });
   experienceCounter = document.querySelectorAll("#experienciasContainer .section-subtitle").length;
 }
 
 function updateDependenteTitles() {
-  document.querySelectorAll("#dependentesContainer .section-subtitle")
-    .forEach((title, i) => {
-      title.innerHTML = `
-        Dependente ${i + 1}
-        <button type="button" class="file-remove remove-dependente">
-          <i class="fas fa-times"></i>
-        </button>
-      `;
-    });
+  document.querySelectorAll("#dependentesContainer .section-subtitle").forEach((title, i) => {
+    title.innerHTML = `Dependente ${i+1} <button type="button" class="file-remove remove-dependente"><i class="fas fa-times"></i></button>`;
+  });
   dependentCounter = document.querySelectorAll("#dependentesContainer .section-subtitle").length;
 }
 
 /* ============================================================
-   UPLOAD DE ARQUIVOS
+   UPLOAD DE ARQUIVOS (CLICK + DRAG & DROP + LISTAGEM)
 ============================================================ */
 
 function triggerFileInput() {
-  document.getElementById("fileInput").click();
+  const input = document.getElementById("fileInput");
+  if (input) input.click();
 }
 
-function handleFileSelect(e) {
-  [...e.target.files].forEach(f => uploadedFiles.push(f));
+async function handleFileSelect(e) {
+  const files = e.target?.files ? [...e.target.files] : [];
+  await addFiles(files);
   updateFileList();
 }
 
-function handleFileDrop(e) {
+async function handleFileDrop(e) {
   e.preventDefault();
-  [...e.dataTransfer.files].forEach(f => uploadedFiles.push(f));
+  e.stopPropagation();
+  const files = e.dataTransfer?.files ? [...e.dataTransfer.files] : [];
+  await addFiles(files);
   updateFileList();
 }
 
-function formatFileSize(b) {
-  const s = ["Bytes", "KB", "MB", "GB"];
-  if (b === 0) return "0 Bytes";
-  const i = Math.floor(Math.log(b) / Math.log(1024));
-  return (b / Math.pow(1024, i)).toFixed(2) + " " + s[i];
+async function addFiles(files) {
+  for (const file of files) {
+    try {
+      // Limitar tamanho razoável (exemplo 10MB por arquivo) - ajuste conforme necessidade
+      const MAX_SIZE = 10 * 1024 * 1024;
+      if (file.size > MAX_SIZE) {
+        showToast(`Arquivo "${file.name}" excede ${MAX_SIZE/(1024*1024)}MB e foi ignorado.`, "error");
+        continue;
+      }
+      const base64 = await fileToBase64(file);
+      uploadedFiles.push({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        base64: base64
+      });
+    } catch (err) {
+      console.error("Erro ao converter arquivo:", err);
+      showToast(`Erro ao ler arquivo ${file.name}`, "error");
+    }
+  }
+}
+
+function formatFileSize(bytes) {
+  const sizes = ["Bytes","KB","MB","GB"];
+  if (bytes === 0) return "0 Bytes";
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, i)).toFixed(2) + " " + sizes[i];
 }
 
 function updateFileList() {
   const list = document.getElementById("fileList");
+  if (!list) return;
   list.innerHTML = "";
 
-  uploadedFiles.forEach((file, i) => {
-    const ext = file.name.split(".").pop().toLowerCase();
-    const icons = {
-      pdf: "fa-file-pdf",
-      jpg: "fa-file-image",
-      jpeg: "fa-file-image",
-      png: "fa-file-image",
-      doc: "fa-file-word",
-      docx: "fa-file-word",
-    };
+  uploadedFiles.forEach((f, idx) => {
+    const ext = f.name.split(".").pop().toLowerCase();
+    const icons = { pdf: "fa-file-pdf", jpg: "fa-file-image", jpeg: "fa-file-image", png: "fa-file-image", doc: "fa-file-word", docx: "fa-file-word" };
+    const icon = icons[ext] || "fa-file";
 
-    const div = document.createElement("div");
-    div.className = "file-item";
-
-    div.innerHTML = `
+    const item = document.createElement("div");
+    item.className = "file-item";
+    item.innerHTML = `
       <div class="file-info">
-        <i class="fas ${icons[ext] || "fa-file"} file-icon"></i>
+        <i class="fas ${icon} file-icon"></i>
         <div>
-        <div class="file-name">${file.name}</div>
-        <div class="file-size">${formatFileSize(file.size)}</div>
+          <div class="file-name">${escapeHtml(f.name)}</div>
+          <div class="file-size">${formatFileSize(f.size)}</div>
         </div>
       </div>
-
-      <button type="button" data-index="${i}" class="file-remove">
+      <button type="button" class="file-remove" data-index="${idx}" aria-label="Remover arquivo">
         <i class="fas fa-times"></i>
       </button>
     `;
-
-    list.appendChild(div);
+    list.appendChild(item);
   });
 
-  document.querySelectorAll(".file-remove").forEach(btn => {
-    btn.addEventListener("click", () => {
-      uploadedFiles.splice(btn.dataset.index, 1);
-      updateFileList();
-    });
+  // delegate remove events
+  list.querySelectorAll(".file-remove").forEach(btn => {
+    btn.removeEventListener("click", onFileRemove);
+    btn.addEventListener("click", onFileRemove);
   });
 }
 
+function onFileRemove(e) {
+  const idx = Number(this.dataset.index || this.getAttribute("data-index"));
+  if (Number.isFinite(idx)) {
+    uploadedFiles.splice(idx, 1);
+    updateFileList();
+  }
+}
+
 /* ============================================================
-   VALIDAÇÃO DO FORMULÁRIO
+   VALIDAÇÃO / RESET
 ============================================================ */
 
 function validateForm() {
-
   let ok = true;
-
   document.querySelectorAll(".error-message").forEach(e => e.style.display = "none");
-  document.querySelectorAll("input, select").forEach(i => i.classList.remove("input-error"));
+  document.querySelectorAll("input, select, textarea").forEach(i => i.classList.remove("input-error"));
 
-  document.querySelectorAll("[required]").forEach(f => {
-    if (!f.value.trim()) {
+  document.querySelectorAll("[required]").forEach(field => {
+    if (!field.value || !String(field.value).trim()) {
       ok = false;
-      f.classList.add("input-error");
-      const err = document.getElementById(f.id + "-error");
+      field.classList.add("input-error");
+      const err = document.getElementById(field.id + "-error");
       if (err) err.style.display = "block";
     }
   });
 
-  const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
-  if (cpf.length !== 11) {
-    ok = false;
-    document.getElementById("cpf").classList.add("input-error");
+  // CPF length check only
+  const cpfField = document.getElementById("cpf");
+  if (cpfField) {
+    const cpf = cpfField.value.replace(/\D/g, "");
+    if (cpf.length !== 11) {
+      ok = false;
+      cpfField.classList.add("input-error");
+    }
   }
 
-  const email = document.getElementById("email").value;
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    ok = false;
-    document.getElementById("email").classList.add("input-error");
+  // Email format
+  const emailField = document.getElementById("email");
+  if (emailField && emailField.value) {
+    const email = emailField.value;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      ok = false;
+      emailField.classList.add("input-error");
+    }
   }
 
   return ok;
 }
 
-/* ============================================================
-   RESET DO FORMULÁRIO
-============================================================ */
-
 function resetForm() {
   const form = document.getElementById("fichaCadastralForm");
-  form.reset();
+  if (form) form.reset();
 
   uploadedFiles = [];
   updateFileList();
 
+  // remove extra dinamics
   document.querySelectorAll(".experiencia-item:not(:first-child)").forEach(el => el.remove());
   document.querySelectorAll(".dependente-card:not(:first-child)").forEach(el => el.remove());
 
   dependentCounter = 1;
   experienceCounter = 1;
-
-  updateExperienciaTitles();
   updateDependenteTitles();
+  updateExperienciaTitles();
 }
 
 /* ============================================================
-   UTILITÁRIOS (CEP / MÁSCARAS)
+   CEP (ViaCEP) - autopreenchimento completo
 ============================================================ */
 
-function buscarEndereco(cep) {
-  cep = cep.replace(/\D/g, "");
+function buscarEndereco(cepRaw) {
+  const cep = String(cepRaw).replace(/\D/g, "");
   if (cep.length !== 8) return;
 
+  const cepInput = document.getElementById("cep");
+  if (cepInput) cepInput.classList.add("loading");
+
   fetch(`https://viacep.com.br/ws/${cep}/json/`)
-    .then(r => r.json())
-    .then(d => {
-      if (d.erro) return showToast("CEP não encontrado!", "error");
-      document.getElementById("logradouro").value = d.logradouro || "";
-      document.getElementById("bairro").value = d.bairro || "";
-      document.getElementById("cidade").value = d.localidade || "";
-      document.getElementById("estado").value = d.uf || "";
+    .then(res => res.json())
+    .then(data => {
+      if (cepInput) cepInput.classList.remove("loading");
+      if (!data || data.erro) {
+        showToast("CEP não encontrado", "error");
+        return;
+      }
+      // preencher campos
+      if (document.getElementById("logradouro")) document.getElementById("logradouro").value = data.logradouro || "";
+      if (document.getElementById("complemento")) document.getElementById("complemento").value = data.complemento || "";
+      if (document.getElementById("bairro")) document.getElementById("bairro").value = data.bairro || "";
+      if (document.getElementById("cidade")) document.getElementById("cidade").value = data.localidade || "";
+      if (document.getElementById("estado")) document.getElementById("estado").value = data.uf || "";
     })
-    .catch(() => showToast("Erro ao buscar CEP", "error"));
+    .catch(err => {
+      if (cepInput) cepInput.classList.remove("loading");
+      console.error("Erro ViaCEP:", err);
+      showToast("Erro ao buscar CEP", "error");
+    });
 }
 
+/* ============================================================
+   MÁSCARAS E TIPO SANGUÍNEO (dropdown)
+============================================================ */
+
 function setupInputMasks() {
+  // CPF mask
+  const cpfEl = document.getElementById("cpf");
+  if (cpfEl) {
+    cpfEl.addEventListener("input", e => {
+      let v = e.target.value.replace(/\D/g, "").slice(0,11);
+      v = v.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{2})$/, "$1-$2");
+      e.target.value = v;
+    });
+  }
 
-  /* CPF */
-  document.getElementById("cpf").addEventListener("input", e => {
-    let v = e.target.value.replace(/\D/g, "").slice(0, 11);
-    v = v.replace(/(\d{3})(\d)/, "$1.$2")
-         .replace(/(\d{3})(\d)/, "$1.$2")
-         .replace(/(\d{3})(\d{2})$/, "$1-$2");
-    e.target.value = v;
-  });
-
-  /* Telefones */
+  // phone masks (tel)
   document.querySelectorAll('input[type="tel"]').forEach(input => {
     input.addEventListener("input", e => {
-      let v = e.target.value.replace(/\D/g, "").slice(0, 11);
-      if (v.length > 10)
-        v = v.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-      else if (v.length > 6)
-        v = v.replace(/(\d{2})(\d{4})(\d+)/, "($1) $2-$3");
-      else if (v.length > 2)
-        v = v.replace(/(\d{2})(\d+)/, "($1) $2");
+      let v = e.target.value.replace(/\D/g, "").slice(0,11);
+      if (v.length > 10) v = v.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+      else if (v.length > 6) v = v.replace(/(\d{2})(\d{4})(\d+)/, "($1) $2-$3");
+      else if (v.length > 2) v = v.replace(/(\d{2})(\d+)/, "($1) $2");
       e.target.value = v;
     });
   });
 
-  /* CEP */
-  document.getElementById("cep").addEventListener("input", e => {
-    let v = e.target.value.replace(/\D/g, "").slice(0, 8);
-    if (v.length > 5) v = v.replace(/(\d{5})(\d+)/, "$1-$2");
-    e.target.value = v;
-
-    if (v.replace(/\D/g, "").length === 8) {
-      buscarEndereco(v);
-    }
-  });
+  // CEP mask + trigger
+  const cepEl = document.getElementById("cep");
+  if (cepEl) {
+    cepEl.addEventListener("input", e => {
+      let v = e.target.value.replace(/\D/g, "").slice(0,8);
+      if (v.length > 5) v = v.replace(/(\d{5})(\d+)/, "$1-$2");
+      e.target.value = v;
+      if (v.replace(/\D/g, "").length === 8) buscarEndereco(v);
+    });
+  }
 }
 
-function showToast(msg, type = "success") {
-  const toast = document.getElementById("toast");
-  document.getElementById("toastMessage").textContent = msg;
-
-  toast.style.backgroundColor =
-    type === "error" ? "#e74c3c" : "#2ecc71";
-
-  toast.style.display = "flex";
-
-  setTimeout(() => (toast.style.display = "none"), 3000);
+function populateTipoSanguineo() {
+  const select = document.getElementById("tipoSanguineo");
+  if (!select) return;
+  const tipos = ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+  select.innerHTML = tipos.map(t => `<option value="${t}">${t ? t : "Selecione"}</option>`).join("");
 }
 
 /* ============================================================
-   CONFIGURANDO EVENTOS
+   EVENTOS GERAIS / INIT
 ============================================================ */
 
 function setupEventListeners() {
+  // add buttons
+  document.getElementById("addDependente")?.addEventListener("click", addDependente);
+  document.getElementById("addExperiencia")?.addEventListener("click", addExperiencia);
 
-  /* Botões de adicionar blocos */
-  document.getElementById("addDependente").addEventListener("click", addDependente);
-  document.getElementById("addExperiencia").addEventListener("click", addExperiencia);
-
-  /* Upload */
-  document.getElementById("uploadBtn").addEventListener("click", triggerFileInput);
-  document.getElementById("fileInput").addEventListener("change", handleFileSelect);
-
+  // upload area click should open file picker
   const dropArea = document.getElementById("dropArea");
-  dropArea.addEventListener("dragover", ev => ev.preventDefault());
-  dropArea.addEventListener("drop", handleFileDrop);
+  if (dropArea) {
+    dropArea.addEventListener("click", triggerFileInput);
+    dropArea.addEventListener("dragover", e => { e.preventDefault(); dropArea.classList.add("dragover"); });
+    dropArea.addEventListener("dragleave", e => { e.preventDefault(); dropArea.classList.remove("dragover"); });
+    dropArea.addEventListener("drop", async e => { dropArea.classList.remove("dragover"); await handleFileDrop(e); });
+  }
 
-  /* Remover dinamicamente */
-  document.getElementById("dependentesContainer").addEventListener("click", e => {
-    if (e.target.closest(".remove-dependente")) {
-      e.target.closest(".dependente-card").remove();
+  // file input change
+  const fileInput = document.getElementById("fileInput");
+  if (fileInput) fileInput.addEventListener("change", handleFileSelect);
+
+  // dynamic remove (delegation)
+  document.getElementById("dependentesContainer")?.addEventListener("click", e => {
+    const btn = e.target.closest(".remove-dependente");
+    if (btn) {
+      const card = btn.closest(".dependente-card");
+      if (card) card.remove();
       updateDependenteTitles();
     }
   });
 
-  document.getElementById("experienciasContainer").addEventListener("click", e => {
-    if (e.target.closest(".remove-experiencia")) {
-      e.target.closest(".experiencia-item").remove();
+  document.getElementById("experienciasContainer")?.addEventListener("click", e => {
+    const btn = e.target.closest(".remove-experiencia");
+    if (btn) {
+      const card = btn.closest(".experiencia-item");
+      if (card) card.remove();
       updateExperienciaTitles();
     }
   });
 
-  /* Máscaras */
-  setupInputMasks();
+  // remove file by delegation (list)
+  document.getElementById("fileList")?.addEventListener("click", e => {
+    const btn = e.target.closest(".file-remove");
+    if (btn) {
+      const idx = Number(btn.dataset.index);
+      if (Number.isFinite(idx)) {
+        uploadedFiles.splice(idx, 1);
+        updateFileList();
+      }
+    }
+  });
+
+  // reset button
+  document.getElementById("resetForm")?.addEventListener("click", () => {
+    if (confirm("Tem certeza que deseja limpar o formulário?")) resetForm();
+  });
+
+  // submit
+  document.getElementById("fichaCadastralForm")?.addEventListener("submit", async e => {
+    e.preventDefault();
+    if (!validateForm()) {
+      showToast("Preencha os campos obrigatórios corretamente.", "error");
+      return;
+    }
+    // ensure files are converted (they already are when added)
+    const formData = collectFormData();
+    await sendToGoogleSheets(formData);
+  });
 }
 
 /* ============================================================
-   INICIALIZAÇÃO
+   DOMContentLoaded - inicialização final
 ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // ensure form id exists
+  const form = document.querySelector("form");
+  if (form && !form.id) form.id = "fichaCadastralForm";
+
+  setupInputMasks();
+  populateTipoSanguineo();
   setupEventListeners();
 
-  document
-    .getElementById("fichaCadastralForm")
-    .addEventListener("submit", async e => {
-      e.preventDefault();
-
-      if (!validateForm()) {
-        showToast("Preencha todos os campos obrigatórios.", "error");
-        return;
-      }
-
-      await sendToGoogleSheets(collectFormData());
+  // Make sure dropArea is clickable even if user clicks icon/text
+  document.querySelectorAll("#dropArea, #dropArea *").forEach(el => {
+    el.addEventListener("click", (e) => {
+      // only trigger when clicking inside drop area
+      const drop = document.getElementById("dropArea");
+      if (drop && drop.contains(e.target)) triggerFileInput();
     });
+  });
+
+  // Initial file list render
+  updateFileList();
 });
 </script>
 
