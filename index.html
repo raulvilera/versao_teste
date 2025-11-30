@@ -902,7 +902,7 @@
         <span id="toastMessage"></span>
     </div>
 
-    <script>
+<script>
 /* ============================================================
    CONFIGURAÇÃO INICIAL
 ============================================================ */
@@ -934,27 +934,33 @@ function collectFormData() {
     formData[field] = document.getElementById(field)?.value || "";
   });
 
-  // Experiências
+  /* ---------------------------
+     EXPERIÊNCIAS
+  --------------------------- */
   formData.experiencias = [...document.querySelectorAll('input[name="empresa[]"]')]
     .map((el, i) => ({
-      empresa: el.value,
-      cargo: document.querySelectorAll('input[name="cargo[]"]')[i].value,
+      empresa: el.value.trim(),
+      cargo: document.querySelectorAll('input[name="cargo[]"]')[i].value.trim(),
       dataInicio: document.querySelectorAll('input[name="dataInicio[]"]')[i].value,
       dataTermino: document.querySelectorAll('input[name="dataTermino[]"]')[i].value
     }))
-    .filter(exp => exp.empresa.trim() !== "");
+    .filter(exp => exp.empresa !== "");
 
-  // Dependentes
+  /* ---------------------------
+     DEPENDENTES
+  --------------------------- */
   formData.dependentes = [...document.querySelectorAll('input[name="dependenteNome[]"]')]
     .map((el, i) => ({
-      nome: el.value,
+      nome: el.value.trim(),
       parentesco: document.querySelectorAll('select[name="dependenteParentesco[]"]')[i].value,
       nascimento: document.querySelectorAll('input[name="dependenteNascimento[]"]')[i].value,
       cpf: document.querySelectorAll('input[name="dependenteCpf[]"]')[i].value
     }))
-    .filter(dep => dep.nome.trim() !== "");
+    .filter(dep => dep.nome !== "");
 
-  // Arquivos
+  /* ---------------------------
+     ARQUIVOS
+  --------------------------- */
   formData.arquivos = uploadedFiles.map(f => f.name);
 
   return formData;
@@ -965,27 +971,18 @@ function collectFormData() {
 ============================================================ */
 
 async function sendToGoogleSheets(formData) {
-  if (SCRIPT_URL.includes("AKfycbxXBXfZHxBFZzA_r889")) {
-    Swal.fire({
-      icon: "warning",
-      title: "Atenção!",
-      text: "Por favor, substitua a variável SCRIPT_URL no código JavaScript pela URL correta de implantação do seu Google Apps Script.",
-      confirmButtonColor: "#1a2980",
-    });
-    return;
-  }
-
   try {
     document.getElementById("loadingOverlay").style.display = "flex";
 
     const response = await fetch(SCRIPT_URL, {
       method: "POST",
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
+      headers: { "Content-Type": "application/json" }
     });
 
-    document.getElementById("loadingOverlay").style.display = "none";
-
     const result = await response.json();
+
+    document.getElementById("loadingOverlay").style.display = "none";
 
     if (response.ok && result.success) {
       Swal.fire({
@@ -994,7 +991,6 @@ async function sendToGoogleSheets(formData) {
         text: "Formulário enviado com sucesso!",
         confirmButtonColor: "#1a2980",
       }).then(resetForm);
-
     } else {
       Swal.fire({
         icon: "error",
@@ -1003,12 +999,13 @@ async function sendToGoogleSheets(formData) {
         confirmButtonColor: "#d33",
       });
     }
+
   } catch (error) {
     document.getElementById("loadingOverlay").style.display = "none";
     Swal.fire({
       icon: "error",
-      title: "Erro!",
-      text: `Falha de conexão: ${error.message}`,
+      title: "Falha de Conexão!",
+      text: "Não foi possível enviar o formulário. Verifique sua internet ou tente novamente.",
       confirmButtonColor: "#d33",
     });
   }
@@ -1020,89 +1017,94 @@ async function sendToGoogleSheets(formData) {
 
 function addExperiencia() {
   experienceCounter++;
-  const container = document.getElementById("experienciasContainer");
 
+  const container = document.getElementById("experienciasContainer");
   const newBlock = document.createElement("div");
   newBlock.className = "experiencia-item";
-  newBlock.innerHTML = `
-        <h4 class="section-subtitle">Experiência ${experienceCounter}
-            <button type="button" class="file-remove remove-experiencia">
-                <i class="fas fa-times"></i> Remover
-            </button>
-        </h4>
-        <div class="form-row">
-            <div class="form-group medium">
-                <label>Empresa</label>
-                <input type="text" name="empresa[]">
-            </div>
-            <div class="form-group medium">
-                <label>Cargo</label>
-                <input type="text" name="cargo[]">
-            </div>
-            <div class="form-group xsmall">
-                <label>Data Início</label>
-                <input type="month" name="dataInicio[]">
-            </div>
-            <div class="form-group xsmall">
-                <label>Data Término</label>
-                <input type="month" name="dataTermino[]">
-            </div>
-        </div>
-    `;
-  container.insertBefore(newBlock, document.getElementById("addExperiencia"));
 
+  newBlock.innerHTML = `
+      <h4 class="section-subtitle">
+        Experiência ${experienceCounter}
+        <button type="button" class="file-remove remove-experiencia"><i class="fas fa-times"></i> Remover</button>
+      </h4>
+
+      <div class="form-row">
+        <div class="form-group medium">
+          <label>Empresa</label>
+          <input type="text" name="empresa[]">
+        </div>
+        <div class="form-group medium">
+          <label>Cargo</label>
+          <input type="text" name="cargo[]">
+        </div>
+        <div class="form-group xsmall">
+          <label>Data Início</label>
+          <input type="month" name="dataInicio[]">
+        </div>
+        <div class="form-group xsmall">
+          <label>Data Término</label>
+          <input type="month" name="dataTermino[]">
+        </div>
+      </div>
+    `;
+
+  container.insertBefore(newBlock, document.getElementById("addExperiencia"));
   updateExperienciaTitles();
 }
 
 function addDependente() {
   dependentCounter++;
-  const container = document.getElementById("dependentesContainer");
 
+  const container = document.getElementById("dependentesContainer");
   const newBlock = document.createElement("div");
   newBlock.className = "dependente-card";
-  newBlock.innerHTML = `
-        <h4 class="section-subtitle">Dependente ${dependentCounter}
-            <button type="button" class="file-remove remove-dependente">
-                <i class="fas fa-times"></i> Remover
-            </button>
-        </h4>
-        <div class="form-row">
-            <div class="form-group medium">
-                <label>Nome Completo</label>
-                <input type="text" name="dependenteNome[]">
-            </div>
-            <div class="form-group xsmall">
-                <label>Parentesco</label>
-                <select name="dependenteParentesco[]">
-                    <option value="">Selecione</option>
-                    <option>Filho(a)</option>
-                    <option>Cônjuge</option>
-                    <option>Pai/Mãe</option>
-                    <option>Outro</option>
-                </select>
-            </div>
-            <div class="form-group xsmall">
-                <label>Data Nascimento</label>
-                <input type="date" name="dependenteNascimento[]">
-            </div>
-            <div class="form-group xsmall">
-                <label>CPF</label>
-                <input type="text" name="dependenteCpf[]">
-            </div>
-        </div>
-    `;
-  container.insertBefore(newBlock, document.getElementById("addDependente"));
 
+  newBlock.innerHTML = `
+      <h4 class="section-subtitle">
+        Dependente ${dependentCounter}
+        <button type="button" class="file-remove remove-dependente"><i class="fas fa-times"></i> Remover</button>
+      </h4>
+
+      <div class="form-row">
+        <div class="form-group medium">
+          <label>Nome Completo</label>
+          <input type="text" name="dependenteNome[]">
+        </div>
+
+        <div class="form-group xsmall">
+          <label>Parentesco</label>
+          <select name="dependenteParentesco[]">
+            <option value="">Selecione</option>
+            <option>Filho(a)</option>
+            <option>Cônjuge</option>
+            <option>Pai/Mãe</option>
+            <option>Outro</option>
+          </select>
+        </div>
+
+        <div class="form-group xsmall">
+          <label>Data Nascimento</label>
+          <input type="date" name="dependenteNascimento[]">
+        </div>
+
+        <div class="form-group xsmall">
+          <label>CPF</label>
+          <input type="text" name="dependenteCpf[]">
+        </div>
+      </div>
+    `;
+
+  container.insertBefore(newBlock, document.getElementById("addDependente"));
   updateDependenteTitles();
 }
 
 function updateExperienciaTitles() {
   document.querySelectorAll("#experienciasContainer .section-subtitle")
     .forEach((title, index) => {
-      title.innerHTML = `Experiência ${index + 1}
-                <button type="button" class="file-remove remove-experiencia">
-                    <i class="fas fa-times"></i> Remover
-                </button>`;
+      title.innerHTML = `
+        Experiência ${index + 1}
+        <button type="button" class="file-remove remove-experiencia"><i class="fas fa-times"></i></button>
+      `;
     });
   experienceCounter = document.querySelectorAll("#experienciasContainer .section-subtitle").length;
 }
@@ -1110,10 +1112,10 @@ function updateExperienciaTitles() {
 function updateDependenteTitles() {
   document.querySelectorAll("#dependentesContainer .section-subtitle")
     .forEach((title, index) => {
-      title.innerHTML = `Dependente ${index + 1}
-                <button type="button" class="file-remove remove-dependente">
-                    <i class="fas fa-times"></i> Remover
-                </button>`;
+      title.innerHTML = `
+        Dependente ${index + 1}
+        <button type="button" class="file-remove remove-dependente"><i class="fas fa-times"></i></button>
+      `;
     });
   dependentCounter = document.querySelectorAll("#dependentesContainer .section-subtitle").length;
 }
@@ -1164,16 +1166,16 @@ function updateFileList() {
     item.className = "file-item";
 
     item.innerHTML = `
-            <div class="file-info">
-                <i class="fas ${icons[ext] || "fa-file"} file-icon"></i>
-                <div>
-                    <div class="file-name">${file.name}</div>
-                    <div class="file-size">${formatFileSize(file.size)}</div>
-                </div>
+          <div class="file-info">
+            <i class="fas ${icons[ext] || "fa-file"} file-icon"></i>
+            <div>
+              <div class="file-name">${file.name}</div>
+              <div class="file-size">${formatFileSize(file.size)}</div>
             </div>
-            <button type="button" class="file-remove" data-index="${index}">
-                <i class="fas fa-times"></i>
-            </button>
+          </div>
+          <button type="button" class="file-remove" data-index="${index}">
+            <i class="fas fa-times"></i>
+          </button>
         `;
 
     fileList.appendChild(item);
@@ -1194,9 +1196,11 @@ function updateFileList() {
 function validateForm() {
   let ok = true;
 
-  document.querySelectorAll(".error-message").forEach(el => (el.style.display = "none"));
+  // Reset visual
+  document.querySelectorAll(".error-message").forEach(el => el.style.display = "none");
   document.querySelectorAll("input, select").forEach(el => el.classList.remove("input-error"));
 
+  // Verificação dos required
   document.querySelectorAll("[required]").forEach(field => {
     if (!field.value.trim()) {
       ok = false;
@@ -1206,15 +1210,14 @@ function validateForm() {
     }
   });
 
-  // CPF simples (apenas tamanho)
+  // CPF
   const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
   if (cpf.length !== 11) {
     ok = false;
     document.getElementById("cpf").classList.add("input-error");
-    document.getElementById("cpf-error").style.display = "block";
   }
 
-  // Email simples
+  // E-mail
   const email = document.getElementById("email").value;
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     ok = false;
@@ -1242,7 +1245,7 @@ function resetForm() {
 }
 
 /* ============================================================
-   UTILITÁRIOS (toast, CEP, máscaras, tipo sanguíneo)
+   UTILITÁRIOS (CEP, máscaras, popup sanguíneo)
 ============================================================ */
 
 function showToast(msg, type = "success") {
@@ -1262,17 +1265,23 @@ function showToast(msg, type = "success") {
 }
 
 function buscarEndereco(cep) {
-  cep = cep.replace("-", "");
+  cep = cep.replace(/\D/g, "");
+
+  if (cep.length !== 8) {
+    showToast("CEP inválido!", "error");
+    return;
+  }
 
   fetch(`https://viacep.com.br/ws/${cep}/json/`)
     .then(r => r.json())
     .then(data => {
       if (data.erro) {
-        showToast("CEP não encontrado", "error");
+        showToast("CEP não encontrado!", "error");
       } else {
-        ["logradouro", "bairro", "cidade", "estado"].forEach(campo => {
-          document.getElementById(campo).value = data[campo] || data.uf || "";
-        });
+        document.getElementById("logradouro").value = data.logradouro || "";
+        document.getElementById("bairro").value = data.bairro || "";
+        document.getElementById("cidade").value = data.localidade || "";
+        document.getElementById("estado").value = data.uf || "";
       }
     })
     .catch(() => showToast("Erro ao buscar CEP", "error"));
@@ -1281,8 +1290,7 @@ function buscarEndereco(cep) {
 function setupInputMasks() {
   // CPF
   document.getElementById("cpf").addEventListener("input", e => {
-    let v = e.target.value.replace(/\D/g, "");
-    if (v.length > 11) v = v.slice(0, 11);
+    let v = e.target.value.replace(/\D/g, "").substring(0, 11);
     v = v.replace(/(\d{3})(\d)/, "$1.$2")
          .replace(/(\d{3})(\d)/, "$1.$2")
          .replace(/(\d{3})(\d{2})$/, "$1-$2");
@@ -1305,10 +1313,11 @@ function setupInputMasks() {
 
   // CEP
   document.getElementById("cep").addEventListener("input", e => {
-    let v = e.target.value.replace(/\D/g, "").slice(0, 8);
+    let v = e.target.value.replace(/\D/g, "").substring(0, 8);
     if (v.length > 5) v = v.replace(/(\d{5})(\d+)/, "$1-$2");
     e.target.value = v;
-    if (v.length === 9) buscarEndereco(v);
+
+    if (v.replace(/\D/g, "").length === 8) buscarEndereco(v);
   });
 }
 
@@ -1348,6 +1357,7 @@ function setupEventListeners() {
 
   document.getElementById("resetForm").addEventListener("click", resetForm);
 
+  // Remover dependente ou experiência
   document.getElementById("dependentesContainer").addEventListener("click", e => {
     if (e.target.closest(".remove-dependente"))
       e.target.closest(".dependente-card").remove();
@@ -1361,11 +1371,6 @@ function setupEventListeners() {
   });
 
   setupTipoSanguineo();
-
-  document.getElementById("submitForm").addEventListener("click", e => {
-    e.preventDefault();
-    document.getElementById("fichaCadastralForm").dispatchEvent(new Event("submit"));
-  });
 }
 
 /* ============================================================
@@ -1380,14 +1385,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("fichaCadastralForm").addEventListener("submit", async e => {
     e.preventDefault();
+
     if (!validateForm()) {
       showToast("Preencha todos os campos obrigatórios.", "error");
       return;
     }
+
     await sendToGoogleSheets(collectFormData());
   });
 });
 </script>
+
 
 </body>
 </html>
