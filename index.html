@@ -654,7 +654,7 @@
 
     <script>
         // *** IMPORTANTE: SUBSTITUA ESTA URL PELA URL DE DEPLOY DO SEU GOOGLE APPS SCRIPT ***
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyjnhH7V6Pu7K1VzFaLcQBOcZbSkrbW4wBUqY7tSiBues6CQwU8v_fHVDidjH8y5_ww/exec'; 
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwpafcxuCxtuLDUWjwsffN-HS7kXsp3zhQjW4CWw_8E-EEyL1CjguqWk7Qt-O42ik-r/exec'; 
 
         // Função para aplicar máscaras (simplificada, você pode usar uma biblioteca como jQuery Mask Plugin)
         function applyMasks() {
@@ -822,7 +822,9 @@
 
             // Coleta de campos simples e dinâmicos
             for (let [key, value] of formData.entries()) {
-                if (typeof value === 'string' && value.trim() === '') continue; // Ignora campos vazios, garantindo que value é string
+                // Ignora campos vazios (apenas para strings) e File objects (que são tratados separadamente)
+                if (value instanceof File) continue; 
+                if (typeof value === 'string' && value.trim() === '') continue;
 
                 if (!processDynamicFields(key, value)) {
                     data[key] = value;
