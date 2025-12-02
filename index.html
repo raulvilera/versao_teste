@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha Cadastral Completa - Refatorada</title>
+    <title>Ficha Cadastral Completa - Corrigida</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -351,32 +351,13 @@
         
         .btn:active {
             transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        /* Estilos para o campo de erro (opcional, mas bom para validação) */
-        .form-group.error input, .form-group.error select, .form-group.error textarea {
-            border-color: #dc3545;
-        }
-        
-        .error-message {
-            color: #dc3545;
-            font-size: 13px;
-            margin-top: 5px;
-            display: none;
-        }
-        
-        .form-group.error .error-message {
-            display: block;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
         }
         
         /* Responsividade */
         @media (max-width: 992px) {
-            .form-group.medium {
+            .form-group.large, .form-group.medium, .form-group.small, .form-group.xsmall {
                 flex: 0 0 calc(100% - 20px);
-            }
-            .form-group.small, .form-group.xsmall {
-                flex: 0 0 calc(50% - 20px);
             }
             .header {
                 padding: 25px 30px;
@@ -388,14 +369,11 @@
         }
         
         @media (max-width: 576px) {
-            .form-group.small, .form-group.xsmall {
-                flex: 0 0 calc(100% - 20px);
+            .btn-group {
+                flex-direction: column;
             }
             .btn {
                 min-width: 100%;
-            }
-            form {
-                padding: 15px;
             }
         }
     </style>
@@ -404,63 +382,49 @@
     <div class="container">
         <div class="card">
             <div class="company-logo">
-                <span class="logo-symbol">M</span>
+                <span class="logo-symbol">LOGO</span>
                 <div class="logo-text">
-                    <span class="company-name">Manus Corp.</span>
-                    <span class="company-description">Ficha Cadastral</span>
+                    <span class="company-name">Nome da Empresa</span>
+                    <span class="company-description">Slogan ou Descrição</span>
                 </div>
             </div>
             <div class="header">
                 <h1><i class="fas fa-file-alt"></i> Ficha Cadastral Completa</h1>
             </div>
             <div class="company-info">
-                <div><i class="fas fa-building"></i> Empresa: Manus AI</div>
-                <div><i class="fas fa-map-marker-alt"></i> Local: São Paulo, BR</div>
-                <div><i class="fas fa-phone"></i> Contato: (11) 9999-9999</div>
+                <div><i class="fas fa-map-marker-alt"></i> Endereço: Rua Exemplo, 123</div>
+                <div><i class="fas fa-phone"></i> Telefone: (11) 98765-4321</div>
+                <div><i class="fas fa-envelope"></i> Email: contato@empresa.com</div>
             </div>
-
+            
             <form id="cadastroForm">
+                <div class="form-title">
+                    <i class="fas fa-user-plus"></i> Cadastro de Colaborador
+                </div>
+
                 <!-- Seção de Dados Pessoais -->
                 <div class="form-section">
                     <h2 class="section-title"><i class="fas fa-user"></i> Dados Pessoais</h2>
                     <div class="form-row">
                         <div class="form-group large">
-                            <label for="nome">Nome Completo <span style="color: red;">*</span></label>
-                            <input type="text" id="nome" name="nome" required>
+                            <label for="nomeCompleto">Nome Completo <span style="color: red;">*</span></label>
+                            <input type="text" id="nomeCompleto" name="nomeCompleto" required>
                         </div>
                         <div class="form-group xsmall">
-                            <label for="cpf">CPF <span style="color: red;">*</span></label>
-                            <input type="text" id="cpf" name="cpf" required data-mask="000.000.000-00">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group xsmall">
-                            <label for="rg">RG <span style="color: red;">*</span></label>
-                            <input type="text" id="rg" name="rg" required>
-                        </div>
-                        <div class="form-group xsmall">
-                            <label for="orgaoEmissor">Órgão Emissor</label>
-                            <input type="text" id="orgaoEmissor" name="orgaoEmissor">
-                        </div>
-                        <div class="form-group xsmall">
-                            <label for="dataEmissao">Data Emissão RG</label>
-                            <input type="date" id="dataEmissao" name="dataEmissao">
-                        </div>
-                        <div class="form-group xsmall">
-                            <label for="dataNascimento">Data Nascimento <span style="color: red;">*</span></label>
+                            <label for="dataNascimento">Data de Nascimento <span style="color: red;">*</span></label>
                             <input type="date" id="dataNascimento" name="dataNascimento" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group small">
-                            <label for="naturalidade">Naturalidade</label>
-                            <input type="text" id="naturalidade" name="naturalidade">
+                            <label for="cpf">CPF <span style="color: red;">*</span></label>
+                            <input type="text" id="cpf" name="cpf" required data-mask="000.000.000-00">
                         </div>
                         <div class="form-group small">
-                            <label for="nacionalidade">Nacionalidade</label>
-                            <input type="text" id="nacionalidade" name="nacionalidade">
+                            <label for="rg">RG <span style="color: red;">*</span></label>
+                            <input type="text" id="rg" name="rg" required>
                         </div>
-                        <div class="form-group small">
+                        <div class="form-group xsmall">
                             <label for="estadoCivil">Estado Civil</label>
                             <select id="estadoCivil" name="estadoCivil">
                                 <option value="">Selecione</option>
@@ -471,30 +435,18 @@
                                 <option value="União Estável">União Estável</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group medium">
-                            <label for="nomePai">Nome do Pai</label>
-                            <input type="text" id="nomePai" name="nomePai">
-                        </div>
-                        <div class="form-group medium">
-                            <label for="nomeMae">Nome da Mãe <span style="color: red;">*</span></label>
-                            <input type="text" id="nomeMae" name="nomeMae" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group small">
+                        <div class="form-group xsmall">
                             <label for="genero">Gênero</label>
                             <select id="genero" name="genero">
                                 <option value="">Selecione</option>
                                 <option value="Feminino">Feminino</option>
                                 <option value="Masculino">Masculino</option>
                                 <option value="Outro">Outro</option>
-                                <option value="Prefiro não informar">Prefiro não informar</option>
                             </select>
                         </div>
-                        <!-- CAMPO NOVO: TIPO SANGUÍNEO DROP-DOWN -->
-                        <div class="form-group small">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group xsmall">
                             <label for="tipoSanguineo">Tipo Sanguíneo</label>
                             <select id="tipoSanguineo" name="tipoSanguineo">
                                 <option value="">Selecione</option>
@@ -701,8 +653,8 @@
     </div>
 
     <script>
-        // URL DE DEPLOY DO SEU GOOGLE APPS SCRIPT (MUDAR ESTE VALOR)
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyVFice3O7AkqBSVIjOKlnul1eiHq5u9GPzvE5nQceTknJ-xxQPD8NBP21Oxsitudk/exec'; 
+        // *** IMPORTANTE: SUBSTITUA ESTA URL PELA URL DE DEPLOY DO SEU GOOGLE APPS SCRIPT ***
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwijWHjIMRZLgbkr0vjEcZL9dci345HetuZggkoMk-gRAI03bEUUZCMlE5nHSlLI3T9/exec'; 
 
         // Função para aplicar máscaras (simplificada, você pode usar uma biblioteca como jQuery Mask Plugin)
         function applyMasks() {
@@ -848,6 +800,7 @@
 
             // Função auxiliar para processar campos dinâmicos
             function processDynamicFields(key, value) {
+                // Regex para capturar: nomeDoArray[indice][propriedade]
                 const match = key.match(/(\w+)\[(\d+)\]\[(\w+)\]/);
                 if (match) {
                     const arrayName = match[1];
@@ -857,6 +810,7 @@
                     if (!data[arrayName]) {
                         data[arrayName] = [];
                     }
+                    // Garante que o objeto no índice exista
                     if (!data[arrayName][index]) {
                         data[arrayName][index] = {};
                     }
@@ -883,12 +837,12 @@
                 data.arquivos = [];
             }
 
-            // Limpa arrays de objetos vazios
+            // Limpa arrays de objetos vazios (que podem ter sido criados pela lógica de coleta)
             if (data.experiencias) {
-                data.experiencias = data.experiencias.filter(exp => exp && Object.keys(exp).length > 0);
+                data.experiencias = data.experiencias.filter(exp => exp && Object.keys(exp).length > 0 && Object.values(exp).some(v => v.trim() !== ''));
             }
             if (data.dependentes) {
-                data.dependentes = data.dependentes.filter(dep => dep && Object.keys(dep).length > 0);
+                data.dependentes = data.dependentes.filter(dep => dep && Object.keys(dep).length > 0 && Object.values(dep).some(v => v.trim() !== ''));
             }
 
             try {
@@ -905,7 +859,6 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // REQUISITO: Não ter mensagem de erro quando o envio for bem-sucedido
                     Swal.fire({
                         title: 'Sucesso!',
                         html: `Seu cadastro foi enviado com sucesso. O PDF foi gerado e enviado para o e-mail cadastrado. <br><br> <a href="${result.pdfUrl}" target="_blank">Clique aqui para ver o PDF (Link Temporário)</a>`,
