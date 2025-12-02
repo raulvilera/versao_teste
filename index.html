@@ -654,7 +654,7 @@
 
     <script>
         // *** IMPORTANTE: SUBSTITUA ESTA URL PELA URL DE DEPLOY DO SEU GOOGLE APPS SCRIPT ***
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwijWHjIMRZLgbkr0vjEcZL9dci345HetuZggkoMk-gRAI03bEUUZCMlE5nHSlLI3T9/exec'; 
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyjnhH7V6Pu7K1VzFaLcQBOcZbSkrbW4wBUqY7tSiBues6CQwU8v_fHVDidjH8y5_ww/exec'; 
 
         // Função para aplicar máscaras (simplificada, você pode usar uma biblioteca como jQuery Mask Plugin)
         function applyMasks() {
@@ -822,7 +822,7 @@
 
             // Coleta de campos simples e dinâmicos
             for (let [key, value] of formData.entries()) {
-                if (value.trim() === '') continue; // Ignora campos vazios
+                if (typeof value === 'string' && value.trim() === '') continue; // Ignora campos vazios, garantindo que value é string
 
                 if (!processDynamicFields(key, value)) {
                     data[key] = value;
@@ -856,7 +856,13 @@
                     body: JSON.stringify(data)
                 });
 
-                const result = await response.json();
+                let result;
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    // Se a resposta não for JSON (ex: erro 500 do GAS), tratamos como erro de conexão/servidor
+                    throw new Error('Resposta inválida do servidor. Verifique os logs do Apps Script.');
+                }
 
                 if (result.success) {
                     Swal.fire({
@@ -871,8 +877,10 @@
                 }
 
             } catch (error) {
-                Swal.fire('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique a URL de deploy.', 'error');
+                Swal.fire('Erro de Conexão', `Não foi possível conectar ao servidor: ${error.message}`, 'error');
                 console.error('Erro de submissão:', error);
+            } finally {
+                Swal.close(); // Garante que o SweetAlert de "Enviando Dados" feche
             }
         });
 
