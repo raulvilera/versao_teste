@@ -651,266 +651,123 @@
             </form>
         </div>
     </div>
+<script>
+// 🎯 Função principal para enviar os dados ao Apps Script
+async function enviarFormulario(event) {
+    event.preventDefault();
 
-    <script>
-        // *** IMPORTANTE: SUBSTITUA ESTA URL PELA URL DE DEPLOY DO SEU GOOGLE APPS SCRIPT ***
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw5HfgfdoxkIFDZkXIPYias4CL03AkYyFfbPuPSXnB65b0llqpJet_SfpSlcoEqEYnk/exec'; 
+    // Coleta dos campos principais
+    const data = {
+        nomeCompleto: document.getElementById("nomeCompleto").value.trim(),
+        cpf: document.getElementById("cpf").value.trim(),
+        rg: document.getElementById("rg").value.trim(),
+        dataNascimento: document.getElementById("dataNascimento").value.trim(),
+        estadoCivil: document.getElementById("estadoCivil").value.trim(),
+        genero: document.getElementById("genero").value.trim(),
+        tipoSanguineo: document.getElementById("tipoSanguineo").value.trim(),
+        cep: document.getElementById("cep").value.trim(),
+        logradouro: document.getElementById("logradouro").value.trim(),
+        numero: document.getElementById("numero").value.trim(),
+        complemento: document.getElementById("complemento").value.trim(),
+        bairro: document.getElementById("bairro").value.trim(),
+        cidade: document.getElementById("cidade").value.trim(),
+        estado: document.getElementById("estado").value.trim(),
+        celular1: document.getElementById("celular1").value.trim(),
+        celular2: document.getElementById("celular2").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        escolaridade: document.getElementById("escolaridade").value.trim(),
+        curso: document.getElementById("curso").value.trim(),
+        instituicao: document.getElementById("instituicao").value.trim(),
+        anoConclusao: document.getElementById("anoConclusao").value.trim(),
+        dataDeclaracao: document.getElementById("dataDeclaracao").value.trim(),
+        cidadeDeclaracao: document.getElementById("cidadeDeclaracao").value.trim(),
+        dataAutorizacao: document.getElementById("dataAutorizacao").value.trim(),
+        cidadeAutorizacao: document.getElementById("cidadeAutorizacao").value.trim(),
+        experiencias: [],
+        dependentes: []
+    };
 
-        // Função para aplicar máscaras (simplificada, você pode usar uma biblioteca como jQuery Mask Plugin)
-        function applyMasks() {
-            document.querySelectorAll('[data-mask]').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    let value = e.target.value.replace(/\D/g, '');
-                    const mask = e.target.getAttribute('data-mask');
-                    let maskedValue = '';
-                    let k = 0;
-                    for (let i = 0; i < mask.length; i++) {
-                        if (k >= value.length) break;
-                        if (mask[i] === '0') {
-                            maskedValue += value[k++];
-                        } else {
-                            maskedValue += mask[i];
-                        }
-                    }
-                    e.target.value = maskedValue;
-                });
+    // 🎯 Coleta das experiências
+    document.querySelectorAll(".experiencia-item").forEach(exp => {
+        const empresa = exp.querySelector(".exp-empresa").value.trim();
+        const cargo = exp.querySelector(".exp-cargo").value.trim();
+        const periodo = exp.querySelector(".exp-periodo").value.trim();
+
+        if (empresa || cargo || periodo) {
+            data.experiencias.push({
+                empresa: empresa,
+                cargo: cargo,
+                periodo: periodo
             });
         }
+    });
 
-        // 1. Lógica de Autopreenchimento de CEP (ViaCEP)
-        async function preencherEndereco(cep) {
-            const cepLimpo = cep.replace(/\D/g, '');
-            if (cepLimpo.length !== 8) return;
+    // 🎯 Coleta dos dependentes
+    document.querySelectorAll(".dependente-item").forEach(dep => {
+        const nome = dep.querySelector(".dep-nome").value.trim();
+        const parentesco = dep.querySelector(".dep-parentesco").value.trim();
+        const dataNasc = dep.querySelector(".dep-data").value.trim();
 
-            // Bloqueia campos enquanto busca
-            document.getElementById('logradouro').value = '... buscando ...';
-            document.getElementById('bairro').value = '... buscando ...';
-            document.getElementById('cidade').value = '... buscando ...';
-            document.getElementById('estado').value = '... buscando ...';
-
-            try {
-                const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-                const data = await response.json();
-
-                if (data.erro) {
-                    Swal.fire('Erro de CEP', 'CEP não encontrado.', 'error');
-                    return;
-                }
-
-                document.getElementById('logradouro').value = data.logradouro || '';
-                document.getElementById('bairro').value = data.bairro || '';
-                document.getElementById('cidade').value = data.localidade || '';
-                document.getElementById('estado').value = data.uf || '';
-                document.getElementById('numero').focus(); // Foca no próximo campo
-            } catch (error) {
-                Swal.fire('Erro de Conexão', 'Não foi possível buscar o CEP. Preencha manualmente.', 'warning');
-                // Limpa os campos em caso de erro
-                document.getElementById('logradouro').value = '';
-                document.getElementById('bairro').value = '';
-                document.getElementById('cidade').value = '';
-                document.getElementById('estado').value = '';
-            }
-        }
-
-        // 2. Lógica para adicionar campos dinâmicos (Experiências e Dependentes)
-        let experienciaCount = 1;
-        function adicionarExperiencia() {
-            const container = document.getElementById('experiencias-container');
-            const newIndex = experienciaCount++;
-            const html = `
-                <div class="form-row experiencia-item" data-index="${newIndex}">
-                    <div class="form-group small">
-                        <label for="empresa-${newIndex}">Empresa</label>
-                        <input type="text" id="empresa-${newIndex}" name="experiencias[${newIndex}][empresa]">
-                    </div>
-                    <div class="form-group small">
-                        <label for="cargo-${newIndex}">Cargo</label>
-                        <input type="text" id="cargo-${newIndex}" name="experiencias[${newIndex}][cargo]">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dataInicio-${newIndex}">Início</label>
-                        <input type="month" id="dataInicio-${newIndex}" name="experiencias[${newIndex}][dataInicio]">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dataTermino-${newIndex}">Término</label>
-                        <input type="month" id="dataTermino-${newIndex}" name="experiencias[${newIndex}][dataTermino]">
-                    </div>
-                    <button type="button" onclick="removerItem(this)" style="background: none; border: none; color: red; cursor: pointer; margin-top: 30px;"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', html);
-            applyMasks(); // Reaplicar máscaras
-        }
-
-        let dependenteCount = 1;
-        function adicionarDependente() {
-            const container = document.getElementById('dependentes-container');
-            const newIndex = dependenteCount++;
-            const html = `
-                <div class="form-row dependente-item" data-index="${newIndex}">
-                    <div class="form-group small">
-                        <label for="dep-nome-${newIndex}">Nome</label>
-                        <input type="text" id="dep-nome-${newIndex}" name="dependentes[${newIndex}][nome]">
-                    </div>
-                    <div class="form-group small">
-                        <label for="dep-parentesco-${newIndex}">Parentesco</label>
-                        <input type="text" id="dep-parentesco-${newIndex}" name="dependentes[${newIndex}][parentesco]">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dep-nascimento-${newIndex}">Nascimento</label>
-                        <input type="date" id="dep-nascimento-${newIndex}" name="dependentes[${newIndex}][nascimento]">
-                    </div>
-                    <div class="form-group xsmall">
-                        <label for="dep-cpf-${newIndex}">CPF</label>
-                        <input type="text" id="dep-cpf-${newIndex}" name="dependentes[${newIndex}][cpf]" data-mask="000.000.000-00">
-                    </div>
-                    <button type="button" onclick="removerItem(this)" style="background: none; border: none; color: red; cursor: pointer; margin-top: 30px;"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', html);
-            applyMasks(); // Reaplicar máscaras
-        }
-
-        function removerItem(button) {
-            button.closest('.form-row').remove();
-        }
-
-        // 3. Lógica de Submissão do Formulário
-        document.getElementById('cadastroForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            // Validação básica (o 'required' do HTML5 já ajuda)
-            if (!this.checkValidity()) {
-                Swal.fire('Atenção', 'Por favor, preencha todos os campos obrigatórios.', 'warning');
-                return;
-            }
-
-            Swal.fire({
-                title: 'Enviando Dados...',
-                text: 'Por favor, aguarde enquanto processamos seu cadastro.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+        if (nome || parentesco || dataNasc) {
+            data.dependentes.push({
+                nome: nome,
+                parentesco: parentesco,
+                dataNascimento: dataNasc
             });
+        }
+    });
 
-            // Coleta de dados do formulário
-            const formData = new FormData(this);
-            const data = {};
+    // 🎯 Validação simples
+    if (!data.nomeCompleto || !data.cpf || !data.email) {
+        Swal.fire({
+            icon: "warning",
+            title: "Campos obrigatórios",
+            text: "Preencha Nome, CPF e Email."
+        });
+        return;
+    }
 
-            // Função auxiliar para processar campos dinâmicos
-            function processDynamicFields(key, value) {
-                // Regex para capturar: nomeDoArray[indice][propriedade]
-                const match = key.match(/(\w+)\[(\d+)\]\[(\w+)\]/);
-                if (match) {
-                    const arrayName = match[1];
-                    const index = parseInt(match[2]);
-                    const propName = match[3];
+    // URL DO SEU WEB APP (IMPORTANTE!)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyJX_21RWzaCG34yqzGf5Fpn6eRoKR6pOh4_-B8JykztpMD8rGXz78QZmxNx3ZXGQts/exec";
 
-                    if (!data[arrayName]) {
-                        data[arrayName] = [];
-                    }
-                    // Garante que o objeto no índice exista
-                    if (!data[arrayName][index]) {
-                        data[arrayName][index] = {};
-                    }
-                    data[arrayName][index][propName] = value;
-                    return true;
-                }
-                return false;
-            }
+    Swal.fire({
+        title: "Enviando...",
+        text: "Aguarde enquanto processamos seus dados.",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
 
-            // Coleta de campos simples e dinâmicos
-            for (let [key, value] of formData.entries()) {
-                // Ignora campos vazios (apenas para strings) e File objects (que são tratados separadamente)
-                if (value instanceof File) continue; 
-                if (typeof value === 'string' && value.trim() === '') continue;
-
-                if (!processDynamicFields(key, value)) {
-                    data[key] = value;
-                }
-            }
-
-            // Coleta de nomes de arquivos (simulação de anexo)
-            const fileInput = document.getElementById('arquivos');
-            if (fileInput.files.length > 0) {
-                data.arquivos = Array.from(fileInput.files).map(file => file.name);
-            } else {
-                data.arquivos = [];
-            }
-
-            // Limpa arrays de objetos vazios (que podem ter sido criados pela lógica de coleta)
-            if (data.experiencias) {
-                data.experiencias = data.experiencias.filter(exp => exp && Object.keys(exp).length > 0 && Object.values(exp).some(v => v.trim() !== ''));
-            }
-            if (data.dependentes) {
-                data.dependentes = data.dependentes.filter(dep => dep && Object.keys(dep).length > 0 && Object.values(dep).some(v => v.trim() !== ''));
-            }
-
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                let result;
-                try {
-                    result = await response.json();
-                } catch (e) {
-                    // Se a resposta não for JSON (ex: erro 500 do GAS), tratamos como erro de conexão/servidor
-                    throw new Error('Resposta inválida do servidor. Verifique os logs do Apps Script.');
-                }
-
-                if (result.success) {
-                    Swal.fire({
-                        title: 'Sucesso!',
-                        html: `Seu cadastro foi enviado com sucesso. O PDF foi gerado e enviado para o e-mail cadastrado. <br><br> <a href="${result.pdfUrl}" target="_blank">Clique aqui para ver o PDF (Link Temporário)</a>`,
-                        icon: 'success'
-                    });
-                    this.reset(); // Limpa o formulário
-                    document.getElementById('file-list').textContent = 'Nenhum arquivo selecionado.';
-                } else {
-                    Swal.fire('Erro no Servidor', `Ocorreu um erro ao processar seu cadastro: ${result.error || 'Erro desconhecido.'}`, 'error');
-                }
-
-            } catch (error) {
-                Swal.fire('Erro de Conexão', `Não foi possível conectar ao servidor: ${error.message}`, 'error');
-                console.error('Erro de submissão:', error);
-            } finally {
-                Swal.close(); // Garante que o SweetAlert de "Enviando Dados" feche
-            }
+    try {
+        const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
         });
 
-        // 4. Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
-            applyMasks();
-            
-            // Evento para preenchimento de CEP
-            const cepInput = document.getElementById('cep');
-            cepInput.addEventListener('blur', (e) => {
-                preencherEndereco(e.target.value);
-            });
+        Swal.close();
 
-            // Evento para simulação de upload
-            const fileInput = document.getElementById('arquivos');
-            const uploadArea = document.querySelector('.upload-area');
-            const fileList = document.getElementById('file-list');
-
-            uploadArea.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', () => {
-                if (fileInput.files.length > 0) {
-                    const names = Array.from(fileInput.files).map(f => f.name).join(', ');
-                    fileList.textContent = `Arquivos selecionados: ${names}`;
-                } else {
-                    fileList.textContent = 'Nenhum arquivo selecionado.';
-                }
-            });
+        Swal.fire({
+            icon: "success",
+            title: "Cadastro enviado!",
+            text: "Você receberá um e-mail com sua ficha cadastral."
         });
-    </script>
+
+        document.getElementById("formCadastro").reset();
+
+    } catch (error) {
+        Swal.close();
+
+        Swal.fire({
+            icon: "error",
+            title: "Erro no envio",
+            text: "Não foi possível enviar os dados. Tente novamente."
+        });
+
+        console.error("Erro:", error);
+    }
+}
+</script>
+
 </body>
 </html>
