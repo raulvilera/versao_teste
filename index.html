@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha Cadastral Completa - Corrigida</title>
+    <title>Ficha Cadastral Completa - Calendário Automático</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -169,6 +169,7 @@
         .form-group {
             padding: 0 10px;
             margin-bottom: 15px;
+            position: relative;
         }
         
         .form-group.full {
@@ -209,10 +210,66 @@
             background-color: #fff;
         }
         
+        /* Estilo especial para campos de data */
+        input[type="date"] {
+            position: relative;
+            cursor: pointer;
+            padding-right: 40px;
+        }
+        
+        /* Adiciona um ícone de calendário nos campos de data */
+        .date-field-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .date-field-wrapper::after {
+            content: "\f073";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #1a2980;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
         input:focus, select:focus, textarea:focus {
             border-color: #1a2980;
             box-shadow: 0 0 0 4px rgba(26, 41, 128, 0.15);
             outline: none;
+        }
+        
+        /* Remove a seta padrão do input date no Chrome */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            color: transparent;
+            background: transparent;
+            cursor: pointer;
+            z-index: 3;
+        }
+        
+        /* Remove a seta padrão do input date no Firefox */
+        input[type="date"]::-moz-calendar-picker-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            color: transparent;
+            background: transparent;
+            cursor: pointer;
+            z-index: 3;
         }
         
         .cep-loading {
@@ -476,7 +533,9 @@
                         </div>
                         <div class="form-group xsmall">
                             <label for="dataNascimento">Data de Nascimento <span style="color: red;">*</span></label>
-                            <input type="date" id="dataNascimento" name="dataNascimento" required>
+                            <div class="date-field-wrapper">
+                                <input type="date" id="dataNascimento" name="dataNascimento" required class="date-field">
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -681,7 +740,9 @@
                             </div>
                             <div class="form-group xsmall">
                                 <label for="dep-data-0">Data Nascimento</label>
-                                <input type="date" id="dep-data-0" name="dependentes[0][data]" class="dep-data">
+                                <div class="date-field-wrapper">
+                                    <input type="date" id="dep-data-0" name="dependentes[0][data]" class="dep-data date-field">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -716,7 +777,9 @@
                     <div class="form-row" style="margin-top: 25px;">
                         <div class="form-group medium">
                             <label for="dataDeclaracao">Data da Declaração</label>
-                            <input type="date" id="dataDeclaracao" name="dataDeclaracao">
+                            <div class="date-field-wrapper">
+                                <input type="date" id="dataDeclaracao" name="dataDeclaracao" class="date-field">
+                            </div>
                         </div>
                         <div class="form-group medium">
                             <label for="cidadeDeclaracao">Cidade da Declaração</label>
@@ -726,7 +789,9 @@
                     <div class="form-row">
                         <div class="form-group medium">
                             <label for="dataAutorizacao">Data da Autorização</label>
-                            <input type="date" id="dataAutorizacao" name="dataAutorizacao">
+                            <div class="date-field-wrapper">
+                                <input type="date" id="dataAutorizacao" name="dataAutorizacao" class="date-field">
+                            </div>
                         </div>
                         <div class="form-group medium">
                             <label for="cidadeAutorizacao">Cidade da Autorização</label>
@@ -868,12 +933,19 @@
                 </div>
                 <div class="form-group xsmall">
                     <label for="dep-data-${dependenteCount}">Data Nascimento</label>
-                    <input type="date" id="dep-data-${dependenteCount}" name="dependentes[${dependenteCount}][data]" class="dep-data">
+                    <div class="date-field-wrapper">
+                        <input type="date" id="dep-data-${dependenteCount}" name="dependentes[${dependenteCount}][data]" class="dep-data date-field">
+                    </div>
                 </div>
             `;
             
             container.appendChild(newItem);
             dependenteCount++;
+            
+            // Reaplicar a funcionalidade de calendário para o novo campo
+            setTimeout(() => {
+                initDateFields();
+            }, 100);
         }
 
         // FUNÇÃO CORRIGIDA: Buscar CEP usando ViaCEP API
@@ -1009,7 +1081,35 @@
             aplicarMascaraTelefone(document.getElementById('celular2'));
         }
 
-// FUNÇÃO CORRIGIDA: Enviar formulário para Google Apps Script
+        // FUNÇÃO PARA INICIALIZAR OS CAMPOS DE DATA
+        function initDateFields() {
+            // Seleciona todos os campos de data
+            const dateFields = document.querySelectorAll('.date-field');
+            
+            dateFields.forEach(field => {
+                // Garante que o calendário abre ao clicar em qualquer parte do campo
+                field.addEventListener('click', function(e) {
+                    // Para dispositivos móveis e navegadores modernos
+                    if (this.showPicker) {
+                        this.showPicker();
+                    }
+                    // Foca no campo para garantir que o calendário apareça
+                    this.focus();
+                });
+                
+                // Adiciona funcionalidade de teclado
+                field.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (this.showPicker) {
+                            this.showPicker();
+                        }
+                    }
+                });
+            });
+        }
+
+        // FUNÇÃO CORRIGIDA: Enviar formulário para Google Apps Script
         async function enviarFormulario(event) {
             event.preventDefault();
             
@@ -1021,7 +1121,7 @@
             // **IMPORTANTE**: Substitua pela URL do seu Google Apps Script
             const WEB_APP_URL = "SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI";
             
-            if (WEB_APP_URL === "https://script.google.com/macros/s/AKfycbzYZSMH5XES6kyYkJd6NkhVkUENoC4Tv5_3hr3QzAlratNvyDo2HfE5Yve5LUb8I2ia/exec") {
+            if (WEB_APP_URL === "SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI") {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Configuração Necessária',
@@ -1066,12 +1166,13 @@
                 
                 // Coleta de campos simples (baseado nos IDs do HTML)
                 const simpleFields = [
-                    'nomeCompleto', 'cpf', 'rg', 'orgaoEmissor', 'dataEmissaoRG', 'dataNascimento',
-                    'naturalidade', 'nacionalidade', 'nomePai', 'nomeMae', 'estadoCivil', 'genero',
-                    'tipoSanguineo', 'cep', 'logradouro', 'numero', 'complemento', 'bairro',
-                    'cidade', 'estado', 'celular1', 'celular2', 'email', 'escolaridade',
-                    'curso', 'instituicao', 'anoConclusao', 'dataDeclaracao', 'cidadeDeclaracao',
-                    'dataAutorizacao', 'cidadeAutorizacao'
+                    'nomeCompleto', 'cpf', 'rg', 'dataNascimento',
+                    'estadoCivil', 'genero', 'tipoSanguineo', 'cep', 
+                    'logradouro', 'numero', 'complemento', 'bairro',
+                    'cidade', 'estado', 'celular1', 'celular2', 'email', 
+                    'escolaridade', 'curso', 'instituicao', 'anoConclusao', 
+                    'dataDeclaracao', 'cidadeDeclaracao', 'dataAutorizacao', 
+                    'cidadeAutorizacao'
                 ];
 
                 simpleFields.forEach(id => {
@@ -1110,8 +1211,6 @@
                 payload.dependentes = dependentes;
 
                 // 5. Tratamento de Arquivos (Apenas o nome/referência)
-                // O Apps Script não suporta upload de arquivos via JSON no doPost(e).
-                // Apenas enviamos uma string com a lista de arquivos para registro na planilha.
                 const fileNames = selectedFiles.map(file => `${file.name} (${formatBytes(file.size)})`).join('; ');
                 payload.documentoAnexado = fileNames || "Nenhum arquivo anexado.";
 
@@ -1124,8 +1223,15 @@
                     body: JSON.stringify(payload)
                 });
 
-                // O Apps Script retorna JSON, então podemos ler a resposta
-                const result = await response.json();
+                // O Apps Script retorna JSON, então tentamos ler a resposta
+                let result;
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    // Se falhar, é provável que tenha retornado HTML (erro do Apps Script)
+                    const errorText = await response.text();
+                    throw new Error("Erro de comunicação com o Apps Script. Verifique a URL de implantação e as permissões. Resposta recebida: " + errorText.substring(0, 100) + "...");
+                }
 
                 if (result.status === 'ok') {
                     Swal.fire({
@@ -1206,10 +1312,17 @@
                     </div>
                     <div class="form-group xsmall">
                         <label for="dep-data-0">Data Nascimento</label>
-                        <input type="date" id="dep-data-0" name="dependentes[0][data]" class="dep-data">
+                        <div class="date-field-wrapper">
+                            <input type="date" id="dep-data-0" name="dependentes[0][data]" class="dep-data date-field">
+                        </div>
                     </div>
                 </div>
             `;
+            
+            // Reaplicar funcionalidade de calendário
+            setTimeout(() => {
+                initDateFields();
+            }, 100);
         }
 
         // Inicialização quando a página carrega
@@ -1220,6 +1333,17 @@
             
             // Aplicar máscaras
             aplicarMascaras();
+            
+            // Inicializar campos de data
+            initDateFields();
+            
+            // Configurar data atual como padrão para alguns campos
+            const hoje = new Date().toISOString().split('T')[0];
+            const dataDeclaracao = document.getElementById('dataDeclaracao');
+            const dataAutorizacao = document.getElementById('dataAutorizacao');
+            
+            if (dataDeclaracao) dataDeclaracao.value = hoje;
+            if (dataAutorizacao) dataAutorizacao.value = hoje;
             
             // Configurar drag and drop para upload de arquivos
             const uploadArea = document.querySelector('.upload-area');
@@ -1251,13 +1375,15 @@
                 }
             });
             
-            // Configurar data atual como padrão para alguns campos
-            const hoje = new Date().toISOString().split('T')[0];
-            const dataDeclaracao = document.getElementById('dataDeclaracao');
-            const dataAutorizacao = document.getElementById('dataAutorizacao');
-            
-            if (dataDeclaracao) dataDeclaracao.value = hoje;
-            if (dataAutorizacao) dataAutorizacao.value = hoje;
+            // Adicionar funcionalidade de calendário também ao pressionar Enter ou Espaço nos campos de data
+            document.addEventListener('keydown', function(e) {
+                if (e.target && e.target.classList.contains('date-field') && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    if (e.target.showPicker) {
+                        e.target.showPicker();
+                    }
+                }
+            });
         });
     </script>
 </body>
