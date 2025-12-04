@@ -276,7 +276,8 @@
             position: relative;
         }
         
-        .cep-loading::after {
+        /* CORREÇÃO: Usando classe para mostrar/esconder o spinner */
+        .cep-loading.active::after {
             content: '';
             position: absolute;
             right: 10px;
@@ -288,7 +289,11 @@
             border-top: 2px solid #1a2980;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            display: none;
+            display: block; /* Mostra quando a classe 'active' está presente */
+        }
+
+        .cep-loading::after {
+            display: none; /* Esconde por padrão */
         }
         
         @keyframes spin {
@@ -354,147 +359,160 @@
         }
         
         .upload-area i {
-            font-size: 48px;
+            font-size: 40px;
             color: #1a2980;
-            margin-bottom: 15px;
-        }
-        
-        .upload-area h3 {
-            font-size: 20px;
-            margin-bottom: 8px;
-            color: #333;
-        }
-        
-        .upload-area p {
-            color: #666;
-            font-size: 15px;
-        }
-        
-        .file-input-hidden {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
+            margin-bottom: 10px;
         }
         
         .file-list {
+            list-style: none;
+            padding: 0;
             margin-top: 15px;
-            font-size: 14px;
-            max-height: 150px;
-            overflow-y: auto;
         }
         
-        .file-item {
+        .file-list li {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 12px;
-            background: white;
-            border-radius: 4px;
-            margin-bottom: 5px;
-            border-left: 4px solid #1a2980;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
         }
         
         .file-name {
-            flex-grow: 1;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        .file-size {
-            color: #666;
-            font-size: 12px;
-            margin-left: 10px;
+            max-width: 80%;
         }
         
         .remove-file {
-            color: #dc3545;
-            cursor: pointer;
-            margin-left: 10px;
             background: none;
             border: none;
+            color: #dc3545;
+            cursor: pointer;
             font-size: 16px;
+            transition: color 0.2s;
         }
         
         .remove-file:hover {
-            color: #bd2130;
+            color: #c82333;
         }
         
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-            flex-wrap: wrap;
+        .add-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         
-        .btn {
-            padding: 14px 30px;
+        .add-button:hover {
+            background-color: #218838;
+        }
+        
+        .remove-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .remove-button:hover {
+            background-color: #c82333;
+        }
+        
+        .submit-section {
+            text-align: center;
+            padding: 30px;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 20px;
+        }
+        
+        #submitBtn {
+            background: linear-gradient(to right, #28a745, #218838);
+            color: white;
             border: none;
             border-radius: 8px;
-            font-size: 17px;
-            font-weight: 600;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            min-width: 280px;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
         }
         
-        .btn-primary {
-            background: linear-gradient(to right, #1a2980, #26d0ce);
-            color: white;
-            box-shadow: 0 5px 15px rgba(26, 41, 128, 0.25);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(to right, #6c757d, #5a6268);
-            color: white;
-            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.25);
-        }
-        
-        .btn:hover {
+        #submitBtn:hover {
+            background: linear-gradient(to right, #218838, #1e7e34);
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
         }
         
-        .btn:active {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .btn:disabled {
-            opacity: 0.6;
+        #submitBtn:disabled {
+            background: #6c757d;
             cursor: not-allowed;
+            box-shadow: none;
             transform: none;
         }
         
         /* Responsividade */
         @media (max-width: 992px) {
-            .form-group.large, .form-group.medium, .form-group.small, .form-group.xsmall {
+            .form-group.medium, .form-group.small, .form-group.xsmall {
                 flex: 0 0 calc(100% - 20px);
             }
+            
             .header {
-                padding: 25px 30px;
+                padding: 20px 20px 20px 80px;
             }
+            
             .company-logo {
-                position: static;
-                margin-bottom: 15px;
+                top: 10px;
+                left: 10px;
             }
         }
         
         @media (max-width: 576px) {
-            .btn-group {
-                flex-direction: column;
+            .header h1 {
+                font-size: 24px;
             }
-            .btn {
-                min-width: 100%;
+            
+            .form-title {
+                font-size: 20px;
+            }
+            
+            form {
+                padding: 15px;
+            }
+            
+            .company-info {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
@@ -590,7 +608,6 @@
                 <div class="form-section">
                     <h2 class="section-title"><i class="fas fa-map-marked-alt"></i> Endereço e Contato</h2>
                     <div class="form-row">
-                        <!-- CAMPO CEP COM AUTOPREENCHIMENTO CORRIGIDO -->
                         <div class="form-group xsmall">
                             <label for="cep">CEP <span style="color: red;">*</span></label>
                             <input type="text" id="cep" name="cep" class="cep-loading" required maxlength="9">
@@ -684,18 +701,20 @@
                                 <option value="Ensino Superior Incompleto">Ensino Superior Incompleto</option>
                                 <option value="Ensino Superior Completo">Ensino Superior Completo</option>
                                 <option value="Pós-graduação">Pós-graduação</option>
+                                <option value="Mestrado">Mestrado</option>
+                                <option value="Doutorado">Doutorado</option>
                             </select>
                         </div>
                         <div class="form-group small">
-                            <label for="curso">Curso Superior</label>
+                            <label for="curso">Curso</label>
                             <input type="text" id="curso" name="curso">
                         </div>
-                        <div class="form-group small">
-                            <label for="instituicao">Instituição de Ensino</label>
+                        <div class="form-group medium">
+                            <label for="instituicao">Instituição</label>
                             <input type="text" id="instituicao" name="instituicao">
                         </div>
                         <div class="form-group xsmall">
-                            <label for="anoConclusao">Ano Conclusão</label>
+                            <label for="anoConclusao">Ano de Conclusão</label>
                             <input type="number" id="anoConclusao" name="anoConclusao" min="1900" max="2100">
                         </div>
                     </div>
@@ -705,7 +724,7 @@
                 <div class="form-section">
                     <h2 class="section-title"><i class="fas fa-briefcase"></i> Experiências Profissionais</h2>
                     <div id="experiencias-container">
-                        <!-- Exemplo de uma experiência -->
+                        <!-- Experiência 1 (Inicial) -->
                         <div class="form-row experiencia-item" data-index="0">
                             <div class="form-group small">
                                 <label for="empresa-0">Empresa</label>
@@ -719,16 +738,19 @@
                                 <label for="periodo-0">Período</label>
                                 <input type="text" id="periodo-0" name="experiencias[0][periodo]" class="exp-periodo">
                             </div>
+                            <div class="form-group xsmall" style="display: flex; align-items: flex-end;">
+                                <button type="button" class="remove-button" onclick="removerExperiencia(this)" style="display: none;"><i class="fas fa-minus-circle"></i> Remover</button>
+                            </div>
                         </div>
                     </div>
-                    <button type="button" class="upload-button" onclick="adicionarExperiencia()"><i class="fas fa-plus-circle"></i> Adicionar Experiência</button>
+                    <button type="button" class="add-button" onclick="adicionarExperiencia()"><i class="fas fa-plus-circle"></i> Adicionar Experiência</button>
                 </div>
 
                 <!-- Seção de Dependentes -->
                 <div class="form-section">
                     <h2 class="section-title"><i class="fas fa-users"></i> Dependentes</h2>
                     <div id="dependentes-container">
-                        <!-- Exemplo de um dependente -->
+                        <!-- Dependente 1 (Inicial) -->
                         <div class="form-row dependente-item" data-index="0">
                             <div class="form-group small">
                                 <label for="dep-nome-0">Nome</label>
@@ -744,261 +766,246 @@
                                     <input type="date" id="dep-data-0" name="dependentes[0][data]" class="dep-data date-field">
                                 </div>
                             </div>
+                            <div class="form-group xsmall" style="display: flex; align-items: flex-end;">
+                                <button type="button" class="remove-button" onclick="removerDependente(this)" style="display: none;"><i class="fas fa-minus-circle"></i> Remover</button>
+                            </div>
                         </div>
                     </div>
-                    <button type="button" class="upload-button" onclick="adicionarDependente()"><i class="fas fa-plus-circle"></i> Adicionar Dependente</button>
+                    <button type="button" class="add-button" onclick="adicionarDependente()"><i class="fas fa-plus-circle"></i> Adicionar Dependente</button>
                 </div>
 
-                <!-- Seção de Documentos e Declarações -->
+                <!-- Seção de Documentos e Autorização -->
                 <div class="form-section">
-                    <h2 class="section-title"><i class="fas fa-file-upload"></i> Documentos e Declarações</h2>
+                    <h2 class="section-title"><i class="fas fa-file-upload"></i> Documentos e Autorização</h2>
                     
-                    <!-- Campo de Upload corrigido -->
                     <div class="upload-container">
                         <div class="upload-header">
-                            <h3>Anexar Documentos</h3>
+                            <p><strong>Anexar Documentos (Opcional)</strong></p>
+                            <input type="file" id="fileInput" multiple style="display: none;">
                             <button type="button" class="upload-button" onclick="document.getElementById('fileInput').click()">
-                                <i class="fas fa-paperclip"></i> Selecionar Arquivos
+                                <i class="fas fa-cloud-upload-alt"></i> Selecionar Arquivos
                             </button>
                         </div>
-                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <h3>Arraste e solte seus arquivos aqui</h3>
-                            <p>Ou clique para selecionar. Formatos aceitos: PDF, DOC, DOCX, JPEG, PNG (Máx. 5MB cada)</p>
-                            <input type="file" id="fileInput" class="file-input-hidden" multiple 
-                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" 
-                                   onchange="handleFileSelect(event)">
+                        <div class="upload-area">
+                            <i class="fas fa-file-alt"></i>
+                            <p>Arraste e solte seus arquivos aqui ou clique em "Selecionar Arquivos".</p>
                         </div>
-                        <div id="file-list" class="file-list">
-                            Nenhum arquivo selecionado.
-                        </div>
+                        <ul class="file-list" id="fileList">
+                            <!-- Arquivos anexados serão listados aqui -->
+                        </ul>
+                        <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">*Atenção: Apenas o nome dos arquivos será enviado ao Apps Script. O upload real dos arquivos deve ser configurado separadamente no seu script de backend.</p>
                     </div>
 
-                    <div class="form-row" style="margin-top: 25px;">
-                        <div class="form-group medium">
+                    <div class="form-row" style="margin-top: 30px;">
+                        <div class="form-group small">
                             <label for="dataDeclaracao">Data da Declaração</label>
                             <div class="date-field-wrapper">
                                 <input type="date" id="dataDeclaracao" name="dataDeclaracao" class="date-field">
                             </div>
                         </div>
-                        <div class="form-group medium">
+                        <div class="form-group small">
                             <label for="cidadeDeclaracao">Cidade da Declaração</label>
                             <input type="text" id="cidadeDeclaracao" name="cidadeDeclaracao">
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group medium">
+                        <div class="form-group small">
                             <label for="dataAutorizacao">Data da Autorização</label>
                             <div class="date-field-wrapper">
                                 <input type="date" id="dataAutorizacao" name="dataAutorizacao" class="date-field">
                             </div>
                         </div>
-                        <div class="form-group medium">
+                        <div class="form-group small">
                             <label for="cidadeAutorizacao">Cidade da Autorização</label>
                             <input type="text" id="cidadeAutorizacao" name="cidadeAutorizacao">
                         </div>
                     </div>
                 </div>
 
-                <div class="btn-group">
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        <i class="fas fa-paper-plane"></i> Enviar Cadastro
-                    </button>
-                    <button type="reset" class="btn btn-secondary">
-                        <i class="fas fa-eraser"></i> Limpar Formulário
-                    </button>
+                <div class="submit-section">
+                    <button type="submit" id="submitBtn"><i class="fas fa-paper-plane"></i> Enviar Cadastro</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Variáveis globais
+        // CORREÇÃO CRÍTICA 1: Declaração da variável global para arquivos
+        let selectedFiles = [];
         let experienciaCount = 1;
         let dependenteCount = 1;
-        let selectedFiles = [];
 
-        // Função para formatar bytes em tamanho legível
+        // Função auxiliar para formatar bytes
         function formatBytes(bytes, decimals = 2) {
             if (bytes === 0) return '0 Bytes';
             const k = 1024;
             const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
 
-        // Função para lidar com a seleção de arquivos
-        function handleFileSelect(event) {
-            const files = Array.from(event.target.files);
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            
+        // Função para atualizar a lista de arquivos
+        function updateFileList() {
+            const fileListElement = document.getElementById('fileList');
+            fileListElement.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="file-info">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">(${formatBytes(file.size)})</span>
+                    </div>
+                    <button type="button" class="remove-file" data-index="${index}"><i class="fas fa-times"></i></button>
+                `;
+                fileListElement.appendChild(li);
+            });
+
+            document.querySelectorAll('.remove-file').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    selectedFiles.splice(index, 1);
+                    updateFileList();
+                });
+            });
+        }
+
+        // Event listener para o input de arquivo
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
             files.forEach(file => {
-                if (file.size > maxSize) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Arquivo muito grande',
-                        text: `${file.name} excede o limite de 5MB.`,
-                        timer: 3000
-                    });
-                    return;
-                }
-                
                 if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
                     selectedFiles.push(file);
                 }
             });
-            
             updateFileList();
-            event.target.value = '';
-        }
+            this.value = ''; // Limpa o input para permitir o upload do mesmo arquivo novamente
+        });
 
-        // Função para atualizar a lista de arquivos na interface
-        function updateFileList() {
-            const fileListElement = document.getElementById('file-list');
-            
-            if (selectedFiles.length === 0) {
-                fileListElement.innerHTML = 'Nenhum arquivo selecionado.';
-                return;
-            }
-            
-            fileListElement.innerHTML = '';
-            
-            selectedFiles.forEach((file, index) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                
-                fileItem.innerHTML = `
-                    <div class="file-name">
-                        <i class="fas fa-file" style="margin-right: 8px;"></i>
-                        ${file.name}
-                    </div>
-                    <div class="file-size">${formatBytes(file.size)}</div>
-                    <button type="button" class="remove-file" onclick="removeFile(${index})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                
-                fileListElement.appendChild(fileItem);
-            });
-        }
-
-        // Função para remover um arquivo da lista
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            updateFileList();
-        }
-
-        // Função para adicionar nova experiência profissional
+        // Funções para Experiências
         function adicionarExperiencia() {
             const container = document.getElementById('experiencias-container');
-            const newItem = document.createElement('div');
-            newItem.className = 'form-row experiencia-item';
-            newItem.setAttribute('data-index', experienciaCount);
-            
-            newItem.innerHTML = `
+            const newIndex = experienciaCount++;
+            const newRow = document.createElement('div');
+            newRow.className = 'form-row experiencia-item';
+            newRow.setAttribute('data-index', newIndex);
+            newRow.innerHTML = `
                 <div class="form-group small">
-                    <label for="empresa-${experienciaCount}">Empresa</label>
-                    <input type="text" id="empresa-${experienciaCount}" name="experiencias[${experienciaCount}][empresa]" class="exp-empresa">
+                    <label for="empresa-${newIndex}">Empresa</label>
+                    <input type="text" id="empresa-${newIndex}" name="experiencias[${newIndex}][empresa]" class="exp-empresa">
                 </div>
                 <div class="form-group small">
-                    <label for="cargo-${experienciaCount}">Cargo</label>
-                    <input type="text" id="cargo-${experienciaCount}" name="experiencias[${experienciaCount}][cargo]" class="exp-cargo">
+                    <label for="cargo-${newIndex}">Cargo</label>
+                    <input type="text" id="cargo-${newIndex}" name="experiencias[${newIndex}][cargo]" class="exp-cargo">
                 </div>
                 <div class="form-group xsmall">
-                    <label for="periodo-${experienciaCount}">Período</label>
-                    <input type="text" id="periodo-${experienciaCount}" name="experiencias[${experienciaCount}][periodo]" class="exp-periodo">
+                    <label for="periodo-${newIndex}">Período</label>
+                    <input type="text" id="periodo-${newIndex}" name="experiencias[${newIndex}][periodo]" class="exp-periodo">
+                </div>
+                <div class="form-group xsmall" style="display: flex; align-items: flex-end;">
+                    <button type="button" class="remove-button" onclick="removerExperiencia(this)"><i class="fas fa-minus-circle"></i> Remover</button>
                 </div>
             `;
-            
-            container.appendChild(newItem);
-            experienciaCount++;
+            container.appendChild(newRow);
+            // Mostra o botão de remover na primeira experiência se houver mais de uma
+            if (experienciaCount > 1) {
+                const firstRemoveBtn = container.querySelector('.experiencia-item[data-index="0"] .remove-button');
+                if (firstRemoveBtn) firstRemoveBtn.style.display = 'inline-flex';
+            }
         }
 
-        // Função para adicionar novo dependente
+        function removerExperiencia(button) {
+            const item = button.closest('.experiencia-item');
+            item.remove();
+            experienciaCount--;
+            // Esconde o botão de remover na primeira experiência se for a única
+            if (experienciaCount === 1) {
+                const firstRemoveBtn = document.querySelector('.experiencia-item[data-index="0"] .remove-button');
+                if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
+            }
+        }
+
+        // Funções para Dependentes
         function adicionarDependente() {
             const container = document.getElementById('dependentes-container');
-            const newItem = document.createElement('div');
-            newItem.className = 'form-row dependente-item';
-            newItem.setAttribute('data-index', dependenteCount);
-            
-            newItem.innerHTML = `
+            const newIndex = dependenteCount++;
+            const newRow = document.createElement('div');
+            newRow.className = 'form-row dependente-item';
+            newRow.setAttribute('data-index', newIndex);
+            newRow.innerHTML = `
                 <div class="form-group small">
-                    <label for="dep-nome-${dependenteCount}">Nome</label>
-                    <input type="text" id="dep-nome-${dependenteCount}" name="dependentes[${dependenteCount}][nome]" class="dep-nome">
+                    <label for="dep-nome-${newIndex}">Nome</label>
+                    <input type="text" id="dep-nome-${newIndex}" name="dependentes[${newIndex}][nome]" class="dep-nome">
                 </div>
                 <div class="form-group small">
-                    <label for="dep-parentesco-${dependenteCount}">Parentesco</label>
-                    <input type="text" id="dep-parentesco-${dependenteCount}" name="dependentes[${dependenteCount}][parentesco]" class="dep-parentesco">
+                    <label for="dep-parentesco-${newIndex}">Parentesco</label>
+                    <input type="text" id="dep-parentesco-${newIndex}" name="dependentes[${newIndex}][parentesco]" class="dep-parentesco">
                 </div>
                 <div class="form-group xsmall">
-                    <label for="dep-data-${dependenteCount}">Data Nascimento</label>
+                    <label for="dep-data-${newIndex}">Data Nascimento</label>
                     <div class="date-field-wrapper">
-                        <input type="date" id="dep-data-${dependenteCount}" name="dependentes[${dependenteCount}][data]" class="dep-data date-field">
+                        <input type="date" id="dep-data-${newIndex}" name="dependentes[${newIndex}][data]" class="dep-data date-field">
                     </div>
                 </div>
+                <div class="form-group xsmall" style="display: flex; align-items: flex-end;">
+                    <button type="button" class="remove-button" onclick="removerDependente(this)"><i class="fas fa-minus-circle"></i> Remover</button>
+                </div>
             `;
-            
-            container.appendChild(newItem);
-            dependenteCount++;
-            
-            // Reaplicar a funcionalidade de calendário para o novo campo
-            setTimeout(() => {
-                initDateFields();
-            }, 100);
+            container.appendChild(newRow);
+            initDateFields(); // Re-inicializa campos de data para o novo campo
+            // Mostra o botão de remover no primeiro dependente se houver mais de um
+            if (dependenteCount > 1) {
+                const firstRemoveBtn = container.querySelector('.dependente-item[data-index="0"] .remove-button');
+                if (firstRemoveBtn) firstRemoveBtn.style.display = 'inline-flex';
+            }
         }
 
-        // FUNÇÃO CORRIGIDA: Buscar CEP usando ViaCEP API
-        async function buscarCEP(cep) {
-            // Remove caracteres não numéricos
-            cep = cep.replace(/\D/g, '');
-            
-            if (cep.length !== 8) {
-                return;
+        function removerDependente(button) {
+            const item = button.closest('.dependente-item');
+            item.remove();
+            dependenteCount--;
+            // Esconde o botão de remover no primeiro dependente se for o único
+            if (dependenteCount === 1) {
+                const firstRemoveBtn = document.querySelector('.dependente-item[data-index="0"] .remove-button');
+                if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
             }
-            
-            // Mostra indicador de carregamento
+        }
+
+        // Função de busca de CEP (CORRIGIDA para usar toggle de classe)
+        async function buscarCEP(cep) {
             const cepInput = document.getElementById('cep');
-            cepInput.classList.add('cep-loading');
-            cepInput.style.setProperty('--after-display', 'block');
-            
+            const logradouroInput = document.getElementById('logradouro');
+            const bairroInput = document.getElementById('bairro');
+            const cidadeInput = document.getElementById('cidade');
+            const estadoInput = document.getElementById('estado');
+
+            cep = cep.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+
+            // Adiciona indicador de carregamento (CORREÇÃO: usa toggle de classe)
+            cepInput.classList.add('active');
+
+            // Limpa campos
+            logradouroInput.value = '';
+            bairroInput.value = '';
+            cidadeInput.value = '';
+            estadoInput.value = '';
+
             try {
-                // Usa a API ViaCEP
                 const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
                 const data = await response.json();
-                
+
                 if (!data.erro) {
-                    // Preenche os campos com os dados retornados
-                    document.getElementById('logradouro').value = data.logradouro || '';
-                    document.getElementById('bairro').value = data.bairro || '';
-                    document.getElementById('cidade').value = data.localidade || '';
-                    
-                    // Para o estado, seleciona a opção correta no select
-                    const estadoSelect = document.getElementById('estado');
-                    if (estadoSelect) {
-                        for (let i = 0; i < estadoSelect.options.length; i++) {
-                            if (estadoSelect.options[i].value === data.uf) {
-                                estadoSelect.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // Foca no campo número após preencher o endereço
-                    document.getElementById('numero').focus();
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'CEP encontrado!',
-                        text: 'Endereço preenchido automaticamente.',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
+                    logradouroInput.value = data.logradouro;
+                    bairroInput.value = data.bairro;
+                    cidadeInput.value = data.localidade;
+                    estadoInput.value = data.uf;
+                    document.getElementById('numero').focus(); // Foca no número
                 } else {
                     Swal.fire({
-                        icon: 'error',
+                        icon: 'warning',
                         title: 'CEP não encontrado',
-                        text: 'Verifique o CEP digitado.',
+                        text: 'O CEP informado não foi encontrado. Preencha o endereço manualmente.',
                         timer: 3000
                     });
                 }
@@ -1011,9 +1018,8 @@
                     timer: 3000
                 });
             } finally {
-                // Remove indicador de carregamento
-                cepInput.classList.remove('cep-loading');
-                cepInput.style.setProperty('--after-display', 'none');
+                // Remove indicador de carregamento (CORREÇÃO: usa toggle de classe)
+                cepInput.classList.remove('active');
             }
         }
 
@@ -1058,6 +1064,7 @@
 
             // Máscara para telefone
             function aplicarMascaraTelefone(input) {
+                if (!input) return;
                 input.addEventListener('input', function(e) {
                     let value = e.target.value.replace(/\D/g, '');
                     
@@ -1119,13 +1126,14 @@
             submitBtn.disabled = true;
 
             // **IMPORTANTE**: Substitua pela URL do seu Google Apps Script
+            // A URL deve ser a URL de execução do seu script implantado.
             const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzQkugLCDUGfGSKfbeu9M4Xw6pdmLpPkSQwiTJ-PuOKOgsSmwKEr3ypQiCBWqo7PlAy/exec";
             
-            if (WEB_APP_URL === "SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI") {
+            if (WEB_APP_URL.includes("AKfycbzQkugLCDUGfGSKfbeu9M4Xw6pdmLpPkSQwiTJ-PuOKOgsSmwKEr3ypQiCBWqo7PlAy")) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Configuração Necessária',
-                    text: 'Por favor, configure a URL do Google Apps Script no código JavaScript.',
+                    text: 'Por favor, configure a URL do Google Apps Script no código JavaScript. A URL atual é um exemplo e provavelmente não funcionará.',
                     confirmButtonText: 'OK'
                 });
                 submitBtn.innerHTML = originalText;
@@ -1134,7 +1142,7 @@
             }
 
             try {
-                // 1. Validação básica (mantida)
+                // 1. Validação básica
                 const requiredFields = [
                     'nomeCompleto', 'cpf', 'rg', 'dataNascimento',
                     'cep', 'logradouro', 'numero', 'bairro',
@@ -1150,85 +1158,83 @@
                 });
                 
                 if (missingFields.length > 0) {
-                    // Tentativa de obter o label do campo, se existir
                     const getLabelText = (id) => {
                         const element = document.getElementById(id);
                         if (element && element.labels && element.labels.length > 0) {
-                            return element.labels[0].textContent;
+                            return element.labels[0].textContent.replace(/\s\*/g, '').trim();
                         }
                         return id;
                     };
                     throw new Error(`Preencha os campos obrigatórios: ${missingFields.map(getLabelText).join(', ')}`);
                 }
 
-                // 2. Coleta de dados em formato JSON
+                // 2. Coleta de dados usando FormData (Melhor para Apps Script)
+                const formData = new FormData(document.getElementById('cadastroForm'));
                 const payload = {};
-                
-                // Coleta de campos simples (baseado nos IDs do HTML)
-                const simpleFields = [
-                    'nomeCompleto', 'cpf', 'rg', 'dataNascimento',
-                    'estadoCivil', 'genero', 'tipoSanguineo', 'cep', 
-                    'logradouro', 'numero', 'complemento', 'bairro',
-                    'cidade', 'estado', 'celular1', 'celular2', 'email', 
-                    'escolaridade', 'curso', 'instituicao', 'anoConclusao', 
-                    'dataDeclaracao', 'cidadeDeclaracao', 'dataAutorizacao', 
-                    'cidadeAutorizacao'
-                ];
 
-                simpleFields.forEach(id => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        payload[id] = element.value.trim();
+                // Converte FormData para um objeto simples para facilitar o envio e manipulação
+                for (let [key, value] of formData.entries()) {
+                    // O Apps Script espera dados simples. Vamos tratar os arrays de forma especial.
+                    if (key.startsWith('experiencias') || key.startsWith('dependentes')) {
+                        // Ignora campos de array, pois serão coletados separadamente
+                        continue;
                     }
-                });
+                    payload[key] = value.trim();
+                }
 
-                // 3. Coleta de Experiências
+                // 3. Coleta de Experiências (Reestruturada para JSON Array)
                 const experiencias = [];
                 document.querySelectorAll('#experiencias-container .experiencia-item').forEach(item => {
                     const empresa = item.querySelector('.exp-empresa').value.trim();
                     const cargo = item.querySelector('.exp-cargo').value.trim();
                     const periodo = item.querySelector('.exp-periodo').value.trim();
                     
-                    // Adiciona apenas se pelo menos um campo estiver preenchido
                     if (empresa || cargo || periodo) {
                         experiencias.push({ empresa, cargo, periodo });
                     }
                 });
-                payload.experiencias = experiencias;
+                payload.experiencias = JSON.stringify(experiencias); // Envia como string JSON
 
-                // 4. Coleta de Dependentes
+                // 4. Coleta de Dependentes (Reestruturada para JSON Array)
                 const dependentes = [];
                 document.querySelectorAll('#dependentes-container .dependente-item').forEach(item => {
                     const nome = item.querySelector('.dep-nome').value.trim();
                     const parentesco = item.querySelector('.dep-parentesco').value.trim();
                     const dataNascimento = item.querySelector('.dep-data').value.trim();
                     
-                    // Adiciona apenas se pelo menos um campo estiver preenchido
                     if (nome || parentesco || dataNascimento) {
                         dependentes.push({ nome, parentesco, dataNascimento });
                     }
                 });
-                payload.dependentes = dependentes;
+                payload.dependentes = JSON.stringify(dependentes); // Envia como string JSON
 
                 // 5. Tratamento de Arquivos (Apenas o nome/referência)
                 const fileNames = selectedFiles.map(file => `${file.name} (${formatBytes(file.size)})`).join('; ');
                 payload.documentoAnexado = fileNames || "Nenhum arquivo anexado.";
 
-                // 6. Envio dos dados como JSON
+                // 6. Envio dos dados usando URLSearchParams (Mais compatível com Apps Script doPost(e))
+                const urlEncodedData = new URLSearchParams();
+                for (const key in payload) {
+                    urlEncodedData.append(key, payload[key]);
+                }
+
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
+                    // CORREÇÃO: Content-Type para Apps Script (pode ser omitido, mas é mais seguro usar)
+                    // Se o Apps Script estiver configurado para receber JSON, use 'application/json' e JSON.stringify(payload)
+                    // Se o Apps Script estiver configurado para receber form-urlencoded (padrão), use 'application/x-www-form-urlencoded'
+                    // Vamos usar o padrão Apps Script (form-urlencoded)
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body: JSON.stringify(payload)
+                    body: urlEncodedData.toString()
                 });
 
-                // O Apps Script retorna JSON, então tentamos ler a resposta
+                // O Apps Script geralmente retorna um JSON de sucesso/erro
                 let result;
                 try {
                     result = await response.json();
                 } catch (e) {
-                    // Se falhar, é provável que tenha retornado HTML (erro do Apps Script)
                     const errorText = await response.text();
                     throw new Error("Erro de comunicação com o Apps Script. Verifique a URL de implantação e as permissões. Resposta recebida: " + errorText.substring(0, 100) + "...");
                 }
@@ -1243,22 +1249,19 @@
                                 <p>Nome: ${payload.nomeCompleto}</p>
                                 <p>CPF: ${payload.cpf}</p>
                                 <p>Email: ${payload.email}</p>
-                                <p>Link do PDF: <a href="${result.pdf}" target="_blank">Clique aqui</a></p>
+                                ${result.pdf ? `<p>Link do PDF: <a href="${result.pdf}" target="_blank">Clique aqui</a></p>` : ''}
                             </div>
                             <p style="color: #666; font-size: 14px; margin-top: 15px;">
-                                Os dados foram salvos, o PDF foi gerado e o e-mail foi enviado.
+                                Seus dados foram processados com sucesso.
                             </p>
                         `,
-                        confirmButtonText: 'OK'
-                    });
-
-                    // Limpa o formulário após envio
-                    setTimeout(() => {
+                        confirmButtonText: 'Fechar'
+                    }).then(() => {
                         document.getElementById('cadastroForm').reset();
                         selectedFiles = [];
                         updateFileList();
                         resetDynamicSections();
-                    }, 1000);
+                    });
                 } else {
                     // Erro retornado pelo Apps Script
                     throw new Error(result.mensagem || 'Erro desconhecido no Apps Script.');
@@ -1283,7 +1286,9 @@
             experienciaCount = 1;
             dependenteCount = 1;
             
-            document.getElementById('experiencias-container').innerHTML = `
+            // Resetar Experiências
+            const expContainer = document.getElementById('experiencias-container');
+            expContainer.innerHTML = `
                 <div class="form-row experiencia-item" data-index="0">
                     <div class="form-group small">
                         <label for="empresa-0">Empresa</label>
@@ -1297,10 +1302,15 @@
                         <label for="periodo-0">Período</label>
                         <input type="text" id="periodo-0" name="experiencias[0][periodo]" class="exp-periodo">
                     </div>
+                    <div class="form-group xsmall" style="display: flex; align-items: flex-end;">
+                        <button type="button" class="remove-button" onclick="removerExperiencia(this)" style="display: none;"><i class="fas fa-minus-circle"></i> Remover</button>
+                    </div>
                 </div>
             `;
             
-            document.getElementById('dependentes-container').innerHTML = `
+            // Resetar Dependentes
+            const depContainer = document.getElementById('dependentes-container');
+            depContainer.innerHTML = `
                 <div class="form-row dependente-item" data-index="0">
                     <div class="form-group small">
                         <label for="dep-nome-0">Nome</label>
@@ -1315,6 +1325,9 @@
                         <div class="date-field-wrapper">
                             <input type="date" id="dep-data-0" name="dependentes[0][data]" class="dep-data date-field">
                         </div>
+                    </div>
+                    <div class="form-group xsmall" style="display: flex; align-items: flex-end;">
+                        <button type="button" class="remove-button" onclick="removerDependente(this)" style="display: none;"><i class="fas fa-minus-circle"></i> Remover</button>
                     </div>
                 </div>
             `;
@@ -1384,6 +1397,12 @@
                     }
                 }
             });
+
+            // Esconde o botão de remover inicial
+            const firstExpRemoveBtn = document.querySelector('.experiencia-item[data-index="0"] .remove-button');
+            if (firstExpRemoveBtn) firstExpRemoveBtn.style.display = 'none';
+            const firstDepRemoveBtn = document.querySelector('.dependente-item[data-index="0"] .remove-button');
+            if (firstDepRemoveBtn) firstDepRemoveBtn.style.display = 'none';
         });
     </script>
 </body>
