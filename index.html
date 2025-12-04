@@ -1009,7 +1009,7 @@
             aplicarMascaraTelefone(document.getElementById('celular2'));
         }
 
-        // FUNÇÃO CORRIGIDA: Enviar formulário para Google Apps Script
+// FUNÇÃO CORRIGIDA: Enviar formulário para Google Apps Script
         async function enviarFormulario(event) {
             event.preventDefault();
             
@@ -1018,8 +1018,23 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
             submitBtn.disabled = true;
 
+            // **IMPORTANTE**: Substitua pela URL do seu Google Apps Script
+            const WEB_APP_URL = "SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI";
+            
+            if (WEB_APP_URL === "https://script.google.com/macros/s/AKfycbzYZSMH5XES6kyYkJd6NkhVkUENoC4Tv5_3hr3QzAlratNvyDo2HfE5Yve5LUb8I2ia/exec") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Configuração Necessária',
+                    text: 'Por favor, configure a URL do Google Apps Script no código JavaScript.',
+                    confirmButtonText: 'OK'
+                });
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+
             try {
-                // Validação básica
+                // 1. Validação básica (mantida)
                 const requiredFields = [
                     'nomeCompleto', 'cpf', 'rg', 'dataNascimento',
                     'cep', 'logradouro', 'numero', 'bairro',
@@ -1035,65 +1050,113 @@
                 });
                 
                 if (missingFields.length > 0) {
-                    throw new Error(`Preencha os campos obrigatórios: ${missingFields.map(id => document.getElementById(id).labels[0].textContent).join(', ')}`);
+                    // Tentativa de obter o label do campo, se existir
+                    const getLabelText = (id) => {
+                        const element = document.getElementById(id);
+                        if (element && element.labels && element.labels.length > 0) {
+                            return element.labels[0].textContent;
+                        }
+                        return id;
+                    };
+                    throw new Error(`Preencha os campos obrigatórios: ${missingFields.map(getLabelText).join(', ')}`);
                 }
 
-                // Coleta dos dados do formulário
-                const formData = new FormData(document.getElementById('cadastroForm'));
+                // 2. Coleta de dados em formato JSON
+                const payload = {};
                 
-                // Adiciona arquivos ao FormData
-                selectedFiles.forEach((file, index) => {
-                    formData.append(`arquivo_${index}`, file);
+                // Coleta de campos simples (baseado nos IDs do HTML)
+                const simpleFields = [
+                    'nomeCompleto', 'cpf', 'rg', 'orgaoEmissor', 'dataEmissaoRG', 'dataNascimento',
+                    'naturalidade', 'nacionalidade', 'nomePai', 'nomeMae', 'estadoCivil', 'genero',
+                    'tipoSanguineo', 'cep', 'logradouro', 'numero', 'complemento', 'bairro',
+                    'cidade', 'estado', 'celular1', 'celular2', 'email', 'escolaridade',
+                    'curso', 'instituicao', 'anoConclusao', 'dataDeclaracao', 'cidadeDeclaracao',
+                    'dataAutorizacao', 'cidadeAutorizacao'
+                ];
+
+                simpleFields.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        payload[id] = element.value.trim();
+                    }
                 });
-                
-                // Adiciona informações sobre os arquivos
-                formData.append('totalArquivos', selectedFiles.length);
-                
-                // Adiciona data e hora do envio
-                formData.append('dataEnvio', new Date().toISOString());
 
-                // **IMPORTANTE**: Substitua pela URL do seu Google Apps Script
-                const WEB_APP_URL = "SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI";
-                
-                if (WEB_APP_URL === "SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI") {
-                    throw new Error("Configure a URL do Google Apps Script no código");
-                }
+                // 3. Coleta de Experiências
+                const experiencias = [];
+                document.querySelectorAll('#experiencias-container .experiencia-item').forEach(item => {
+                    const empresa = item.querySelector('.exp-empresa').value.trim();
+                    const cargo = item.querySelector('.exp-cargo').value.trim();
+                    const periodo = item.querySelector('.exp-periodo').value.trim();
+                    
+                    // Adiciona apenas se pelo menos um campo estiver preenchido
+                    if (empresa || cargo || periodo) {
+                        experiencias.push({ empresa, cargo, periodo });
+                    }
+                });
+                payload.experiencias = experiencias;
 
-                // Envia os dados
+                // 4. Coleta de Dependentes
+                const dependentes = [];
+                document.querySelectorAll('#dependentes-container .dependente-item').forEach(item => {
+                    const nome = item.querySelector('.dep-nome').value.trim();
+                    const parentesco = item.querySelector('.dep-parentesco').value.trim();
+                    const dataNascimento = item.querySelector('.dep-data').value.trim();
+                    
+                    // Adiciona apenas se pelo menos um campo estiver preenchido
+                    if (nome || parentesco || dataNascimento) {
+                        dependentes.push({ nome, parentesco, dataNascimento });
+                    }
+                });
+                payload.dependentes = dependentes;
+
+                // 5. Tratamento de Arquivos (Apenas o nome/referência)
+                // O Apps Script não suporta upload de arquivos via JSON no doPost(e).
+                // Apenas enviamos uma string com a lista de arquivos para registro na planilha.
+                const fileNames = selectedFiles.map(file => `${file.name} (${formatBytes(file.size)})`).join('; ');
+                payload.documentoAnexado = fileNames || "Nenhum arquivo anexado.";
+
+                // 6. Envio dos dados como JSON
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: formData,
-                    mode: 'no-cors' // Importante para Google Apps Script
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
                 });
 
-                // Como o modo é 'no-cors', não podemos verificar a resposta
-                // Mas assumimos que foi enviado com sucesso
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Sucesso!',
-                    html: `
-                        <div style="text-align: left; margin: 20px 0;">
-                            <p><strong>Cadastro enviado com sucesso!</strong></p>
-                            <p>Nome: ${document.getElementById('nomeCompleto').value}</p>
-                            <p>CPF: ${document.getElementById('cpf').value}</p>
-                            <p>Email: ${document.getElementById('email').value}</p>
-                            <p>Arquivos enviados: ${selectedFiles.length}</p>
-                        </div>
-                        <p style="color: #666; font-size: 14px; margin-top: 15px;">
-                            Os dados foram salvos e os arquivos foram anexados.
-                        </p>
-                    `,
-                    confirmButtonText: 'OK'
-                });
+                // O Apps Script retorna JSON, então podemos ler a resposta
+                const result = await response.json();
 
-                // Limpa o formulário após envio
-                setTimeout(() => {
-                    document.getElementById('cadastroForm').reset();
-                    selectedFiles = [];
-                    updateFileList();
-                    resetDynamicSections();
-                }, 1000);
+                if (result.status === 'ok') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso!',
+                        html: `
+                            <div style="text-align: left; margin: 20px 0;">
+                                <p><strong>Cadastro enviado com sucesso!</strong></p>
+                                <p>Nome: ${payload.nomeCompleto}</p>
+                                <p>CPF: ${payload.cpf}</p>
+                                <p>Email: ${payload.email}</p>
+                                <p>Link do PDF: <a href="${result.pdf}" target="_blank">Clique aqui</a></p>
+                            </div>
+                            <p style="color: #666; font-size: 14px; margin-top: 15px;">
+                                Os dados foram salvos, o PDF foi gerado e o e-mail foi enviado.
+                            </p>
+                        `,
+                        confirmButtonText: 'OK'
+                    });
+
+                    // Limpa o formulário após envio
+                    setTimeout(() => {
+                        document.getElementById('cadastroForm').reset();
+                        selectedFiles = [];
+                        updateFileList();
+                        resetDynamicSections();
+                    }, 1000);
+                } else {
+                    // Erro retornado pelo Apps Script
+                    throw new Error(result.mensagem || 'Erro desconhecido no Apps Script.');
+                }
 
             } catch (error) {
                 console.error('Erro no envio:', error);
