@@ -1127,9 +1127,9 @@
 
             // **IMPORTANTE**: Substitua pela URL do seu Google Apps Script
             // A URL deve ser a URL de execução do seu script implantado.
-            const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzQkugLCDUGfGSKfbeu9M4Xw6pdmLpPkSQwiTJ-PuOKOgsSmwKEr3ypQiCBWqo7PlAy/exec";
+            const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymTWO1uDX2gVo2st21VZljFkBeqPLeqq1YV7SFMwUUa3ufCiVuaq42SKmSmvYP8inq/exec";
             
-            if (WEB_APP_URL.includes("AKfycbzQkugLCDUGfGSKfbeu9M4Xw6pdmLpPkSQwiTJ-PuOKOgsSmwKEr3ypQiCBWqo7PlAy")) {
+            if (WEB_APP_URL.includes("https://script.google.com/macros/s/AKfycbymTWO1uDX2gVo2st21VZljFkBeqPLeqq1YV7SFMwUUa3ufCiVuaq42SKmSmvYP8inq/exec")) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Configuração Necessária',
@@ -1218,7 +1218,7 @@
                     urlEncodedData.append(key, payload[key]);
                 }
 
-                const response = await fetch(WEB_APP_URL, {
+                const response = await fetch("https://script.google.com/macros/s/AKfycbymTWO1uDX2gVo2st21VZljFkBeqPLeqq1YV7SFMwUUa3ufCiVuaq42SKmSmvYP8inq/exec", {
                     method: 'POST',
                     // CORREÇÃO: Content-Type para Apps Script (pode ser omitido, mas é mais seguro usar)
                     // Se o Apps Script estiver configurado para receber JSON, use 'application/json' e JSON.stringify(payload)
