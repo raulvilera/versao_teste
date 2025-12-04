@@ -285,6 +285,7 @@
             transition: all 0.3s;
             cursor: pointer;
             margin-top: 15px;
+            position: relative;
         }
         
         .upload-area:hover {
@@ -307,6 +308,60 @@
         .upload-area p {
             color: #666;
             font-size: 15px;
+        }
+        
+        .file-input-hidden {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .file-list {
+            margin-top: 15px;
+            font-size: 14px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            border-left: 4px solid #1a2980;
+        }
+        
+        .file-name {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .file-size {
+            color: #666;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .remove-file {
+            color: #dc3545;
+            cursor: pointer;
+            margin-left: 10px;
+            background: none;
+            border: none;
+            font-size: 16px;
+        }
+        
+        .remove-file:hover {
+            color: #bd2130;
         }
         
         .btn-group {
@@ -549,7 +604,7 @@
                     </div>
                 </div>
 
-                <!-- Seção de Experiências Profissionais (Simplificada para o JSON) -->
+                <!-- Seção de Experiências Profissionais -->
                 <div class="form-section">
                     <h2 class="section-title"><i class="fas fa-briefcase"></i> Experiências Profissionais</h2>
                     <div id="experiencias-container">
@@ -557,26 +612,22 @@
                         <div class="form-row experiencia-item" data-index="0">
                             <div class="form-group small">
                                 <label for="empresa-0">Empresa</label>
-                                <input type="text" id="empresa-0" name="experiencias[0][empresa]">
+                                <input type="text" id="empresa-0" name="experiencias[0][empresa]" class="exp-empresa">
                             </div>
                             <div class="form-group small">
                                 <label for="cargo-0">Cargo</label>
-                                <input type="text" id="cargo-0" name="experiencias[0][cargo]">
+                                <input type="text" id="cargo-0" name="experiencias[0][cargo]" class="exp-cargo">
                             </div>
                             <div class="form-group xsmall">
-                                <label for="dataInicio-0">Início</label>
-                                <input type="month" id="dataInicio-0" name="experiencias[0][dataInicio]">
-                            </div>
-                            <div class="form-group xsmall">
-                                <label for="dataTermino-0">Término</label>
-                                <input type="month" id="dataTermino-0" name="experiencias[0][dataTermino]">
+                                <label for="periodo-0">Período</label>
+                                <input type="text" id="periodo-0" name="experiencias[0][periodo]" class="exp-periodo">
                             </div>
                         </div>
                     </div>
                     <button type="button" class="upload-button" onclick="adicionarExperiencia()"><i class="fas fa-plus-circle"></i> Adicionar Experiência</button>
                 </div>
 
-                <!-- Seção de Dependentes (Simplificada para o JSON) -->
+                <!-- Seção de Dependentes -->
                 <div class="form-section">
                     <h2 class="section-title"><i class="fas fa-users"></i> Dependentes</h2>
                     <div id="dependentes-container">
@@ -584,19 +635,15 @@
                         <div class="form-row dependente-item" data-index="0">
                             <div class="form-group small">
                                 <label for="dep-nome-0">Nome</label>
-                                <input type="text" id="dep-nome-0" name="dependentes[0][nome]">
+                                <input type="text" id="dep-nome-0" name="dependentes[0][nome]" class="dep-nome">
                             </div>
                             <div class="form-group small">
                                 <label for="dep-parentesco-0">Parentesco</label>
-                                <input type="text" id="dep-parentesco-0" name="dependentes[0][parentesco]">
+                                <input type="text" id="dep-parentesco-0" name="dependentes[0][parentesco]" class="dep-parentesco">
                             </div>
                             <div class="form-group xsmall">
-                                <label for="dep-nascimento-0">Nascimento</label>
-                                <input type="date" id="dep-nascimento-0" name="dependentes[0][nascimento]">
-                            </div>
-                            <div class="form-group xsmall">
-                                <label for="dep-cpf-0">CPF</label>
-                                <input type="text" id="dep-cpf-0" name="dependentes[0][cpf]" data-mask="000.000.000-00">
+                                <label for="dep-data-0">Data Nascimento</label>
+                                <input type="date" id="dep-data-0" name="dependentes[0][data]" class="dep-data">
                             </div>
                         </div>
                     </div>
@@ -607,19 +654,25 @@
                 <div class="form-section">
                     <h2 class="section-title"><i class="fas fa-file-upload"></i> Documentos e Declarações</h2>
                     
-                    <!-- Campo de Upload (Apenas para simulação, pois o GAS não suporta upload direto de arquivos via POST simples) -->
+                    <!-- Campo de Upload corrigido -->
                     <div class="upload-container">
                         <div class="upload-header">
                             <h3>Anexar Documentos</h3>
-                            <button type="button" class="upload-button"><i class="fas fa-paperclip"></i> Selecionar Arquivos</button>
+                            <button type="button" class="upload-button" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-paperclip"></i> Selecionar Arquivos
+                            </button>
                         </div>
-                        <div class="upload-area">
+                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <h3>Arraste e solte seus arquivos aqui</h3>
-                            <p>Ou clique no botão acima. (Simulação: Apenas o nome do arquivo será enviado)</p>
-                            <input type="file" id="arquivos" name="arquivos" multiple style="display: none;">
+                            <p>Ou clique para selecionar. Formatos aceitos: PDF, DOC, DOCX, JPEG, PNG</p>
+                            <input type="file" id="fileInput" class="file-input-hidden" multiple 
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" 
+                                   onchange="handleFileSelect(event)">
                         </div>
-                        <div id="file-list" style="margin-top: 15px; font-size: 14px;">Nenhum arquivo selecionado.</div>
+                        <div id="file-list" class="file-list">
+                            Nenhum arquivo selecionado.
+                        </div>
                     </div>
 
                     <div class="form-row" style="margin-top: 25px;">
@@ -651,123 +704,466 @@
             </form>
         </div>
     </div>
-<script>
-// 🎯 Função principal para enviar os dados ao Apps Script
-async function enviarFormulario(event) {
-    event.preventDefault();
 
-    // Coleta dos campos principais
-    const data = {
-        nomeCompleto: document.getElementById("nomeCompleto").value.trim(),
-        cpf: document.getElementById("cpf").value.trim(),
-        rg: document.getElementById("rg").value.trim(),
-        dataNascimento: document.getElementById("dataNascimento").value.trim(),
-        estadoCivil: document.getElementById("estadoCivil").value.trim(),
-        genero: document.getElementById("genero").value.trim(),
-        tipoSanguineo: document.getElementById("tipoSanguineo").value.trim(),
-        cep: document.getElementById("cep").value.trim(),
-        logradouro: document.getElementById("logradouro").value.trim(),
-        numero: document.getElementById("numero").value.trim(),
-        complemento: document.getElementById("complemento").value.trim(),
-        bairro: document.getElementById("bairro").value.trim(),
-        cidade: document.getElementById("cidade").value.trim(),
-        estado: document.getElementById("estado").value.trim(),
-        celular1: document.getElementById("celular1").value.trim(),
-        celular2: document.getElementById("celular2").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        escolaridade: document.getElementById("escolaridade").value.trim(),
-        curso: document.getElementById("curso").value.trim(),
-        instituicao: document.getElementById("instituicao").value.trim(),
-        anoConclusao: document.getElementById("anoConclusao").value.trim(),
-        dataDeclaracao: document.getElementById("dataDeclaracao").value.trim(),
-        cidadeDeclaracao: document.getElementById("cidadeDeclaracao").value.trim(),
-        dataAutorizacao: document.getElementById("dataAutorizacao").value.trim(),
-        cidadeAutorizacao: document.getElementById("cidadeAutorizacao").value.trim(),
-        experiencias: [],
-        dependentes: []
-    };
+    <script>
+        // Variáveis globais
+        let experienciaCount = 1;
+        let dependenteCount = 1;
+        let selectedFiles = [];
 
-    // 🎯 Coleta das experiências
-    document.querySelectorAll(".experiencia-item").forEach(exp => {
-        const empresa = exp.querySelector(".exp-empresa").value.trim();
-        const cargo = exp.querySelector(".exp-cargo").value.trim();
-        const periodo = exp.querySelector(".exp-periodo").value.trim();
+        // Função para formatar bytes em tamanho legível
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
 
-        if (empresa || cargo || periodo) {
-            data.experiencias.push({
-                empresa: empresa,
-                cargo: cargo,
-                periodo: periodo
+        // Função para lidar com a seleção de arquivos
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            
+            // Adiciona novos arquivos à lista
+            files.forEach(file => {
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            });
+            
+            updateFileList();
+            event.target.value = ''; // Reset do input para permitir selecionar os mesmos arquivos novamente
+        }
+
+        // Função para atualizar a lista de arquivos na interface
+        function updateFileList() {
+            const fileListElement = document.getElementById('file-list');
+            
+            if (selectedFiles.length === 0) {
+                fileListElement.innerHTML = 'Nenhum arquivo selecionado.';
+                return;
+            }
+            
+            fileListElement.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                fileItem.innerHTML = `
+                    <div class="file-name">
+                        <i class="fas fa-file" style="margin-right: 8px;"></i>
+                        ${file.name}
+                    </div>
+                    <div class="file-size">${formatBytes(file.size)}</div>
+                    <button class="remove-file" onclick="removeFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                fileListElement.appendChild(fileItem);
             });
         }
-    });
 
-    // 🎯 Coleta dos dependentes
-    document.querySelectorAll(".dependente-item").forEach(dep => {
-        const nome = dep.querySelector(".dep-nome").value.trim();
-        const parentesco = dep.querySelector(".dep-parentesco").value.trim();
-        const dataNasc = dep.querySelector(".dep-data").value.trim();
+        // Função para remover um arquivo da lista
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        }
 
-        if (nome || parentesco || dataNasc) {
-            data.dependentes.push({
-                nome: nome,
-                parentesco: parentesco,
-                dataNascimento: dataNasc
+        // Função para adicionar nova experiência profissional
+        function adicionarExperiencia() {
+            const container = document.getElementById('experiencias-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'form-row experiencia-item';
+            newItem.setAttribute('data-index', experienciaCount);
+            
+            newItem.innerHTML = `
+                <div class="form-group small">
+                    <label for="empresa-${experienciaCount}">Empresa</label>
+                    <input type="text" id="empresa-${experienciaCount}" name="experiencias[${experienciaCount}][empresa]" class="exp-empresa">
+                </div>
+                <div class="form-group small">
+                    <label for="cargo-${experienciaCount}">Cargo</label>
+                    <input type="text" id="cargo-${experienciaCount}" name="experiencias[${experienciaCount}][cargo]" class="exp-cargo">
+                </div>
+                <div class="form-group xsmall">
+                    <label for="periodo-${experienciaCount}">Período</label>
+                    <input type="text" id="periodo-${experienciaCount}" name="experiencias[${experienciaCount}][periodo]" class="exp-periodo">
+                </div>
+            `;
+            
+            container.appendChild(newItem);
+            experienciaCount++;
+        }
+
+        // Função para adicionar novo dependente
+        function adicionarDependente() {
+            const container = document.getElementById('dependentes-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'form-row dependente-item';
+            newItem.setAttribute('data-index', dependenteCount);
+            
+            newItem.innerHTML = `
+                <div class="form-group small">
+                    <label for="dep-nome-${dependenteCount}">Nome</label>
+                    <input type="text" id="dep-nome-${dependenteCount}" name="dependentes[${dependenteCount}][nome]" class="dep-nome">
+                </div>
+                <div class="form-group small">
+                    <label for="dep-parentesco-${dependenteCount}">Parentesco</label>
+                    <input type="text" id="dep-parentesco-${dependenteCount}" name="dependentes[${dependenteCount}][parentesco]" class="dep-parentesco">
+                </div>
+                <div class="form-group xsmall">
+                    <label for="dep-data-${dependenteCount}">Data Nascimento</label>
+                    <input type="date" id="dep-data-${dependenteCount}" name="dependentes[${dependenteCount}][data]" class="dep-data">
+                </div>
+            `;
+            
+            container.appendChild(newItem);
+            dependenteCount++;
+        }
+
+        // Função para aplicar máscaras nos campos
+        function aplicarMascaras() {
+            // Máscara para CPF
+            const cpfInput = document.getElementById('cpf');
+            if (cpfInput) {
+                cpfInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.substring(0, 11);
+                    
+                    if (value.length <= 11) {
+                        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                    }
+                    
+                    e.target.value = value;
+                });
+            }
+
+            // Máscara para CEP
+            const cepInput = document.getElementById('cep');
+            if (cepInput) {
+                cepInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 8) value = value.substring(0, 8);
+                    
+                    if (value.length > 5) {
+                        value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                    }
+                    
+                    e.target.value = value;
+                    
+                    // Autopreenchimento do CEP (simulação)
+                    if (value.length === 9) {
+                        buscarCEP(value);
+                    }
+                });
+            }
+
+            // Máscara para telefone
+            const telInputs = document.querySelectorAll('input[data-mask="(00) 00000-0000"]');
+            telInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    
+                    if (value.length > 11) value = value.substring(0, 11);
+                    
+                    if (value.length > 10) {
+                        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+                        value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                    } else if (value.length > 6) {
+                        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+                        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+                    } else if (value.length > 2) {
+                        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+                    } else if (value.length > 0) {
+                        value = value.replace(/^(\d*)/, '($1');
+                    }
+                    
+                    e.target.value = value;
+                });
             });
         }
-    });
 
-    // 🎯 Validação simples
-    if (!data.nomeCompleto || !data.cpf || !data.email) {
-        Swal.fire({
-            icon: "warning",
-            title: "Campos obrigatórios",
-            text: "Preencha Nome, CPF e Email."
+        // Função para buscar CEP (simulação)
+        function buscarCEP(cep) {
+            // Remover o traço do CEP
+            cep = cep.replace('-', '');
+            
+            if (cep.length !== 8) return;
+            
+            // Simulação de busca de CEP (em produção, usar uma API como ViaCEP)
+            console.log(`Buscando CEP: ${cep}`);
+            
+            // Exemplo de dados simulados
+            const enderecosSimulados = {
+                '01001000': {
+                    logradouro: 'Praça da Sé',
+                    bairro: 'Sé',
+                    cidade: 'São Paulo',
+                    estado: 'SP'
+                },
+                '20040002': {
+                    logradouro: 'Rua Primeiro de Março',
+                    bairro: 'Centro',
+                    cidade: 'Rio de Janeiro',
+                    estado: 'RJ'
+                }
+            };
+            
+            if (enderecosSimulados[cep]) {
+                const endereco = enderecosSimulados[cep];
+                document.getElementById('logradouro').value = endereco.logradouro;
+                document.getElementById('bairro').value = endereco.bairro;
+                document.getElementById('cidade').value = endereco.cidade;
+                document.getElementById('estado').value = endereco.estado;
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'CEP encontrado!',
+                    text: 'Endereço preenchido automaticamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        // Função principal para enviar o formulário
+        async function enviarFormulario(event) {
+            event.preventDefault();
+
+            // Coleta dos campos principais
+            const data = {
+                nomeCompleto: document.getElementById("nomeCompleto").value.trim(),
+                cpf: document.getElementById("cpf").value.trim(),
+                rg: document.getElementById("rg").value.trim(),
+                dataNascimento: document.getElementById("dataNascimento").value.trim(),
+                estadoCivil: document.getElementById("estadoCivil").value.trim(),
+                genero: document.getElementById("genero").value.trim(),
+                tipoSanguineo: document.getElementById("tipoSanguineo").value.trim(),
+                cep: document.getElementById("cep").value.trim(),
+                logradouro: document.getElementById("logradouro").value.trim(),
+                numero: document.getElementById("numero").value.trim(),
+                complemento: document.getElementById("complemento").value.trim(),
+                bairro: document.getElementById("bairro").value.trim(),
+                cidade: document.getElementById("cidade").value.trim(),
+                estado: document.getElementById("estado").value.trim(),
+                celular1: document.getElementById("celular1").value.trim(),
+                celular2: document.getElementById("celular2").value.trim(),
+                email: document.getElementById("email").value.trim(),
+                escolaridade: document.getElementById("escolaridade").value.trim(),
+                curso: document.getElementById("curso").value.trim(),
+                instituicao: document.getElementById("instituicao").value.trim(),
+                anoConclusao: document.getElementById("anoConclusao").value.trim(),
+                dataDeclaracao: document.getElementById("dataDeclaracao").value.trim(),
+                cidadeDeclaracao: document.getElementById("cidadeDeclaracao").value.trim(),
+                dataAutorizacao: document.getElementById("dataAutorizacao").value.trim(),
+                cidadeAutorizacao: document.getElementById("cidadeAutorizacao").value.trim(),
+                experiencias: [],
+                dependentes: [],
+                arquivos: []
+            };
+
+            // Coleta das experiências
+            document.querySelectorAll(".experiencia-item").forEach(exp => {
+                const empresa = exp.querySelector(".exp-empresa").value.trim();
+                const cargo = exp.querySelector(".exp-cargo").value.trim();
+                const periodo = exp.querySelector(".exp-periodo").value.trim();
+
+                if (empresa || cargo || periodo) {
+                    data.experiencias.push({
+                        empresa: empresa,
+                        cargo: cargo,
+                        periodo: periodo
+                    });
+                }
+            });
+
+            // Coleta dos dependentes
+            document.querySelectorAll(".dependente-item").forEach(dep => {
+                const nome = dep.querySelector(".dep-nome").value.trim();
+                const parentesco = dep.querySelector(".dep-parentesco").value.trim();
+                const dataNasc = dep.querySelector(".dep-data").value.trim();
+
+                if (nome || parentesco || dataNasc) {
+                    data.dependentes.push({
+                        nome: nome,
+                        parentesco: parentesco,
+                        dataNascimento: dataNasc
+                    });
+                }
+            });
+
+            // Adiciona informações dos arquivos (não os arquivos em si)
+            selectedFiles.forEach(file => {
+                data.arquivos.push({
+                    nome: file.name,
+                    tamanho: formatBytes(file.size),
+                    tipo: file.type,
+                    ultimaModificacao: new Date(file.lastModified).toLocaleDateString()
+                });
+            });
+
+            // Validação simples
+            if (!data.nomeCompleto || !data.cpf || !data.email) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Campos obrigatórios",
+                    text: "Preencha Nome, CPF e Email."
+                });
+                return;
+            }
+
+            // URL DO SEU WEB APP (IMPORTANTE! Substitua pela sua URL)
+            const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzYuuKeb-Hl9toC6qkGtWrDyzAjlHm7UN7pFKh3tXdnfLE6NCqZ8To-8yOkFzRb_1Nj/exec";
+
+            Swal.fire({
+                title: "Enviando...",
+                text: "Aguarde enquanto processamos seus dados.",
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                // Para demonstração, mostra os dados que seriam enviados
+                console.log("Dados a serem enviados:", data);
+                
+                // Em um ambiente real, você usaria fetch para enviar para o Google Apps Script
+                /*
+                const response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                */
+
+                // Simulação de envio bem-sucedido
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                Swal.close();
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Cadastro enviado com sucesso!",
+                    html: `
+                        <div style="text-align: left; margin: 20px 0;">
+                            <p><strong>Resumo do envio:</strong></p>
+                            <p>Nome: ${data.nomeCompleto}</p>
+                            <p>CPF: ${data.cpf}</p>
+                            <p>Email: ${data.email}</p>
+                            <p>Arquivos anexados: ${data.arquivos.length}</p>
+                        </div>
+                    `,
+                    confirmButtonText: "OK"
+                });
+
+                // Limpa o formulário
+                document.getElementById("cadastroForm").reset();
+                selectedFiles = [];
+                updateFileList();
+                
+                // Limpa as experiências e dependentes dinâmicos
+                document.getElementById("experiencias-container").innerHTML = `
+                    <div class="form-row experiencia-item" data-index="0">
+                        <div class="form-group small">
+                            <label for="empresa-0">Empresa</label>
+                            <input type="text" id="empresa-0" name="experiencias[0][empresa]" class="exp-empresa">
+                        </div>
+                        <div class="form-group small">
+                            <label for="cargo-0">Cargo</label>
+                            <input type="text" id="cargo-0" name="experiencias[0][cargo]" class="exp-cargo">
+                        </div>
+                        <div class="form-group xsmall">
+                            <label for="periodo-0">Período</label>
+                            <input type="text" id="periodo-0" name="experiencias[0][periodo]" class="exp-periodo">
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById("dependentes-container").innerHTML = `
+                    <div class="form-row dependente-item" data-index="0">
+                        <div class="form-group small">
+                            <label for="dep-nome-0">Nome</label>
+                            <input type="text" id="dep-nome-0" name="dependentes[0][nome]" class="dep-nome">
+                        </div>
+                        <div class="form-group small">
+                            <label for="dep-parentesco-0">Parentesco</label>
+                            <input type="text" id="dep-parentesco-0" name="dependentes[0][parentesco]" class="dep-parentesco">
+                        </div>
+                        <div class="form-group xsmall">
+                            <label for="dep-data-0">Data Nascimento</label>
+                            <input type="date" id="dep-data-0" name="dependentes[0][data]" class="dep-data">
+                        </div>
+                    </div>
+                `;
+                
+                experienciaCount = 1;
+                dependenteCount = 1;
+
+            } catch (error) {
+                Swal.close();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erro no envio",
+                    text: "Não foi possível enviar os dados. Tente novamente."
+                });
+
+                console.error("Erro:", error);
+            }
+        }
+
+        // Inicialização quando a página carrega
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar o evento de submit do formulário
+            const form = document.getElementById('cadastroForm');
+            form.addEventListener('submit', enviarFormulario);
+            
+            // Aplicar máscaras
+            aplicarMascaras();
+            
+            // Configurar drag and drop para upload de arquivos
+            const uploadArea = document.querySelector('.upload-area');
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#1a2980';
+                this.style.backgroundColor = '#e9f7fe';
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#ced4da';
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#ced4da';
+                this.style.backgroundColor = '#f8f9fa';
+                
+                if (e.dataTransfer.files.length) {
+                    const files = Array.from(e.dataTransfer.files);
+                    files.forEach(file => {
+                        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                            selectedFiles.push(file);
+                        }
+                    });
+                    updateFileList();
+                }
+            });
+            
+            // Configurar data atual como padrão para alguns campos
+            const hoje = new Date().toISOString().split('T')[0];
+            const dataDeclaracao = document.getElementById('dataDeclaracao');
+            const dataAutorizacao = document.getElementById('dataAutorizacao');
+            
+            if (dataDeclaracao) dataDeclaracao.value = hoje;
+            if (dataAutorizacao) dataAutorizacao.value = hoje;
         });
-        return;
-    }
-
-    // URL DO SEU WEB APP (IMPORTANTE!)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzYuuKeb-Hl9toC6qkGtWrDyzAjlHm7UN7pFKh3tXdnfLE6NCqZ8To-8yOkFzRb_1Nj/exec";
-
-    Swal.fire({
-        title: "Enviando...",
-        text: "Aguarde enquanto processamos seus dados.",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-    });
-
-    try {
-        const response = await fetch(WEB_APP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-
-        Swal.close();
-
-        Swal.fire({
-            icon: "success",
-            title: "Cadastro enviado!",
-            text: "Você receberá um e-mail com sua ficha cadastral."
-        });
-
-        document.getElementById("formCadastro").reset();
-
-    } catch (error) {
-        Swal.close();
-
-        Swal.fire({
-            icon: "error",
-            title: "Erro no envio",
-            text: "Não foi possível enviar os dados. Tente novamente."
-        });
-
-        console.error("Erro:", error);
-    }
-}
-</script>
-
+    </script>
 </body>
 </html>
