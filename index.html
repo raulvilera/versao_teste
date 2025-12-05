@@ -1127,19 +1127,10 @@
 
             // **IMPORTANTE**: Substitua pela URL do seu Google Apps Script
             // A URL deve ser a URL de execução do seu script implantado.
-            const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymTWO1uDX2gVo2st21VZljFkBeqPLeqq1YV7SFMwUUa3ufCiVuaq42SKmSmvYP8inq/exec";
+            const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1OTWp5xxlKpP8vNqZxs3CqPHh-0s7fDynyPmwSE0HTjRfwqxVRM1SerCjg0Dw0LNn/exec"; // <-- SUBSTITUA ESTA LINHA PELA SUA URL DE IMPLANTAÇÃO!
             
-            if (WEB_APP_URL.includes("https://script.google.com/macros/s/AKfycbymTWO1uDX2gVo2st21VZljFkBeqPLeqq1YV7SFMwUUa3ufCiVuaq42SKmSmvYP8inq/exec")) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Configuração Necessária',
-                    text: 'Por favor, configure a URL do Google Apps Script no código JavaScript. A URL atual é um exemplo e provavelmente não funcionará.',
-                    confirmButtonText: 'OK'
-                });
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                return;
-            }
+            // O bloco de verificação da URL de exemplo foi removido.
+            // Certifique-se de que a constante WEB_APP_URL acima foi substituída pela sua URL de implantação.
 
             try {
                 // 1. Validação básica
@@ -1218,7 +1209,7 @@
                     urlEncodedData.append(key, payload[key]);
                 }
 
-                const response = await fetch("https://script.google.com/macros/s/AKfycbymTWO1uDX2gVo2st21VZljFkBeqPLeqq1YV7SFMwUUa3ufCiVuaq42SKmSmvYP8inq/exec", {
+                const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
                     // CORREÇÃO: Content-Type para Apps Script (pode ser omitido, mas é mais seguro usar)
                     // Se o Apps Script estiver configurado para receber JSON, use 'application/json' e JSON.stringify(payload)
