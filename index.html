@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha Cadastral Completa - Calendário Automático</title>
+    <title>Ficha Cadastral Completa - Sistema Protegido</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS original preservado e otimizado */
+        /* CSS original preservado e expandido */
         * {
             margin: 0;
             padding: 0;
@@ -102,6 +102,30 @@
             font-size: 32px;
             margin-right: 12px;
             vertical-align: middle;
+        }
+        
+        .usage-counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #1a2980;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+        
+        .usage-counter .counter {
+            background: #1a2980;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
         }
         
         .company-info {
@@ -210,14 +234,6 @@
             background-color: #fff;
         }
         
-        /* Estilo especial para campos de data */
-        input[type="date"] {
-            position: relative;
-            cursor: pointer;
-            padding-right: 40px;
-        }
-        
-        /* Adiciona um ícone de calendário nos campos de data */
         .date-field-wrapper {
             position: relative;
             width: 100%;
@@ -242,7 +258,6 @@
             outline: none;
         }
         
-        /* Remove a seta padrão do input date no Chrome */
         input[type="date"]::-webkit-calendar-picker-indicator {
             position: absolute;
             top: 0;
@@ -257,7 +272,6 @@
             z-index: 3;
         }
         
-        /* Remove a seta padrão do input date no Firefox */
         input[type="date"]::-moz-calendar-picker-indicator {
             position: absolute;
             top: 0;
@@ -276,7 +290,6 @@
             position: relative;
         }
         
-        /* CORREÇÃO: Usando classe para mostrar/esconder o spinner */
         .cep-loading.active::after {
             content: '';
             position: absolute;
@@ -289,11 +302,11 @@
             border-top: 2px solid #1a2980;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            display: block; /* Mostra quando a classe 'active' está presente */
+            display: block;
         }
 
         .cep-loading::after {
-            display: none; /* Esconde por padrão */
+            display: none;
         }
         
         @keyframes spin {
@@ -481,7 +494,43 @@
             transform: none;
         }
         
-        /* Responsividade */
+        .payment-required {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .payment-required h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        .payment-required p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-button {
+            background: white;
+            color: #ff7e5f;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .payment-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
         @media (max-width: 992px) {
             .form-group.medium, .form-group.small, .form-group.xsmall {
                 flex: 0 0 calc(100% - 20px);
@@ -494,6 +543,15 @@
             .company-logo {
                 top: 10px;
                 left: 10px;
+            }
+            
+            .usage-counter {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 10px auto;
+                justify-content: center;
+                width: fit-content;
             }
         }
         
@@ -527,6 +585,13 @@
                     <span class="company-description">Slogan ou Descrição</span>
                 </div>
             </div>
+            
+            <div class="usage-counter">
+                <i class="fas fa-chart-line"></i>
+                <span>Usos Restantes:</span>
+                <span class="counter" id="usageCounter">3</span>
+            </div>
+            
             <div class="header">
                 <h1><i class="fas fa-file-alt"></i> Ficha Cadastral Completa</h1>
             </div>
@@ -566,6 +631,16 @@
                             <input type="text" id="rg" name="rg" required>
                         </div>
                         <div class="form-group xsmall">
+                            <label for="tituloEleitor">Título de Eleitor</label>
+                            <input type="text" id="tituloEleitor" name="tituloEleitor" data-mask="0000 0000 0000">
+                        </div>
+                        <div class="form-group xsmall">
+                            <label for="zonaEleitoral">Zona Eleitoral</label>
+                            <input type="text" id="zonaEleitoral" name="zonaEleitoral">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group xsmall">
                             <label for="estadoCivil">Estado Civil</label>
                             <select id="estadoCivil" name="estadoCivil">
                                 <option value="">Selecione</option>
@@ -585,8 +660,6 @@
                                 <option value="Outro">Outro</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group xsmall">
                             <label for="tipoSanguineo">Tipo Sanguíneo</label>
                             <select id="tipoSanguineo" name="tipoSanguineo">
@@ -600,6 +673,43 @@
                                 <option value="O+">O+</option>
                                 <option value="O-">O-</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOVA SEÇÃO: Dados dos Pais -->
+                <div class="form-section">
+                    <h2 class="section-title"><i class="fas fa-users"></i> Dados dos Pais</h2>
+                    <div class="form-row">
+                        <div class="form-group medium">
+                            <label for="nomePai">Nome do Pai</label>
+                            <input type="text" id="nomePai" name="nomePai">
+                        </div>
+                        <div class="form-group small">
+                            <label for="cpfPai">CPF do Pai</label>
+                            <input type="text" id="cpfPai" name="cpfPai" data-mask="000.000.000-00">
+                        </div>
+                        <div class="form-group xsmall">
+                            <label for="dataNascimentoPai">Data Nascimento</label>
+                            <div class="date-field-wrapper">
+                                <input type="date" id="dataNascimentoPai" name="dataNascimentoPai" class="date-field">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group medium">
+                            <label for="nomeMae">Nome da Mãe <span style="color: red;">*</span></label>
+                            <input type="text" id="nomeMae" name="nomeMae" required>
+                        </div>
+                        <div class="form-group small">
+                            <label for="cpfMae">CPF da Mãe</label>
+                            <input type="text" id="cpfMae" name="cpfMae" data-mask="000.000.000-00">
+                        </div>
+                        <div class="form-group xsmall">
+                            <label for="dataNascimentoMae">Data Nascimento</label>
+                            <div class="date-field-wrapper">
+                                <input type="date" id="dataNascimentoMae" name="dataNascimentoMae" class="date-field">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -823,17 +933,142 @@
                 <div class="submit-section">
                     <button type="submit" id="submitBtn"><i class="fas fa-paper-plane"></i> Enviar Cadastro</button>
                 </div>
+
+                <!-- Área de Pagamento (inicialmente oculta) -->
+                <div id="paymentSection" class="payment-required" style="display: none;">
+                    <h3><i class="fas fa-credit-card"></i> Limite de Usos Atingido</h3>
+                    <p>Você utilizou todas as 3 fichas cadastrais disponíveis na fase de teste.</p>
+                    <p>Para continuar utilizando o sistema, é necessário efetuar o pagamento.</p>
+                    <button type="button" class="payment-button" onclick="solicitarPagamento()">
+                        <i class="fas fa-shopping-cart"></i> Efetuar Pagamento
+                    </button>
+                    <p style="font-size: 14px; margin-top: 15px; opacity: 0.8;">
+                        Entre em contato: contato@empresa.com | (11) 98765-4321
+                    </p>
+                </div>
             </form>
         </div>
     </div>
 
     <script>
-        // CORREÇÃO CRÍTICA 1: Declaração da variável global para arquivos
+        // Configurações do sistema
+        const SYSTEM_CONFIG = {
+            maxUses: 3, // Limite máximo de usos na fase de teste
+            companyId: "empresa_123", // ID único da empresa (deve ser dinâmico na implementação real)
+            storageKey: "ficha_cadastral_usage",
+            webAppUrl: "https://script.google.com/macros/s/AKfycbzBGxoqcdXrlxN6baVL_a9Yn93ukHlO26-rmDYAVxMe0EWTd8CtBOQQz5liUKD2A7Bg/exec"
+        };
+
+        // Dados de uso
         let selectedFiles = [];
         let experienciaCount = 1;
         let dependenteCount = 1;
+        let usageData = {
+            count: 0,
+            companyId: SYSTEM_CONFIG.companyId,
+            lastReset: new Date().toISOString()
+        };
 
-        // Função auxiliar para formatar bytes
+        // Inicializar sistema de uso
+        function initializeUsageSystem() {
+            const stored = localStorage.getItem(SYSTEM_CONFIG.storageKey);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                // Verifica se os dados são da mesma empresa (proteção contra compartilhamento)
+                if (parsed.companyId === SYSTEM_CONFIG.companyId) {
+                    usageData = parsed;
+                } else {
+                    // Empresa diferente - reinicia contagem
+                    usageData = {
+                        count: 0,
+                        companyId: SYSTEM_CONFIG.companyId,
+                        lastReset: new Date().toISOString()
+                    };
+                    localStorage.setItem(SYSTEM_CONFIG.storageKey, JSON.stringify(usageData));
+                }
+            } else {
+                localStorage.setItem(SYSTEM_CONFIG.storageKey, JSON.stringify(usageData));
+            }
+            
+            updateUsageCounter();
+            checkUsageLimit();
+        }
+
+        // Atualizar contador de uso
+        function updateUsageCounter() {
+            const counter = document.getElementById('usageCounter');
+            const remaining = SYSTEM_CONFIG.maxUses - usageData.count;
+            counter.textContent = remaining;
+            
+            // Mudar cor baseado no número de usos restantes
+            if (remaining === 1) {
+                counter.style.background = '#dc3545';
+            } else if (remaining === 2) {
+                counter.style.background = '#ffc107';
+            } else {
+                counter.style.background = '#1a2980';
+            }
+        }
+
+        // Verificar se atingiu o limite
+        function checkUsageLimit() {
+            if (usageData.count >= SYSTEM_CONFIG.maxUses) {
+                document.getElementById('paymentSection').style.display = 'block';
+                document.getElementById('submitBtn').style.display = 'none';
+                document.getElementById('cadastroForm').querySelectorAll('input, select, textarea, button').forEach(el => {
+                    if (el.id !== 'paymentSection' && !el.closest('#paymentSection')) {
+                        el.disabled = true;
+                    }
+                });
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Limite Atingido',
+                    html: `
+                        <p>Você utilizou todas as <strong>${SYSTEM_CONFIG.maxUses} fichas cadastrais</strong> disponíveis na fase de teste.</p>
+                        <p>Para continuar utilizando o sistema, é necessário efetuar o pagamento.</p>
+                    `,
+                    confirmButtonText: 'Entendi'
+                });
+            }
+        }
+
+        // Incrementar contador de uso
+        function incrementUsage() {
+            usageData.count++;
+            usageData.lastUsed = new Date().toISOString();
+            localStorage.setItem(SYSTEM_CONFIG.storageKey, JSON.stringify(usageData));
+            updateUsageCounter();
+            checkUsageLimit();
+        }
+
+        // Solicitar pagamento
+        function solicitarPagamento() {
+            Swal.fire({
+                title: 'Processar Pagamento',
+                html: `
+                    <div style="text-align: left; padding: 20px;">
+                        <h4>Plano Profissional</h4>
+                        <p><strong>Valor:</strong> R$ 99,90/mês</p>
+                        <p><strong>Inclui:</strong></p>
+                        <ul style="padding-left: 20px;">
+                            <li>Fichas cadastrais ilimitadas</li>
+                            <li>Armazenamento de documentos</li>
+                            <li>Relatórios avançados</li>
+                            <li>Suporte prioritário</li>
+                        </ul>
+                        <p style="margin-top: 15px;">Entre em contato para mais informações:</p>
+                        <p><i class="fas fa-envelope"></i> contato@empresa.com</p>
+                        <p><i class="fas fa-phone"></i> (11) 98765-4321</p>
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Fechar'
+            });
+        }
+
+        // Funções auxiliares para arquivos
         function formatBytes(bytes, decimals = 2) {
             if (bytes === 0) return '0 Bytes';
             const k = 1024;
@@ -843,7 +1078,6 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
 
-        // Função para atualizar a lista de arquivos
         function updateFileList() {
             const fileListElement = document.getElementById('fileList');
             fileListElement.innerHTML = '';
@@ -879,7 +1113,7 @@
                 }
             });
             updateFileList();
-            this.value = ''; // Limpa o input para permitir o upload do mesmo arquivo novamente
+            this.value = '';
         });
 
         // Funções para Experiências
@@ -907,7 +1141,6 @@
                 </div>
             `;
             container.appendChild(newRow);
-            // Mostra o botão de remover na primeira experiência se houver mais de uma
             if (experienciaCount > 1) {
                 const firstRemoveBtn = container.querySelector('.experiencia-item[data-index="0"] .remove-button');
                 if (firstRemoveBtn) firstRemoveBtn.style.display = 'inline-flex';
@@ -918,7 +1151,6 @@
             const item = button.closest('.experiencia-item');
             item.remove();
             experienciaCount--;
-            // Esconde o botão de remover na primeira experiência se for a única
             if (experienciaCount === 1) {
                 const firstRemoveBtn = document.querySelector('.experiencia-item[data-index="0"] .remove-button');
                 if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
@@ -952,8 +1184,7 @@
                 </div>
             `;
             container.appendChild(newRow);
-            initDateFields(); // Re-inicializa campos de data para o novo campo
-            // Mostra o botão de remover no primeiro dependente se houver mais de um
+            initDateFields();
             if (dependenteCount > 1) {
                 const firstRemoveBtn = container.querySelector('.dependente-item[data-index="0"] .remove-button');
                 if (firstRemoveBtn) firstRemoveBtn.style.display = 'inline-flex';
@@ -964,14 +1195,13 @@
             const item = button.closest('.dependente-item');
             item.remove();
             dependenteCount--;
-            // Esconde o botão de remover no primeiro dependente se for o único
             if (dependenteCount === 1) {
                 const firstRemoveBtn = document.querySelector('.dependente-item[data-index="0"] .remove-button');
                 if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
             }
         }
 
-        // Função de busca de CEP (CORRIGIDA para usar toggle de classe)
+        // Função de busca de CEP
         async function buscarCEP(cep) {
             const cepInput = document.getElementById('cep');
             const logradouroInput = document.getElementById('logradouro');
@@ -982,10 +1212,8 @@
             cep = cep.replace(/\D/g, '');
             if (cep.length !== 8) return;
 
-            // Adiciona indicador de carregamento (CORREÇÃO: usa toggle de classe)
             cepInput.classList.add('active');
 
-            // Limpa campos
             logradouroInput.value = '';
             bairroInput.value = '';
             cidadeInput.value = '';
@@ -1000,7 +1228,7 @@
                     bairroInput.value = data.bairro;
                     cidadeInput.value = data.localidade;
                     estadoInput.value = data.uf;
-                    document.getElementById('numero').focus(); // Foca no número
+                    document.getElementById('numero').focus();
                 } else {
                     Swal.fire({
                         icon: 'warning',
@@ -1018,7 +1246,6 @@
                     timer: 3000
                 });
             } finally {
-                // Remove indicador de carregamento (CORREÇÃO: usa toggle de classe)
                 cepInput.classList.remove('active');
             }
         }
@@ -1042,7 +1269,45 @@
                 });
             }
 
-            // Máscara para CEP com busca automática
+            // Máscara para CPF dos pais
+            const cpfPaiInput = document.getElementById('cpfPai');
+            const cpfMaeInput = document.getElementById('cpfMae');
+            
+            [cpfPaiInput, cpfMaeInput].forEach(input => {
+                if (input) {
+                    input.addEventListener('input', function(e) {
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.length > 11) value = value.substring(0, 11);
+                        
+                        if (value.length <= 11) {
+                            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                        }
+                        
+                        e.target.value = value;
+                    });
+                }
+            });
+
+            // Máscara para Título de Eleitor
+            const tituloEleitorInput = document.getElementById('tituloEleitor');
+            if (tituloEleitorInput) {
+                tituloEleitorInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 12) value = value.substring(0, 12);
+                    
+                    if (value.length > 8) {
+                        value = value.replace(/^(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
+                    } else if (value.length > 4) {
+                        value = value.replace(/^(\d{4})(\d)/, '$1 $2');
+                    }
+                    
+                    e.target.value = value;
+                });
+            }
+
+            // Máscara para CEP
             const cepInput = document.getElementById('cep');
             if (cepInput) {
                 cepInput.addEventListener('input', function(e) {
@@ -1055,7 +1320,6 @@
                     
                     e.target.value = value;
                     
-                    // Busca CEP quando tiver 8 dígitos
                     if (value.length === 9) {
                         buscarCEP(value);
                     }
@@ -1088,23 +1352,18 @@
             aplicarMascaraTelefone(document.getElementById('celular2'));
         }
 
-        // FUNÇÃO PARA INICIALIZAR OS CAMPOS DE DATA
+        // Inicializar campos de data
         function initDateFields() {
-            // Seleciona todos os campos de data
             const dateFields = document.querySelectorAll('.date-field');
             
             dateFields.forEach(field => {
-                // Garante que o calendário abre ao clicar em qualquer parte do campo
                 field.addEventListener('click', function(e) {
-                    // Para dispositivos móveis e navegadores modernos
                     if (this.showPicker) {
                         this.showPicker();
                     }
-                    // Foca no campo para garantir que o calendário apareça
                     this.focus();
                 });
                 
-                // Adiciona funcionalidade de teclado
                 field.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -1116,28 +1375,32 @@
             });
         }
 
-        // FUNÇÃO CORRIGIDA: Enviar formulário para Google Apps Script
+        // Enviar formulário
         async function enviarFormulario(event) {
             event.preventDefault();
+            
+            // Verificar limite de uso
+            if (usageData.count >= SYSTEM_CONFIG.maxUses) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Limite Atingido',
+                    text: 'Você utilizou todas as fichas disponíveis na fase de teste. Efetue o pagamento para continuar.',
+                    confirmButtonText: 'Entendi'
+                });
+                return;
+            }
             
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
             submitBtn.disabled = true;
 
-            // **IMPORTANTE**: Substitua pela URL do seu Google Apps Script
-            // A URL deve ser a URL de execução do seu script implantado.
-            const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzBGxoqcdXrlxN6baVL_a9Yn93ukHlO26-rmDYAVxMe0EWTd8CtBOQQz5liUKD2A7Bg/exec"; // <-- SUBSTITUA ESTA LINHA PELA SUA URL DE IMPLANTAÇÃO!
-            
-            // O bloco de verificação da URL de exemplo foi removido.
-            // Certifique-se de que a constante WEB_APP_URL acima foi substituída pela sua URL de implantação.
-
             try {
-                // 1. Validação básica
+                // Validação básica
                 const requiredFields = [
                     'nomeCompleto', 'cpf', 'rg', 'dataNascimento',
                     'cep', 'logradouro', 'numero', 'bairro',
-                    'cidade', 'estado', 'celular1', 'email'
+                    'cidade', 'estado', 'celular1', 'email', 'nomeMae'
                 ];
                 
                 let missingFields = [];
@@ -1159,21 +1422,18 @@
                     throw new Error(`Preencha os campos obrigatórios: ${missingFields.map(getLabelText).join(', ')}`);
                 }
 
-                // 2. Coleta de dados usando FormData (Melhor para Apps Script)
+                // Coleta de dados
                 const formData = new FormData(document.getElementById('cadastroForm'));
                 const payload = {};
 
-                // Converte FormData para um objeto simples para facilitar o envio e manipulação
                 for (let [key, value] of formData.entries()) {
-                    // O Apps Script espera dados simples. Vamos tratar os arrays de forma especial.
                     if (key.startsWith('experiencias') || key.startsWith('dependentes')) {
-                        // Ignora campos de array, pois serão coletados separadamente
                         continue;
                     }
                     payload[key] = value.trim();
                 }
 
-                // 3. Coleta de Experiências (Reestruturada para JSON Array)
+                // Experiências
                 const experiencias = [];
                 document.querySelectorAll('#experiencias-container .experiencia-item').forEach(item => {
                     const empresa = item.querySelector('.exp-empresa').value.trim();
@@ -1184,9 +1444,9 @@
                         experiencias.push({ empresa, cargo, periodo });
                     }
                 });
-                payload.experiencias = JSON.stringify(experiencias); // Envia como string JSON
+                payload.experiencias = JSON.stringify(experiencias);
 
-                // 4. Coleta de Dependentes (Reestruturada para JSON Array)
+                // Dependentes
                 const dependentes = [];
                 document.querySelectorAll('#dependentes-container .dependente-item').forEach(item => {
                     const nome = item.querySelector('.dep-nome').value.trim();
@@ -1197,54 +1457,54 @@
                         dependentes.push({ nome, parentesco, dataNascimento });
                     }
                 });
-                payload.dependentes = JSON.stringify(dependentes); // Envia como string JSON
+                payload.dependentes = JSON.stringify(dependentes);
 
-                // 5. Tratamento de Arquivos (Apenas o nome/referência)
+                // Arquivos
                 const fileNames = selectedFiles.map(file => `${file.name} (${formatBytes(file.size)})`).join('; ');
                 payload.documentoAnexado = fileNames || "Nenhum arquivo anexado.";
 
-                // 6. Envio dos dados usando URLSearchParams (Mais compatível com Apps Script doPost(e))
+                // Adicionar metadados de uso
+                payload.companyId = SYSTEM_CONFIG.companyId;
+                payload.usageCount = usageData.count + 1;
+
+                // Envio dos dados
                 const urlEncodedData = new URLSearchParams();
                 for (const key in payload) {
                     urlEncodedData.append(key, payload[key]);
                 }
 
-                const response = await fetch(WEB_APP_URL, {
+                const response = await fetch(SYSTEM_CONFIG.webAppUrl, {
                     method: 'POST',
-                    // CORREÇÃO: Content-Type para Apps Script (pode ser omitido, mas é mais seguro usar)
-                    // Se o Apps Script estiver configurado para receber JSON, use 'application/json' e JSON.stringify(payload)
-                    // Se o Apps Script estiver configurado para receber form-urlencoded (padrão), use 'application/x-www-form-urlencoded'
-                    // Vamos usar o padrão Apps Script (form-urlencoded)
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
                     body: urlEncodedData.toString()
                 });
 
-                // O Apps Script geralmente retorna um JSON de sucesso/erro
                 let result;
                 try {
                     result = await response.json();
                 } catch (e) {
                     const errorText = await response.text();
-                    throw new Error("Erro de comunicação com o Apps Script. Verifique a URL de implantação e as permissões. Resposta recebida: " + errorText.substring(0, 100) + "...");
+                    throw new Error("Erro de comunicação com o servidor: " + errorText.substring(0, 100) + "...");
                 }
 
                 if (result.status === 'ok') {
+                    // Incrementar contador de uso
+                    incrementUsage();
+                    
                     Swal.fire({
                         icon: 'success',
                         title: 'Sucesso!',
                         html: `
                             <div style="text-align: left; margin: 20px 0;">
                                 <p><strong>Cadastro enviado com sucesso!</strong></p>
+                                <p>Usos restantes: ${SYSTEM_CONFIG.maxUses - usageData.count}</p>
                                 <p>Nome: ${payload.nomeCompleto}</p>
                                 <p>CPF: ${payload.cpf}</p>
                                 <p>Email: ${payload.email}</p>
                                 ${result.pdf ? `<p>Link do PDF: <a href="${result.pdf}" target="_blank">Clique aqui</a></p>` : ''}
                             </div>
-                            <p style="color: #666; font-size: 14px; margin-top: 15px;">
-                                Seus dados foram processados com sucesso.
-                            </p>
                         `,
                         confirmButtonText: 'Fechar'
                     }).then(() => {
@@ -1254,8 +1514,7 @@
                         resetDynamicSections();
                     });
                 } else {
-                    // Erro retornado pelo Apps Script
-                    throw new Error(result.mensagem || 'Erro desconhecido no Apps Script.');
+                    throw new Error(result.mensagem || 'Erro desconhecido no servidor.');
                 }
 
             } catch (error) {
@@ -1272,12 +1531,11 @@
             }
         }
 
-        // Função para resetar seções dinâmicas
+        // Resetar seções dinâmicas
         function resetDynamicSections() {
             experienciaCount = 1;
             dependenteCount = 1;
             
-            // Resetar Experiências
             const expContainer = document.getElementById('experiencias-container');
             expContainer.innerHTML = `
                 <div class="form-row experiencia-item" data-index="0">
@@ -1299,7 +1557,6 @@
                 </div>
             `;
             
-            // Resetar Dependentes
             const depContainer = document.getElementById('dependentes-container');
             depContainer.innerHTML = `
                 <div class="form-row dependente-item" data-index="0">
@@ -1323,7 +1580,6 @@
                 </div>
             `;
             
-            // Reaplicar funcionalidade de calendário
             setTimeout(() => {
                 initDateFields();
             }, 100);
@@ -1331,6 +1587,9 @@
 
         // Inicialização quando a página carrega
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar sistema de uso
+            initializeUsageSystem();
+            
             // Configurar o evento de submit do formulário
             const form = document.getElementById('cadastroForm');
             form.addEventListener('submit', enviarFormulario);
@@ -1341,7 +1600,7 @@
             // Inicializar campos de data
             initDateFields();
             
-            // Configurar data atual como padrão para alguns campos
+            // Configurar data atual como padrão
             const hoje = new Date().toISOString().split('T')[0];
             const dataDeclaracao = document.getElementById('dataDeclaracao');
             const dataAutorizacao = document.getElementById('dataAutorizacao');
@@ -1379,7 +1638,7 @@
                 }
             });
             
-            // Adicionar funcionalidade de calendário também ao pressionar Enter ou Espaço nos campos de data
+            // Adicionar funcionalidade de calendário
             document.addEventListener('keydown', function(e) {
                 if (e.target && e.target.classList.contains('date-field') && (e.key === 'Enter' || e.key === ' ')) {
                     e.preventDefault();
