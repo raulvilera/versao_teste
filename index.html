@@ -1,59 +1,13 @@
-{
-  "_comentario": "Isso é o CONTEÚDO da coluna 'sections' na tabela form_configs. Cada empresa tem um JSON assim, editável pelo painel admin (Fase 2). O frontend público lê isso e monta a ficha dinamicamente.",
-
-  "sections": [
-    {
-      "id": "dados_pessoais",
-      "title": "Dados Pessoais",
-      "icon": "fa-user",
-      "enabled": true,
-      "fields": [
-        {
-          "id": "nomeCompleto",
-          "label": "Nome Completo",
-          "type": "text",
-          "required": true,
-          "enabled": true
-        },
-        {
-          "id": "dataNascimento",
-          "label": "Data de Nascimento",
-          "type": "date",
-          "required": true,
-          "enabled": true
-        },
-        {
-          "id": "cpf",
-          "label": "CPF",
-          "type": "cpf",
-          "required": true,
-          "enabled": true
-        },
-        {
-          "id": "tituloEleitor",
-          "label": "Título de Eleitor",
-          "type": "text",
-          "required": false,
-          "enabled": false
-        }
-      ]
-    },
-    {
-      "id": "dados_pais",
-      "title": "Dados dos Pais",
-      "icon": "fa-users",
-      "enabled": false,
-      "fields": [
-        { "id": "nomePai", "label": "Nome do Pai", "type": "text", "required": false, "enabled": true },
-        { "id": "nomeMae", "label": "Nome da Mãe", "type": "text", "required": true, "enabled": true }
-      ]
-    }
-  ],
-
-  "_regras": [
-    "Cada seção pode ser inteiramente ligada/desligada (enabled: false esconde a seção toda).",
-    "Cada campo dentro da seção também pode ser ligado/desligado e ter o label customizado.",
-    "'type' controla qual máscara/input o frontend usa: text | date | cpf | phone | email | select | number.",
-    "IDs de campo (nomeCompleto, cpf, etc.) são fixos no código — a empresa NÃO cria campos novos na Fase 1, só liga/desliga e renomeia os existentes. Campos totalmente livres/customizados ficam para uma fase futura, se você quiser oferecer isso como plano superior."
-  ]
-}
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plataforma de Fichas Cadastrais</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
