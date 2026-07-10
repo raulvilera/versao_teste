@@ -1,0 +1,23 @@
+# -------- Frontend (prefixo VITE_, ficam expostas no navegador) --------
+# Project Settings > API no Supabase
+VITE_SUPABASE_URL=https://SEU_PROJETO.supabase.co
+VITE_SUPABASE_ANON_KEY=sua_anon_key_aqui
+
+# -------- Backend / funções serverless (NUNCA leve o prefixo VITE_) --------
+# Mesma URL do projeto, mas aqui sem o prefixo VITE_
+SUPABASE_URL=https://SEU_PROJETO.supabase.co
+# Project Settings > API > service_role key — dá acesso total, NUNCA exponha no frontend
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key_aqui
+
+# Credenciais da Z-API (ou outro provedor de WhatsApp) — crie uma conta em
+# https://www.z-api.io, conecte um numero, e pegue o Instance ID e o Token.
+ZAPI_INSTANCE_ID=
+ZAPI_TOKEN=
+
+# Access Token do Mercado Pago (Suas integrações > Credenciais de produção
+# ou de teste). NUNCA exponha no frontend — só usado nas funções serverless.
+MERCADOPAGO_ACCESS_TOKEN=
+
+# No Vercel: Settings > Environment Variables, cadastre TODAS essas 7 chaves.
+# As que comecam com VITE_ podem ficar como "Production+Preview+Development".
+# As 5 ultimas (sem VITE_) marque como visiveis so no servidor (padrao do Vercel).
