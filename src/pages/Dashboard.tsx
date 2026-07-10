@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import BrandingEditor from '../components/BrandingEditor';
 import FormBuilder from '../components/FormBuilder';
 import SubmissionsList from '../components/SubmissionsList';
+import SubscriptionCard from '../components/SubscriptionCard';
 import type { FormConfig } from '../types/formConfig';
 
 export default function Dashboard() {
@@ -60,6 +61,8 @@ export default function Dashboard() {
           {company.plan === 'trial' ? ' (plano de teste)' : ` (plano ${company.plan})`}
         </p>
       </div>
+
+      <SubscriptionCard company={company} ownerEmail={session?.user.email ?? ''} />
 
       <SubmissionsList companyId={company.id} config={config} />
 
