@@ -42,6 +42,9 @@ export interface Company {
   status: CompanyStatus;
   trial_limit: number;
   submissions_count: number;
+  mp_preapproval_id: string | null;
+  mp_subscription_status: string | null;
+  plan_updated_at: string | null;
   created_at: string;
   updated_at: string;
 }
