@@ -7,14 +7,11 @@ interface Props {
 export default function PaymentGate({ company }: Props) {
   return (
     <div className="payment-gate">
-      <h3><i className="fas fa-credit-card" /> Limite de Usos Atingido</h3>
+      <h3>Cadastros temporariamente indisponíveis</h3>
       <p>
-        {company.name} utilizou todas as {company.trial_limit} fichas disponíveis no plano de teste.
+        No momento, {company.name} não está aceitando novos cadastros por este link. Entre em contato diretamente com
+        a empresa para mais informações.
       </p>
-      <p>Para continuar recebendo cadastros, é necessário assinar um plano pago.</p>
-      <button type="button" onClick={() => alert('Integração de pagamento entra na Fase 4 (Mercado Pago).')}>
-        <i className="fas fa-shopping-cart" /> Assinar Plano
-      </button>
     </div>
   );
 }
