@@ -142,28 +142,30 @@ export default function SubmissionsList({ companyId, config }: Props) {
 
       {submissions.length === 0 && <p>Nenhuma ficha enviada ainda.</p>}
       {submissions.length > 0 && (
-        <table className="submissions-table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Data do Envio</th>
-              <th>PDF</th>
-            </tr>
-          </thead>
-          <tbody>
-            {submissions.map((sub) => (
-              <tr key={sub.id}>
-                <td>{nomeDoRegistro(sub)}</td>
-                <td>{new Date(sub.created_at).toLocaleString('pt-BR')}</td>
-                <td>
-                  <button type="button" onClick={() => baixarPdf(sub)} disabled={baixando === sub.id}>
-                    {baixando === sub.id ? 'Gerando link...' : 'Baixar PDF'}
-                  </button>
-                </td>
+        <div className="table-scroll">
+          <table className="submissions-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Data do Envio</th>
+                <th>PDF</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {submissions.map((sub) => (
+                <tr key={sub.id}>
+                  <td>{nomeDoRegistro(sub)}</td>
+                  <td>{new Date(sub.created_at).toLocaleString('pt-BR')}</td>
+                  <td>
+                    <button type="button" onClick={() => baixarPdf(sub)} disabled={baixando === sub.id}>
+                      {baixando === sub.id ? 'Gerando link...' : 'Baixar PDF'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
