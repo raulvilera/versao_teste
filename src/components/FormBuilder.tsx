@@ -1,19 +1,38 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import type { FormConfig, FormSection } from '../types/formConfig';
+import { slugify } from '../utils/masks';
+import type { Company, FormConfig, FormSection } from '../types/formConfig';
 
 interface Props {
   config: FormConfig;
+  company: Company;
   onSaved: () => void;
 }
 
-export default function FormBuilder({ config, onSaved }: Props) {
+export default function FormBuilder({ config, company, onSaved }: Props) {
   const [title, setTitle] = useState(config.form_title);
+  const [slug, setSlug] = useState(company.slug);
+  const [slugEditedManually, setSlugEditedManually] = useState(false);
   const [sections, setSections] = useState<FormSection[]>(
     JSON.parse(JSON.stringify(config.sections)) as FormSection[]
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const publicUrl = `${window.location.origin}/f/${slug || slugify(title)}`;
+
+  function handleTitleChange(value: string) {
+    setTitle(value);
+    // Enquanto o usuário não editar o link manualmente, ele acompanha o título
+    if (!slugEditedManually) {
+      setSlug(slugify(value));
+    }
+  }
+
+  function handleSlugChange(value: string) {
+    setSlugEditedManually(true);
+    setSlug(slugify(value));
+  }
 
   function toggleSection(sectionId: string, enabled: boolean) {
     setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, enabled } : s)));
@@ -52,16 +71,43 @@ export default function FormBuilder({ config, onSaved }: Props) {
   async function handleSave() {
     setSaving(true);
     setMessage(null);
-    const { error } = await supabase
+
+    const desiredSlug = slugify(slug) || slugify(title) || company.slug;
+
+    // Verifica se o link já está em uso por outra empresa
+    const { data: existing } = await supabase
+      .from('companies')
+      .select('id')
+      .eq('slug', desiredSlug)
+      .neq('id', company.id)
+      .maybeSingle();
+
+    const finalSlug = existing ? `${desiredSlug}-${Math.random().toString(36).slice(2, 6)}` : desiredSlug;
+
+    const { error: formError } = await supabase
       .from('form_configs')
       .update({ form_title: title, sections })
       .eq('id', config.id);
+
+    const { error: slugError } =
+      finalSlug !== company.slug
+        ? await supabase.from('companies').update({ slug: finalSlug }).eq('id', company.id)
+        : { error: null };
+
     setSaving(false);
-    if (error) {
-      setMessage(`Erro ao salvar: ${error.message}`);
+
+    if (formError || slugError) {
+      setMessage(`Erro ao salvar: ${(formError ?? slugError)?.message}`);
       return;
     }
-    setMessage('Campos salvos com sucesso.');
+
+    setSlug(finalSlug);
+    setSlugEditedManually(false);
+    setMessage(
+      existing
+        ? `Campos salvos. Esse link já estava em uso, então ajustamos para: ${window.location.origin}/f/${finalSlug}`
+        : 'Campos e link personalizados salvos com sucesso.'
+    );
     onSaved();
   }
 
@@ -71,8 +117,23 @@ export default function FormBuilder({ config, onSaved }: Props) {
 
       <label>
         Título do formulário
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input value={title} onChange={(e) => handleTitleChange(e.target.value)} />
       </label>
+
+      <label>
+        Link personalizado
+        <div className="public-link-row">
+          <span className="link-prefix">{window.location.origin}/f/</span>
+          <input
+            value={slug}
+            onChange={(e) => handleSlugChange(e.target.value)}
+            placeholder={slugify(title)}
+          />
+        </div>
+      </label>
+      <p className="link-preview">
+        Link atual: <strong>{publicUrl}</strong>
+      </p>
 
       {sections.map((section) => (
         <div key={section.id} className="section-editor">
