@@ -68,7 +68,7 @@ export default function Dashboard() {
 
       <BrandingEditor company={company} onSaved={refreshCompany} />
 
-      {config && <FormBuilder config={config} onSaved={() => {}} />}
+      {config && <FormBuilder config={config} company={company} onSaved={refreshCompany} />}
     </div>
   );
 }
