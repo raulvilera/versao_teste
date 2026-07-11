@@ -170,6 +170,23 @@ body {
 
 .public-link-row input {
   flex: 1;
+  min-width: 0;
+}
+
+.link-prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  color: #6c757d;
+  font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.link-preview {
+  font-size: 13px;
+  color: #495057;
+  word-break: break-all;
 }
 
 .usage-bar {
@@ -526,5 +543,9 @@ body {
   .checkbox-label.small {
     order: 3;
     justify-content: flex-start;
+  }
+
+  .public-link-row {
+    flex-wrap: wrap;
   }
 }
