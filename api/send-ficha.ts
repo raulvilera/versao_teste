@@ -99,7 +99,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       whatsappStatus = zapiResp.ok ? 'enviado' : 'falhou';
     }
 
-    res.status(200).json({ status: 'ok', pdfUrl: signed.signedUrl, whatsappStatus });
+    // ---------- 6. Envia por e-mail pra empresa, se configurado (Resend) ----------
+    let emailStatus: 'enviado' | 'falhou' | 'nao_configurado' = 'nao_configurado';
+
+    if (company.notification_email && process.env.RESEND_API_KEY) {
+      try {
+        const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
+        const emailResp = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: process.env.RESEND_FROM_EMAIL || 'Fichas <onboarding@resend.dev>',
+            to: [company.notification_email],
+            subject: `Nova ficha recebida — ${formTitle || 'Ficha Cadastral'}`,
+            html: `<p>Uma nova ficha foi enviada para <strong>${company.name}</strong>.</p>
+                   <p>O PDF está em anexo. Ele também fica disponível por 7 dias neste link:</p>
+                   <p><a href="${signed.signedUrl}">${signed.signedUrl}</a></p>`,
+            attachments: [
+              {
+                filename: `Ficha Cadastral - ${company.name}.pdf`,
+                content: pdfBase64,
+              },
+            ],
+          }),
+        });
+
+        if (!emailResp.ok) {
+          console.error('Erro Resend:', await emailResp.text());
+        }
+        emailStatus = emailResp.ok ? 'enviado' : 'falhou';
+      } catch (emailErr) {
+        console.error('Erro ao enviar e-mail:', emailErr);
+        emailStatus = 'falhou';
+      }
+    }
+
+    res.status(200).json({ status: 'ok', pdfUrl: signed.signedUrl, whatsappStatus, emailStatus });
   } catch (err: any) {
     console.error('Erro em /api/send-ficha:', err);
     res.status(500).json({ status: 'error', mensagem: err.message ?? 'Erro interno ao gravar/gerar a ficha.' });
@@ -144,11 +182,37 @@ async function gerarPdf(title: string, sections: PrintableSection[], companyName
     });
     y -= 18;
 
+    // Controla o "grupo" atual (ex: "Experiências Profissionais 1") pra não
+    // repetir o prefixo inteiro em cada linha — isso é o que causava o rótulo
+    // ficar mais largo que o espaço reservado e sobrepor o valor ao lado.
+    let grupoAtual: string | null = null;
+
     for (const row of section.rows) {
       novaPaginaSeNecessario(18);
-      page.drawText(`${row.label}:`, { x: margin, y, size: 10, font: fontBold, color: rgb(0.2, 0.2, 0.2) });
+
+      // Rótulos de campos repetíveis vêm no formato "Grupo N — Campo".
+      const separadorIndex = row.label.indexOf(' — ');
+      const temGrupo = separadorIndex !== -1;
+      const grupoLabel = temGrupo ? row.label.slice(0, separadorIndex) : null;
+      const campoLabel = temGrupo ? row.label.slice(separadorIndex + 3) : row.label;
+
+      if (temGrupo && grupoLabel !== grupoAtual) {
+        novaPaginaSeNecessario(20);
+        y -= 4;
+        page.drawText(grupoLabel!, { x: margin, y, size: 10.5, font: fontBold, color: rgb(0.1, 0.16, 0.5) });
+        y -= 16;
+        grupoAtual = grupoLabel;
+      } else if (!temGrupo) {
+        grupoAtual = null;
+      }
+
+      const indent = temGrupo ? 16 : 0;
+      const labelX = margin + indent;
+      const valueX = temGrupo ? labelX + 140 : margin + 170;
+
+      page.drawText(`${campoLabel}:`, { x: labelX, y, size: 10, font: fontBold, color: rgb(0.2, 0.2, 0.2) });
       const valorExibido = (row.value || '-').slice(0, 80);
-      page.drawText(valorExibido, { x: margin + 170, y, size: 10, font, color: rgb(0.2, 0.2, 0.2) });
+      page.drawText(valorExibido, { x: valueX, y, size: 10, font, color: rgb(0.2, 0.2, 0.2) });
       y -= 16;
     }
     y -= 14;
