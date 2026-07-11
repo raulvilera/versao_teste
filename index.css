@@ -101,6 +101,14 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.panel-header h1 {
+  min-width: 0;
+  word-break: break-word;
+  font-size: clamp(18px, 4vw, 28px);
 }
 
 .panel-header button {
@@ -160,21 +168,25 @@ body {
 
 .color-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
 .logo-preview {
   max-height: 60px;
+  max-width: 100%;
   margin-bottom: 8px;
 }
 
 .public-link-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .public-link-row input {
-  flex: 1;
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
 .usage-bar {
@@ -224,8 +236,15 @@ body {
   cursor: pointer;
 }
 
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .submissions-table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
 }
 
@@ -500,6 +519,10 @@ body {
   .ficha-form { padding: 18px; }
   .ficha-grid { grid-template-columns: 1fr; }
 
+  .panel {
+    padding: 12px;
+  }
+
   .panel-card {
     padding: 16px;
   }
@@ -514,5 +537,14 @@ body {
 
   .field-label-input {
     flex: 1 1 100%;
+  }
+
+  .public-link-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .public-link-row button {
+    width: 100%;
   }
 }
