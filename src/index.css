@@ -189,6 +189,54 @@ body {
   word-break: break-all;
 }
 
+.billing-cycle-toggle {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0;
+  flex-wrap: wrap;
+}
+
+.billing-cycle-option {
+  position: relative;
+  flex: 1 1 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 2px solid #e2e5ea;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.billing-cycle-option strong {
+  font-size: 14px;
+  color: #1a2980;
+}
+
+.billing-cycle-option span {
+  font-size: 13px;
+  color: #495057;
+}
+
+.billing-cycle-option.selected {
+  border-color: #1a2980;
+  background: #f2f4fb;
+}
+
+.billing-cycle-badge {
+  align-self: flex-start;
+  background: #26d0ce;
+  color: #063a39;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
 .usage-bar {
   background: #e9ecef;
   border-radius: 6px;
