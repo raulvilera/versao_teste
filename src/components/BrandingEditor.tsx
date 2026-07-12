@@ -13,6 +13,7 @@ export default function BrandingEditor({ company, onSaved }: Props) {
   const [secondaryColor, setSecondaryColor] = useState(company.secondary_color);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [whatsappNumber, setWhatsappNumber] = useState(company.whatsapp_number ?? '');
+  const [notificationEmail, setNotificationEmail] = useState(company.notification_email ?? '');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -41,6 +42,7 @@ export default function BrandingEditor({ company, onSaved }: Props) {
           primary_color: primaryColor,
           secondary_color: secondaryColor,
           whatsapp_number: whatsappNumber,
+          notification_email: notificationEmail || null,
           logo_url: logoUrl,
         })
         .eq('id', company.id);
@@ -90,6 +92,16 @@ export default function BrandingEditor({ company, onSaved }: Props) {
           placeholder="5511999998888"
           value={whatsappNumber}
           onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
+        />
+      </label>
+
+      <label>
+        E-mail para receber os PDFs
+        <input
+          type="email"
+          placeholder="contato@suaempresa.com.br"
+          value={notificationEmail}
+          onChange={(e) => setNotificationEmail(e.target.value)}
         />
       </label>
 
