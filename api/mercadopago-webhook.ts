@@ -67,7 +67,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const novoPlano = status === 'authorized' ? 'pro' : 'trial';
+    const { data: empresaAtual } = await supabaseAdmin
+      .from('companies')
+      .select('plan')
+      .eq('id', companyId)
+      .single();
+
+    // Empresas marcadas manualmente como "enterprise" (ex: administrador,
+    // conta interna) não são geridas pelo Mercado Pago — nunca rebaixamos
+    // automaticamente esse plano por causa de um evento de assinatura.
+    const novoPlano =
+      empresaAtual?.plan === 'enterprise' ? 'enterprise' : status === 'authorized' ? 'pro' : 'trial';
 
     await supabaseAdmin
       .from('companies')
