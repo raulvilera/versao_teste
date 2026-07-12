@@ -39,6 +39,7 @@ export interface Company {
   apps_script_url: string | null;
   whatsapp_number: string | null;
   notification_email: string | null;
+  mp_billing_cycle: 'monthly' | 'annual' | null;
   plan: CompanyPlan;
   status: CompanyStatus;
   trial_limit: number;
