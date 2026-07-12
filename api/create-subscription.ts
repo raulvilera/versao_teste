@@ -6,12 +6,22 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY as string
 );
 
-// Valor e nome do plano Pro. Ajuste aqui se o preço mudar — é o único
-// lugar que precisa ser editado.
-const PLANO_PRO = {
-  reason: 'Plataforma de Fichas Cadastrais — Plano Pro',
-  valor: 49.9,
-};
+// Planos disponíveis. Ajuste os valores aqui se o preço mudar — é o
+// único lugar que precisa ser editado.
+const PLANOS = {
+  monthly: {
+    reason: 'Plataforma de Fichas Cadastrais — Plano Pro (mensal)',
+    valor: 49.9,
+    frequency: 1,
+  },
+  annual: {
+    reason: 'Plataforma de Fichas Cadastrais — Plano Pro (anual)',
+    valor: 499.9, // equivalente a ~R$41,66/mês — quase 2 meses grátis vs. o mensal
+    frequency: 12,
+  },
+} as const;
+
+type BillingCycle = keyof typeof PLANOS;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -20,12 +30,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { companyId, payerEmail } = req.body as { companyId: string; payerEmail: string };
+    const { companyId, payerEmail, billingCycle } = req.body as {
+      companyId: string;
+      payerEmail: string;
+      billingCycle?: BillingCycle;
+    };
 
     if (!companyId || !payerEmail) {
       res.status(400).json({ status: 'error', mensagem: 'Dados incompletos.' });
       return;
     }
+
+    const ciclo: BillingCycle = billingCycle === 'annual' ? 'annual' : 'monthly';
+    const plano = PLANOS[ciclo];
 
     const { data: company, error: companyError } = await supabaseAdmin
       .from('companies')
@@ -55,14 +72,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
       },
       body: JSON.stringify({
-        reason: PLANO_PRO.reason,
+        reason: plano.reason,
         external_reference: companyId,
         payer_email: payerEmail,
         back_url: `${origin}/dashboard`,
         auto_recurring: {
-          frequency: 1,
+          frequency: plano.frequency,
           frequency_type: 'months',
-          transaction_amount: PLANO_PRO.valor,
+          transaction_amount: plano.valor,
           currency_id: 'BRL',
         },
         status: 'pending',
@@ -77,11 +94,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    // Guarda o id da pré-aprovação para conseguirmos casar com o webhook
-    // depois, mesmo antes do pagamento ser confirmado.
+    // Guarda o id da pré-aprovação e o ciclo escolhido, para conseguirmos
+    // casar com o webhook depois, mesmo antes do pagamento ser confirmado.
     await supabaseAdmin
       .from('companies')
-      .update({ mp_preapproval_id: mpData.id, mp_subscription_status: 'pending' })
+      .update({ mp_preapproval_id: mpData.id, mp_subscription_status: 'pending', mp_billing_cycle: ciclo })
       .eq('id', companyId);
 
     res.status(200).json({ status: 'ok', checkoutUrl: mpData.init_point });
