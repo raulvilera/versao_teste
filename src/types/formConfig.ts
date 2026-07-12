@@ -38,6 +38,7 @@ export interface Company {
   secondary_color: string;
   apps_script_url: string | null;
   whatsapp_number: string | null;
+  notification_email: string | null;
   plan: CompanyPlan;
   status: CompanyStatus;
   trial_limit: number;
