@@ -45,6 +45,18 @@ export async function buscarCEP(cep: string): Promise<ViaCepResult | null> {
   return data as ViaCepResult;
 }
 
+// Garante que o número tenha o DDI 55 na frente. Se a pessoa digitar só
+// DDD + número (10 ou 11 dígitos, formato mais comum de digitar sem pensar
+// no DDI), adiciona o 55 automaticamente. Se já vier com DDI (12-13
+// dígitos), não mexe.
+export function normalizeWhatsapp(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length === 10 || digits.length === 11) {
+    return `55${digits}`;
+  }
+  return digits;
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()
