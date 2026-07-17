@@ -1,22 +1,699 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plataforma de Fichas Cadastrais</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma de Fichas Cadastrais</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+:root { --cor-primaria:#1a2980; --cor-secundaria:#26d0ce; }
+body { background:#f4f6f9; color:#333; }
 
-    <!-- PWA -->
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#1a2980" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Fichas" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+.auth-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#1a2980,#26d0ce); padding:20px; }
+.auth-card { background:#fff; border-radius:12px; padding:30px; width:100%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,.2); display:flex; flex-direction:column; gap:14px; }
+.auth-card h1 { color:#1a2980; margin-bottom:6px; }
+.auth-card label { display:flex; flex-direction:column; gap:6px; font-weight:600; font-size:14px; color:#444; }
+.auth-card input { padding:10px 12px; border:1px solid #ced4da; border-radius:6px; font-size:15px; }
+.auth-card button { margin-top:8px; background:linear-gradient(to right,#1a2980,#26d0ce); color:#fff; border:none; border-radius:6px; padding:12px; font-weight:700; cursor:pointer; }
+.auth-error { background:#f8d7da; color:#842029; padding:8px 12px; border-radius:6px; font-size:14px; }
+.auth-switch { text-align:center; font-size:14px; }
+.auth-switch a { color:#1a2980; }
+
+.panel { max-width:900px; margin:0 auto; padding:20px; display:flex; flex-direction:column; gap:20px; }
+.panel-header { display:flex; justify-content:space-between; align-items:center; }
+.panel-header button { background:#dc3545; color:#fff; border:none; border-radius:6px; padding:8px 16px; cursor:pointer; }
+.panel-card { background:#fff; border-radius:10px; padding:24px; box-shadow:0 2px 10px rgba(0,0,0,.08); display:flex; flex-direction:column; gap:14px; }
+.panel-card h2 { color:#1a2980; }
+.panel-card label { display:flex; flex-direction:column; gap:6px; font-weight:600; font-size:14px; }
+.panel-card input, .panel-card select { padding:10px; border:1px solid #ced4da; border-radius:6px; font-size:15px; }
+.panel-card button.save-btn { align-self:flex-start; background:linear-gradient(to right,#1a2980,#26d0ce); color:#fff; border:none; border-radius:6px; padding:10px 20px; font-weight:700; cursor:pointer; }
+.panel-message { font-size:14px; color:#218838; }
+.color-row { display:flex; gap:20px; }
+.logo-preview { max-height:60px; margin-bottom:8px; display:block; }
+.public-link-row { display:flex; gap:8px; }
+.public-link-row input { flex:1; }
+.usage-bar { background:#e9ecef; border-radius:6px; height:10px; overflow:hidden; }
+.usage-bar-fill { height:100%; background:linear-gradient(to right,#1a2980,#26d0ce); }
+.section-editor { border-top:1px solid #e9ecef; padding-top:12px; }
+.checkbox-label { display:flex !important; flex-direction:row !important; align-items:center; gap:8px; font-weight:600; }
+.checkbox-label.small { font-weight:500; font-size:13px; }
+.badge { background:#ffc107; color:#333; font-size:11px; padding:2px 8px; border-radius:10px; }
+.field-list { display:flex; flex-direction:column; gap:8px; padding-left:24px; margin-top:8px; }
+.field-row { display:flex; align-items:center; gap:10px; }
+.field-label-input { flex:1; }
+.panel-loading { text-align:center; padding:60px; font-size:18px; color:#1a2980; }
+
+.ficha-page { min-height:100vh; background:linear-gradient(135deg,var(--cor-primaria),var(--cor-secundaria)); padding:30px 16px; display:flex; flex-direction:column; align-items:center; }
+.ficha-logo { max-height:70px; margin-bottom:20px; background:#fff; padding:8px 16px; border-radius:8px; }
+.ficha-form { background:#fff; border-radius:14px; padding:30px; max-width:900px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+.ficha-form h1 { color:var(--cor-primaria); margin-bottom:24px; text-align:center; }
+.ficha-section { margin-bottom:28px; padding-bottom:20px; border-bottom:1px solid #e9ecef; }
+.ficha-section h2 { background:linear-gradient(to right,var(--cor-primaria),var(--cor-secundaria)); color:#fff; display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:6px; font-size:16px; margin-bottom:16px; }
+.ficha-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+.ficha-field { display:flex; flex-direction:column; gap:6px; }
+.ficha-field label { font-weight:600; font-size:14px; color:#444; }
+.ficha-field input, .ficha-field select { padding:10px 12px; border:1px solid #ced4da; border-radius:6px; font-size:15px; }
+.required { color:#dc3545; }
+.ficha-repeatable-row { border:1px solid #e9ecef; border-radius:8px; padding:14px; margin-bottom:12px; position:relative; }
+.add-row, .remove-row { border:none; border-radius:6px; padding:8px 14px; font-weight:600; cursor:pointer; margin-top:8px; }
+.add-row { background:#28a745; color:#fff; }
+.remove-row { background:#dc3545; color:#fff; }
+.ficha-error { background:#f8d7da; color:#842029; padding:10px 14px; border-radius:6px; margin-bottom:16px; }
+.ficha-submit { width:100%; background:linear-gradient(to right,#28a745,#218838); color:#fff; border:none; border-radius:8px; padding:16px; font-size:18px; font-weight:700; cursor:pointer; }
+.ficha-submit:disabled { background:#6c757d; cursor:not-allowed; }
+.ficha-success { background:#fff; border-radius:14px; padding:50px; text-align:center; max-width:500px; }
+.ficha-success i { font-size:50px; color:#28a745; margin-bottom:16px; }
+.ficha-loading { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; background:linear-gradient(135deg,#1a2980,#26d0ce); gap:10px; }
+.payment-gate { background:linear-gradient(to right,#ff7e5f,#feb47b); color:#fff; border-radius:14px; padding:40px; text-align:center; max-width:500px; }
+.payment-gate button { background:#fff; color:#ff7e5f; border:none; border-radius:8px; padding:12px 28px; font-weight:700; cursor:pointer; margin-top:16px; }
+
+@media (max-width:576px) { .ficha-form{padding:18px;} .ficha-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ============================================================
+// CONFIGURAÇÃO — troque pelos valores do SEU projeto Supabase
+// (Project Settings > API). A anon key é pública por design,
+// pode ficar exposta no HTML — ela só permite o que as policies
+// de RLS liberarem.
+// ============================================================
+const SUPABASE_URL = 'https://fbbpzeuu1dljuugjuubr.supabase.co';
+const SUPABASE_ANON_KEY = 'SUA_ANON_KEY_AQUI'; // <-- cole aqui a anon public key (Project Settings > API)
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================================
+// DADOS PADRÃO — seções/campos usados ao criar uma empresa nova
+// ============================================================
+const ESTADOS_BR = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+
+function defaultSections() {
+  return [
+    { id:'dados_pessoais', title:'Dados Pessoais', icon:'fa-user', enabled:true, fields:[
+      { id:'nomeCompleto', label:'Nome Completo', type:'text', required:true, enabled:true },
+      { id:'dataNascimento', label:'Data de Nascimento', type:'date', required:true, enabled:true },
+      { id:'cpf', label:'CPF', type:'cpf', required:true, enabled:true },
+      { id:'rg', label:'RG', type:'text', required:true, enabled:true },
+      { id:'tituloEleitor', label:'Título de Eleitor', type:'text', required:false, enabled:false },
+      { id:'estadoCivil', label:'Estado Civil', type:'select', required:false, enabled:true, options:['Solteiro(a)','Casado(a)','Divorciado(a)','Viúvo(a)','União Estável'] },
+      { id:'genero', label:'Gênero', type:'select', required:false, enabled:true, options:['Feminino','Masculino','Outro'] },
+    ]},
+    { id:'dados_pais', title:'Dados dos Pais', icon:'fa-users', enabled:false, fields:[
+      { id:'nomePai', label:'Nome do Pai', type:'text', required:false, enabled:true },
+      { id:'cpfPai', label:'CPF do Pai', type:'cpf', required:false, enabled:true },
+      { id:'nomeMae', label:'Nome da Mãe', type:'text', required:true, enabled:true },
+      { id:'cpfMae', label:'CPF da Mãe', type:'cpf', required:false, enabled:true },
+    ]},
+    { id:'endereco_contato', title:'Endereço e Contato', icon:'fa-map-marked-alt', enabled:true, fields:[
+      { id:'cep', label:'CEP', type:'cep', required:true, enabled:true },
+      { id:'logradouro', label:'Logradouro', type:'text', required:true, enabled:true },
+      { id:'numero', label:'Número', type:'text', required:true, enabled:true },
+      { id:'complemento', label:'Complemento', type:'text', required:false, enabled:true },
+      { id:'bairro', label:'Bairro', type:'text', required:true, enabled:true },
+      { id:'cidade', label:'Cidade', type:'text', required:true, enabled:true },
+      { id:'estado', label:'Estado', type:'select', required:true, enabled:true, options:ESTADOS_BR },
+      { id:'celular1', label:'Celular 1', type:'phone', required:true, enabled:true },
+      { id:'celular2', label:'Celular 2', type:'phone', required:false, enabled:true },
+      { id:'email', label:'E-mail', type:'email', required:true, enabled:true },
+    ]},
+    { id:'escolaridade', title:'Escolaridade', icon:'fa-graduation-cap', enabled:true, fields:[
+      { id:'escolaridade', label:'Escolaridade', type:'select', required:false, enabled:true, options:['Ensino Fundamental Incompleto','Ensino Fundamental Completo','Ensino Médio Incompleto','Ensino Médio Completo','Ensino Superior Incompleto','Ensino Superior Completo','Pós-graduação','Mestrado','Doutorado'] },
+      { id:'curso', label:'Curso', type:'text', required:false, enabled:true },
+      { id:'instituicao', label:'Instituição', type:'text', required:false, enabled:true },
+      { id:'anoConclusao', label:'Ano de Conclusão', type:'number', required:false, enabled:true },
+    ]},
+    { id:'experiencias', title:'Experiências Profissionais', icon:'fa-briefcase', enabled:true, repeatable:true, fields:[
+      { id:'empresa', label:'Empresa', type:'text', required:false, enabled:true },
+      { id:'cargo', label:'Cargo', type:'text', required:false, enabled:true },
+      { id:'periodo', label:'Período', type:'text', required:false, enabled:true },
+    ]},
+    { id:'dependentes', title:'Dependentes', icon:'fa-users', enabled:true, repeatable:true, fields:[
+      { id:'nome', label:'Nome', type:'text', required:false, enabled:true },
+      { id:'parentesco', label:'Parentesco', type:'text', required:false, enabled:true },
+      { id:'dataNascimento', label:'Data Nascimento', type:'date', required:false, enabled:true },
+    ]},
+  ];
+}
+
+// ============================================================
+// UTILITÁRIOS
+// ============================================================
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function maskCPF(v) {
+  v = v.replace(/\D/g,'').slice(0,11);
+  v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  return v;
+}
+function maskPhone(v) {
+  v = v.replace(/\D/g,'').slice(0,11);
+  if (v.length>10) v = v.replace(/^(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');
+  else if (v.length>6) v = v.replace(/^(\d{2})(\d{4})(\d{0,4})/,'($1) $2-$3');
+  else if (v.length>2) v = v.replace(/^(\d{2})(\d{0,5})/,'($1) $2');
+  else if (v.length>0) v = v.replace(/^(\d{0,2})/,'($1');
+  return v;
+}
+function maskCEP(v) {
+  v = v.replace(/\D/g,'').slice(0,8);
+  if (v.length>5) v = v.replace(/^(\d{5})(\d)/,'$1-$2');
+  return v;
+}
+async function buscarCEP(cep) {
+  const clean = cep.replace(/\D/g,'');
+  if (clean.length!==8) return null;
+  const resp = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+  const data = await resp.json();
+  if (data.erro) return null;
+  return data;
+}
+function slugify(text) {
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+// ============================================================
+// ROTEADOR
+// ============================================================
+const app = document.getElementById('app');
+window.addEventListener('hashchange', router);
+window.addEventListener('DOMContentLoaded', router);
+
+async function router() {
+  const hash = window.location.hash || '#/login';
+  if (hash.startsWith('#/f/')) {
+    return renderFichaPublica(decodeURIComponent(hash.replace('#/f/','')));
+  }
+  if (hash === '#/cadastro') return renderSignup();
+  if (hash === '#/dashboard') return renderDashboard();
+  return renderLogin();
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+function renderLogin() {
+  app.innerHTML = `
+    <div class="auth-screen">
+      <form class="auth-card" id="loginForm">
+        <h1>Entrar</h1>
+        <div id="loginError"></div>
+        <label>E-mail <input type="email" name="email" required></label>
+        <label>Senha <input type="password" name="password" required></label>
+        <button type="submit">Entrar</button>
+        <p class="auth-switch">Ainda não tem conta? <a href="#/cadastro">Cadastre sua empresa</a></p>
+      </form>
+    </div>`;
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = e.target.querySelector('button');
+    btn.disabled = true; btn.textContent = 'Entrando...';
+    const { error } = await supabase.auth.signInWithPassword({ email: fd.get('email'), password: fd.get('password') });
+    if (error) {
+      document.getElementById('loginError').innerHTML = `<p class="auth-error">E-mail ou senha inválidos.</p>`;
+      btn.disabled = false; btn.textContent = 'Entrar';
+      return;
+    }
+    window.location.hash = '#/dashboard';
+  });
+}
+
+// ============================================================
+// CADASTRO DE EMPRESA
+// ============================================================
+function renderSignup() {
+  app.innerHTML = `
+    <div class="auth-screen">
+      <form class="auth-card" id="signupForm">
+        <h1>Cadastrar Empresa</h1>
+        <div id="signupError"></div>
+        <label>Nome da Empresa <input type="text" name="companyName" required></label>
+        <label>Seu Nome <input type="text" name="fullName" required></label>
+        <label>E-mail <input type="email" name="email" required></label>
+        <label>Senha <input type="password" name="password" required minlength="6"></label>
+        <button type="submit">Criar minha conta</button>
+        <p class="auth-switch">Já tem conta? <a href="#/login">Entrar</a></p>
+      </form>
+    </div>`;
+
+  document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = e.target.querySelector('button');
+    btn.disabled = true; btn.textContent = 'Criando...';
+    const errorBox = document.getElementById('signupError');
+    errorBox.innerHTML = '';
+
+    try {
+      const companyName = fd.get('companyName');
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: fd.get('email'), password: fd.get('password'),
+      });
+      if (signUpError) throw signUpError;
+      const userId = signUpData.user?.id;
+      if (!userId) throw new Error('Confirme seu e-mail antes de continuar e depois faça login.');
+
+      let slug = slugify(companyName);
+      const { data: existing } = await supabase.from('companies').select('slug').eq('slug', slug).maybeSingle();
+      if (existing) slug = `${slug}-${Math.random().toString(36).slice(2,6)}`;
+
+      const { data: company, error: companyError } = await supabase
+        .from('companies').insert({ name: companyName, slug }).select().single();
+      if (companyError) throw companyError;
+
+      const { error: profileError } = await supabase.from('profiles')
+        .insert({ id: userId, company_id: company.id, full_name: fd.get('fullName'), role: 'owner' });
+      if (profileError) throw profileError;
+
+      const { error: configError } = await supabase.from('form_configs')
+        .insert({ company_id: company.id, form_title: 'Ficha Cadastral', sections: defaultSections() });
+      if (configError) throw configError;
+
+      window.location.hash = '#/dashboard';
+    } catch (err) {
+      errorBox.innerHTML = `<p class="auth-error">${escapeHtml(err.message || 'Erro ao cadastrar.')}</p>`;
+      btn.disabled = false; btn.textContent = 'Criar minha conta';
+    }
+  });
+}
+
+// ============================================================
+// PAINEL ADMIN
+// ============================================================
+let dashCompany = null;
+let dashConfig = null;
+
+async function renderDashboard() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.hash = '#/login'; return; }
+
+  app.innerHTML = `<div class="panel-loading">Carregando painel...</div>`;
+
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+  if (!profile) { app.innerHTML = `<div class="panel-loading">Perfil não encontrado.</div>`; return; }
+
+  const { data: company } = await supabase.from('companies').select('*').eq('id', profile.company_id).single();
+  const { data: config } = await supabase.from('form_configs').select('*').eq('company_id', profile.company_id).single();
+  dashCompany = company;
+  dashConfig = config;
+
+  const publicUrl = `${window.location.origin}${window.location.pathname}#/f/${company.slug}`;
+  const usagePercent = Math.min(100, Math.round((company.submissions_count / company.trial_limit) * 100));
+
+  app.innerHTML = `
+    <div class="panel">
+      <header class="panel-header">
+        <h1>Painel — ${escapeHtml(company.name)}</h1>
+        <button id="btnSignOut">Sair</button>
+      </header>
+
+      <div class="panel-card">
+        <h2>Sua Ficha Pública</h2>
+        <p>Compartilhe este link com os colaboradores:</p>
+        <div class="public-link-row">
+          <input id="publicUrlInput" readonly value="${escapeHtml(publicUrl)}">
+          <button id="btnCopyLink" class="save-btn">Copiar</button>
+        </div>
+        <div class="usage-bar"><div class="usage-bar-fill" style="width:${usagePercent}%"></div></div>
+        <p>${company.submissions_count} de ${company.trial_limit} fichas usadas ${company.plan==='trial' ? '(plano de teste)' : `(plano ${escapeHtml(company.plan)})`}</p>
+      </div>
+
+      <form class="panel-card" id="brandingForm">
+        <h2>Identidade Visual</h2>
+        <label>Nome da Empresa <input name="name" value="${escapeHtml(company.name)}" required></label>
+        <div class="color-row">
+          <label>Cor Principal <input type="color" name="primary_color" value="${company.primary_color}"></label>
+          <label>Cor Secundária <input type="color" name="secondary_color" value="${company.secondary_color}"></label>
+        </div>
+        <label>Logo
+          ${company.logo_url ? `<img class="logo-preview" src="${escapeHtml(company.logo_url)}" alt="Logo atual">` : ''}
+          <input type="file" name="logoFile" accept="image/*">
+        </label>
+        <label>URL do Apps Script (Google Sheets desta empresa)
+          <input type="url" name="apps_script_url" placeholder="https://script.google.com/macros/s/.../exec" value="${escapeHtml(company.apps_script_url || '')}">
+        </label>
+        <label>WhatsApp para receber os PDFs (DDI+DDD+número, só dígitos)
+          <input type="tel" name="whatsapp_number" placeholder="5511999998888" value="${escapeHtml(company.whatsapp_number || '')}">
+        </label>
+        <button type="submit" class="save-btn">Salvar Identidade Visual</button>
+        <p class="panel-message" id="brandingMsg"></p>
+      </form>
+
+      <div class="panel-card" id="formBuilderCard">
+        <h2>Campos da Ficha</h2>
+        <label>Título do formulário <input id="formTitleInput" value="${escapeHtml(config.form_title)}"></label>
+        <div id="sectionsEditor">${buildSectionsEditorHtml(config.sections)}</div>
+        <button type="button" id="btnSaveFields" class="save-btn">Salvar Campos</button>
+        <p class="panel-message" id="fieldsMsg"></p>
+      </div>
+    </div>`;
+
+  document.getElementById('btnSignOut').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.hash = '#/login';
+  });
+
+  document.getElementById('btnCopyLink').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('publicUrlInput').value);
+  });
+
+  document.getElementById('brandingForm').addEventListener('submit', handleSaveBranding);
+
+  document.getElementById('sectionsEditor').addEventListener('change', (e) => {
+    if (e.target.classList.contains('section-toggle')) {
+      const editor = e.target.closest('.section-editor');
+      editor.querySelector('.field-list').style.display = e.target.checked ? 'flex' : 'none';
+    }
+    if (e.target.classList.contains('field-toggle')) {
+      const row = e.target.closest('.field-row');
+      const enabled = e.target.checked;
+      row.querySelector('.field-label-input').disabled = !enabled;
+      row.querySelector('.field-required').disabled = !enabled;
+    }
+  });
+
+  document.getElementById('btnSaveFields').addEventListener('click', handleSaveFields);
+}
+
+function buildSectionsEditorHtml(sections) {
+  return sections.map((s) => `
+    <div class="section-editor" data-section-id="${s.id}">
+      <label class="checkbox-label">
+        <input type="checkbox" class="section-toggle" ${s.enabled ? 'checked' : ''}>
+        <strong>${escapeHtml(s.title)}</strong>
+        ${s.repeatable ? '<span class="badge">repetível</span>' : ''}
+      </label>
+      <div class="field-list" style="display:${s.enabled ? 'flex' : 'none'}">
+        ${s.fields.map((f) => `
+          <div class="field-row" data-field-id="${f.id}">
+            <input type="checkbox" class="field-toggle" ${f.enabled ? 'checked' : ''}>
+            <input type="text" class="field-label-input" value="${escapeHtml(f.label)}" ${f.enabled ? '' : 'disabled'}>
+            <label class="checkbox-label small">
+              <input type="checkbox" class="field-required" ${f.required ? 'checked' : ''} ${f.enabled ? '' : 'disabled'}>
+              Obrigatório
+            </label>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+async function handleSaveBranding(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const msg = document.getElementById('brandingMsg');
+  msg.textContent = '';
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  try {
+    let logoUrl = dashCompany.logo_url;
+    const logoFile = fd.get('logoFile');
+    if (logoFile && logoFile.size > 0) {
+      const path = `${dashCompany.id}/logo-${Date.now()}.${logoFile.name.split('.').pop()}`;
+      const { error: uploadError } = await supabase.storage.from('logos').upload(path, logoFile, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('logos').getPublicUrl(path);
+      logoUrl = data.publicUrl;
+    }
+
+    const { error } = await supabase.from('companies').update({
+      name: fd.get('name'),
+      primary_color: fd.get('primary_color'),
+      secondary_color: fd.get('secondary_color'),
+      apps_script_url: fd.get('apps_script_url'),
+      whatsapp_number: (fd.get('whatsapp_number') || '').replace(/\D/g, ''),
+      logo_url: logoUrl,
+    }).eq('id', dashCompany.id);
+    if (error) throw error;
+
+    msg.textContent = 'Salvo com sucesso.';
+    btn.disabled = false; btn.textContent = 'Salvar Identidade Visual';
+    renderDashboard();
+  } catch (err) {
+    msg.textContent = `Erro ao salvar: ${err.message}`;
+    btn.disabled = false; btn.textContent = 'Salvar Identidade Visual';
+  }
+}
+
+async function handleSaveFields() {
+  const msg = document.getElementById('fieldsMsg');
+  const btn = document.getElementById('btnSaveFields');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  const formTitle = document.getElementById('formTitleInput').value;
+  const newSections = dashConfig.sections.map((section) => {
+    const sectionEl = document.querySelector(`.section-editor[data-section-id="${section.id}"]`);
+    const enabled = sectionEl.querySelector('.section-toggle').checked;
+    const fields = section.fields.map((field) => {
+      const fieldEl = sectionEl.querySelector(`.field-row[data-field-id="${field.id}"]`);
+      return {
+        ...field,
+        enabled: fieldEl.querySelector('.field-toggle').checked,
+        label: fieldEl.querySelector('.field-label-input').value,
+        required: fieldEl.querySelector('.field-required').checked,
+      };
+    });
+    return { ...section, enabled, fields };
+  });
+
+  const { error } = await supabase.from('form_configs')
+    .update({ form_title: formTitle, sections: newSections })
+    .eq('id', dashConfig.id);
+
+  btn.disabled = false; btn.textContent = 'Salvar Campos';
+  msg.textContent = error ? `Erro ao salvar: ${error.message}` : 'Campos salvos com sucesso.';
+  if (!error) dashConfig.sections = newSections;
+}
+
+// ============================================================
+// FICHA PÚBLICA
+// ============================================================
+let publicCompany = null;
+let publicConfig = null;
+let repeatCounters = {};
+
+async function renderFichaPublica(slug) {
+  app.innerHTML = `<div class="ficha-loading"><p>Carregando ficha...</p></div>`;
+
+  const { data: company } = await supabase.from('companies').select('*').eq('slug', slug).maybeSingle();
+  if (!company) {
+    app.innerHTML = `<div class="ficha-loading"><h2>Ficha não encontrada</h2><p>Verifique se o link está correto.</p></div>`;
+    return;
+  }
+  const { data: config } = await supabase.from('form_configs').select('*').eq('company_id', company.id).maybeSingle();
+  if (!config) {
+    app.innerHTML = `<div class="ficha-loading"><h2>Ficha não configurada</h2></div>`;
+    return;
+  }
+  publicCompany = company;
+  publicConfig = config;
+  repeatCounters = {};
+
+  document.documentElement.style.setProperty('--cor-primaria', company.primary_color);
+  document.documentElement.style.setProperty('--cor-secundaria', company.secondary_color);
+
+  const blocked = company.status !== 'active' || (company.plan === 'trial' && company.submissions_count >= company.trial_limit);
+
+  if (blocked) {
+    app.innerHTML = `
+      <div class="ficha-page">
+        ${company.logo_url ? `<img class="ficha-logo" src="${escapeHtml(company.logo_url)}">` : ''}
+        <div class="payment-gate">
+          <h3><i class="fas fa-credit-card"></i> Limite de Usos Atingido</h3>
+          <p>${escapeHtml(company.name)} utilizou todas as ${company.trial_limit} fichas do plano de teste.</p>
+          <p>Para continuar recebendo cadastros, é necessário assinar um plano pago.</p>
+          <button onclick="alert('Fale com quem administra esta plataforma para assinar um plano.')">
+            <i class="fas fa-shopping-cart"></i> Assinar Plano
+          </button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const enabledSections = config.sections.filter((s) => s.enabled);
+  enabledSections.filter((s) => s.repeatable).forEach((s) => { repeatCounters[s.id] = 1; });
+
+  app.innerHTML = `
+    <div class="ficha-page">
+      ${company.logo_url ? `<img class="ficha-logo" src="${escapeHtml(company.logo_url)}">` : ''}
+      <form class="ficha-form" id="fichaForm">
+        <h1>${escapeHtml(config.form_title)}</h1>
+        <div id="fichaErrorBox"></div>
+        ${enabledSections.map((s) => buildSectionHtml(s)).join('')}
+        <button type="submit" class="ficha-submit" id="fichaSubmitBtn">Enviar Cadastro</button>
+      </form>
+    </div>`;
+
+  document.getElementById('fichaForm').addEventListener('submit', handleFichaSubmit);
+
+  document.getElementById('fichaForm').addEventListener('click', (e) => {
+    if (e.target.closest('.add-row')) {
+      const sectionId = e.target.closest('.add-row').dataset.sectionId;
+      addRepeatRow(sectionId);
+    }
+    if (e.target.closest('.remove-row')) {
+      e.target.closest('.ficha-repeatable-row').remove();
+    }
+  });
+
+  document.getElementById('fichaForm').addEventListener('input', (e) => {
+    if (e.target.dataset.mask === 'cpf') e.target.value = maskCPF(e.target.value);
+    if (e.target.dataset.mask === 'phone') e.target.value = maskPhone(e.target.value);
+    if (e.target.dataset.mask === 'cep') {
+      e.target.value = maskCEP(e.target.value);
+      if (e.target.value.replace(/\D/g,'').length === 8) {
+        buscarCEP(e.target.value).then((res) => {
+          if (!res) return;
+          const form = document.getElementById('fichaForm');
+          if (form.elements['logradouro']) form.elements['logradouro'].value = res.logradouro || '';
+          if (form.elements['bairro']) form.elements['bairro'].value = res.bairro || '';
+          if (form.elements['cidade']) form.elements['cidade'].value = res.localidade || '';
+          if (form.elements['estado']) form.elements['estado'].value = res.uf || '';
+        });
+      }
+    }
+  });
+}
+
+function buildFieldInputHtml(field) {
+  const req = field.required ? 'required' : '';
+  const maskAttr = ['cpf','phone','cep'].includes(field.type) ? `data-mask="${field.type}"` : '';
+  if (field.type === 'select') {
+    return `<select name="${field.id}" id="${field.id}" ${req}>
+      <option value="">Selecione</option>
+      ${(field.options || []).map((o) => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
+    </select>`;
+  }
+  const inputType = field.type === 'date' ? 'date' : field.type === 'email' ? 'email' : field.type === 'number' ? 'number' : 'text';
+  return `<input type="${inputType}" name="${field.id}" id="${field.id}" ${req} ${maskAttr}>`;
+}
+
+function buildSectionHtml(section) {
+  if (section.repeatable) {
+    return `
+      <div class="ficha-section" data-section-id="${section.id}" data-repeatable="true">
+        <h2><i class="fas ${section.icon}"></i> ${escapeHtml(section.title)}</h2>
+        <div class="repeat-container" data-section-id="${section.id}">
+          ${buildRepeatRowHtml(section, 0)}
+        </div>
+        <button type="button" class="add-row" data-section-id="${section.id}"><i class="fas fa-plus-circle"></i> Adicionar</button>
+      </div>`;
+  }
+  return `
+    <div class="ficha-section">
+      <h2><i class="fas ${section.icon}"></i> ${escapeHtml(section.title)}</h2>
+      <div class="ficha-grid">
+        ${section.fields.filter((f) => f.enabled).map((f) => `
+          <div class="ficha-field">
+            <label for="${f.id}">${escapeHtml(f.label)} ${f.required ? '<span class="required">*</span>' : ''}</label>
+            ${buildFieldInputHtml(f)}
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function buildRepeatRowHtml(section, index) {
+  return `
+    <div class="ficha-grid ficha-repeatable-row" data-index="${index}">
+      ${section.fields.filter((f) => f.enabled).map((f) => `
+        <div class="ficha-field">
+          <label>${escapeHtml(f.label)}</label>
+          <input type="${f.type === 'date' ? 'date' : 'text'}" class="repeat-field" data-field-id="${f.id}">
+        </div>`).join('')}
+      <button type="button" class="remove-row"><i class="fas fa-minus-circle"></i> Remover</button>
+    </div>`;
+}
+
+function addRepeatRow(sectionId) {
+  const section = publicConfig.sections.find((s) => s.id === sectionId);
+  const container = document.querySelector(`.repeat-container[data-section-id="${sectionId}"]`);
+  const index = repeatCounters[sectionId]++;
+  container.insertAdjacentHTML('beforeend', buildRepeatRowHtml(section, index));
+}
+
+async function handleFichaSubmit(e) {
+  e.preventDefault();
+  const errorBox = document.getElementById('fichaErrorBox');
+  errorBox.innerHTML = '';
+  const btn = document.getElementById('fichaSubmitBtn');
+
+  if (!publicCompany.apps_script_url) {
+    errorBox.innerHTML = `<p class="ficha-error">Esta empresa ainda não configurou o destino dos dados. Entre em contato com o RH.</p>`;
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  try {
+    const form = document.getElementById('fichaForm');
+    const fd = new FormData(form);
+    const payload = {};
+    for (const [key, value] of fd.entries()) payload[key] = String(value).trim();
+
+    const printableSections = [];
+
+    publicConfig.sections.filter((s) => s.enabled).forEach((section) => {
+      if (section.repeatable) {
+        const rows = [];
+        document.querySelectorAll(`.repeat-container[data-section-id="${section.id}"] .ficha-repeatable-row`).forEach((rowEl) => {
+          const row = {};
+          rowEl.querySelectorAll('.repeat-field').forEach((input) => { row[input.dataset.fieldId] = input.value.trim(); });
+          if (Object.values(row).some((v) => v)) rows.push(row);
+        });
+        payload[section.id] = JSON.stringify(rows);
+        const printRows = [];
+        rows.forEach((row, idx) => {
+          section.fields.filter((f) => f.enabled).forEach((f) => {
+            printRows.push({ label: `${section.title} ${idx+1} — ${f.label}`, value: row[f.id] || '' });
+          });
+        });
+        if (printRows.length) printableSections.push({ title: section.title, rows: printRows });
+      } else {
+        const rows = section.fields.filter((f) => f.enabled).map((f) => ({ label: f.label, value: payload[f.id] || '' }));
+        if (rows.length) printableSections.push({ title: section.title, rows });
+      }
+    });
+
+    payload.companyId = publicCompany.id;
+
+    const resp = await fetch(publicCompany.apps_script_url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(payload).toString(),
+    });
+
+    let result;
+    try { result = await resp.json(); }
+    catch { throw new Error('Erro de comunicação com a planilha da empresa.'); }
+    if (result.status !== 'ok') throw new Error(result.mensagem || 'Erro desconhecido ao enviar.');
+
+    await supabase.rpc('increment_company_usage', { p_company_id: publicCompany.id });
+
+    fetch('/api/send-ficha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ companyId: publicCompany.id, formTitle: publicConfig.form_title, sections: printableSections }),
+    }).catch((err) => console.error('Falha ao gerar/enviar PDF:', err));
+
+    document.querySelector('.ficha-form').outerHTML = `
+      <div class="ficha-success">
+        <i class="fas fa-check-circle"></i>
+        <h2>Cadastro enviado com sucesso!</h2>
+        <p>Obrigado por preencher a ficha.</p>
+      </div>`;
+  } catch (err) {
+    errorBox.innerHTML = `<p class="ficha-error">${escapeHtml(err.message || 'Não foi possível enviar o formulário.')}</p>`;
+    btn.disabled = false; btn.textContent = 'Enviar Cadastro';
+  }
+}
+</script>
+</body>
 </html>
