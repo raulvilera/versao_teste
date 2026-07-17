@@ -75,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         reason: plano.reason,
         external_reference: companyId,
         payer_email: payerEmail,
-        back_url: `${origin}/dashboard`,
+        back_url: `${origin}/#/dashboard`,
         auto_recurring: {
           frequency: plano.frequency,
           frequency_type: 'months',
