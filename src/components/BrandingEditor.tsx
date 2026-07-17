@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { normalizeWhatsapp } from '../utils/masks';
 import type { Company } from '../types/formConfig';
 
 interface Props {
@@ -35,19 +36,22 @@ export default function BrandingEditor({ company, onSaved }: Props) {
         logoUrl = data.publicUrl;
       }
 
+      const whatsappNormalizado = normalizeWhatsapp(whatsappNumber);
+
       const { error } = await supabase
         .from('companies')
         .update({
           name,
           primary_color: primaryColor,
           secondary_color: secondaryColor,
-          whatsapp_number: whatsappNumber,
+          whatsapp_number: whatsappNormalizado,
           notification_email: notificationEmail || null,
           logo_url: logoUrl,
         })
         .eq('id', company.id);
 
       if (error) throw error;
+      setWhatsappNumber(whatsappNormalizado);
       setMessage('Salvo com sucesso.');
       onSaved();
     } catch (err: any) {
