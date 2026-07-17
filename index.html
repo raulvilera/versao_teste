@@ -6,6 +6,7 @@
 <title>Plataforma de Fichas Cadastrais</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
 :root { --cor-primaria:#1a2980; --cor-secundaria:#26d0ce; }
@@ -337,15 +338,28 @@ async function renderDashboard() {
           ${company.logo_url ? `<img class="logo-preview" src="${escapeHtml(company.logo_url)}" alt="Logo atual">` : ''}
           <input type="file" name="logoFile" accept="image/*">
         </label>
-        <label>URL do Apps Script (Google Sheets desta empresa)
+        <label>URL do Apps Script (opcional — espelha os dados também numa planilha Google Sheets sua)
           <input type="url" name="apps_script_url" placeholder="https://script.google.com/macros/s/.../exec" value="${escapeHtml(company.apps_script_url || '')}">
         </label>
         <label>WhatsApp para receber os PDFs (DDI+DDD+número, só dígitos)
           <input type="tel" name="whatsapp_number" placeholder="5511999998888" value="${escapeHtml(company.whatsapp_number || '')}">
         </label>
+        <label>E-mail para receber os PDFs (opcional, além do WhatsApp)
+          <input type="email" name="notification_email" placeholder="rh@suaempresa.com" value="${escapeHtml(company.notification_email || '')}">
+        </label>
         <button type="submit" class="save-btn">Salvar Identidade Visual</button>
         <p class="panel-message" id="brandingMsg"></p>
       </form>
+
+      ${buildSubscriptionCardHtml(company)}
+
+      <div class="panel-card" id="submissionsCard">
+        <h2>Fichas Recebidas</h2>
+        <div class="public-link-row">
+          <button type="button" id="btnExportExcel" class="save-btn">Exportar Excel</button>
+        </div>
+        <div id="submissionsListBox"><p class="panel-message">Carregando...</p></div>
+      </div>
 
       <div class="panel-card" id="formBuilderCard">
         <h2>Campos da Ficha</h2>
@@ -381,6 +395,141 @@ async function renderDashboard() {
   });
 
   document.getElementById('btnSaveFields').addEventListener('click', handleSaveFields);
+
+  wireSubscriptionCard(session);
+  loadSubmissions();
+  document.getElementById('btnExportExcel').addEventListener('click', exportSubmissionsToExcel);
+}
+
+// ------------------------------------------------------------
+// ASSINATURA (Mercado Pago)
+// ------------------------------------------------------------
+const PLANOS_ASSINATURA = {
+  monthly: { label: 'Mensal', preco: 'R$ 49,90/mês' },
+  annual: { label: 'Anual', preco: 'R$ 499,90/ano (~R$41,66/mês)' },
+};
+
+function buildSubscriptionCardHtml(company) {
+  const ativo = company.plan === 'pro' && company.mp_subscription_status === 'authorized';
+  const pendente = company.mp_subscription_status === 'pending';
+
+  if (ativo) {
+    return `
+      <div class="panel-card" id="subscriptionCard">
+        <h2>Assinatura</h2>
+        <p style="color:#218838;font-weight:700;"><i class="fas fa-check-circle"></i> Plano Pro ativo</p>
+        <p>Sua empresa não tem mais limite de fichas. Obrigado por assinar!</p>
+      </div>`;
+  }
+
+  if (pendente) {
+    return `
+      <div class="panel-card" id="subscriptionCard">
+        <h2>Assinatura</h2>
+        <p style="color:#b8860b;font-weight:700;"><i class="fas fa-hourglass-half"></i> Assinatura pendente de confirmação</p>
+        <p>Assim que o Mercado Pago confirmar o pagamento, seu plano é liberado automaticamente. Isso pode levar alguns minutos.</p>
+      </div>`;
+  }
+
+  return `
+    <div class="panel-card" id="subscriptionCard">
+      <h2>Assinatura</h2>
+      <p>Seu plano de teste permite ${company.trial_limit} fichas. Assine o plano Pro para uso ilimitado:</p>
+      <div class="color-row">
+        <button type="button" class="save-btn" data-cycle="monthly">Assinar Mensal — R$ 49,90</button>
+        <button type="button" class="save-btn" data-cycle="annual">Assinar Anual — R$ 499,90</button>
+      </div>
+      <p class="panel-message" id="subscriptionMsg"></p>
+    </div>`;
+}
+
+function wireSubscriptionCard(session) {
+  const card = document.getElementById('subscriptionCard');
+  if (!card) return;
+  card.querySelectorAll('button[data-cycle]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const msg = document.getElementById('subscriptionMsg');
+      btn.disabled = true; btn.textContent = 'Gerando link de pagamento...';
+      try {
+        const resp = await fetch('/api/create-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            companyId: dashCompany.id,
+            payerEmail: session.user.email,
+            billingCycle: btn.dataset.cycle,
+          }),
+        });
+        const result = await resp.json();
+        if (result.status !== 'ok') throw new Error(result.mensagem || 'Erro ao criar assinatura.');
+        window.location.href = result.checkoutUrl;
+      } catch (err) {
+        msg.textContent = `Erro: ${err.message}`;
+        btn.disabled = false;
+        btn.textContent = btn.dataset.cycle === 'monthly' ? 'Assinar Mensal — R$ 49,90' : 'Assinar Anual — R$ 499,90';
+      }
+    });
+  });
+}
+
+// ------------------------------------------------------------
+// FICHAS RECEBIDAS (lista + exportar Excel)
+// ------------------------------------------------------------
+let lastSubmissions = [];
+
+async function loadSubmissions() {
+  const box = document.getElementById('submissionsListBox');
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*')
+    .eq('company_id', dashCompany.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    box.innerHTML = `<p class="panel-message">Erro ao carregar: ${escapeHtml(error.message)}</p>`;
+    return;
+  }
+  lastSubmissions = data || [];
+
+  if (!lastSubmissions.length) {
+    box.innerHTML = `<p class="panel-message">Nenhuma ficha recebida ainda.</p>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <thead><tr style="text-align:left;border-bottom:1px solid #e9ecef;">
+        <th style="padding:8px 4px;">Data</th><th style="padding:8px 4px;">Nome</th><th style="padding:8px 4px;">PDF</th>
+      </tr></thead>
+      <tbody>
+        ${lastSubmissions.map((s) => `
+          <tr style="border-bottom:1px solid #f1f1f1;">
+            <td style="padding:8px 4px;">${new Date(s.created_at).toLocaleString('pt-BR')}</td>
+            <td style="padding:8px 4px;">${escapeHtml(s.data?.nomeCompleto || '—')}</td>
+            <td style="padding:8px 4px;"><button type="button" class="btn-baixar-pdf" data-path="${escapeHtml(s.pdf_path || '')}" style="background:none;border:none;color:#1a2980;text-decoration:underline;cursor:pointer;">Baixar</button></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  box.querySelectorAll('.btn-baixar-pdf').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const path = btn.dataset.path;
+      if (!path) return;
+      const { data, error } = await supabase.storage.from('fichas-pdf').createSignedUrl(path, 3600);
+      if (error || !data) { alert('Não foi possível gerar o link do PDF.'); return; }
+      window.open(data.signedUrl, '_blank');
+    });
+  });
+}
+
+function exportSubmissionsToExcel() {
+  if (!lastSubmissions.length) { alert('Nenhuma ficha pra exportar ainda.'); return; }
+  const rows = lastSubmissions.map((s) => ({ data_envio: new Date(s.created_at).toLocaleString('pt-BR'), ...s.data }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Fichas');
+  XLSX.writeFile(wb, `fichas-${dashCompany.slug}.xlsx`);
 }
 
 function buildSectionsEditorHtml(sections) {
@@ -429,6 +578,7 @@ async function handleSaveBranding(e) {
       primary_color: fd.get('primary_color'),
       secondary_color: fd.get('secondary_color'),
       apps_script_url: fd.get('apps_script_url'),
+      notification_email: fd.get('notification_email') || null,
       whatsapp_number: (fd.get('whatsapp_number') || '').replace(/\D/g, ''),
       logo_url: logoUrl,
     }).eq('id', dashCompany.id);
@@ -625,11 +775,6 @@ async function handleFichaSubmit(e) {
   errorBox.innerHTML = '';
   const btn = document.getElementById('fichaSubmitBtn');
 
-  if (!publicCompany.apps_script_url) {
-    errorBox.innerHTML = `<p class="ficha-error">Esta empresa ainda não configurou o destino dos dados. Entre em contato com o RH.</p>`;
-    return;
-  }
-
   btn.disabled = true; btn.textContent = 'Enviando...';
 
   try {
@@ -662,26 +807,35 @@ async function handleFichaSubmit(e) {
       }
     });
 
-    payload.companyId = publicCompany.id;
+    // O Google Sheets da empresa agora é OPCIONAL — um espelho, não mais
+    // o destino principal. Se a empresa configurou uma URL de Apps Script,
+    // mandamos pra lá também, mas sem travar o envio se isso falhar.
+    if (publicCompany.apps_script_url) {
+      fetch(publicCompany.apps_script_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ ...payload, companyId: publicCompany.id }).toString(),
+      }).catch((err) => console.error('Falha ao espelhar na planilha (não bloqueante):', err));
+    }
 
-    const resp = await fetch(publicCompany.apps_script_url, {
+    // O Supabase é a fonte de verdade: a API grava a ficha, gera o PDF,
+    // incrementa o uso e envia pro WhatsApp/e-mail da empresa. Essa
+    // chamada É bloqueante — se ela falhar, o cadastro não é considerado enviado.
+    const resp = await fetch('/api/send-ficha', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(payload).toString(),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        companyId: publicCompany.id,
+        formTitle: publicConfig.form_title,
+        rawData: payload,
+        sections: printableSections,
+      }),
     });
 
     let result;
     try { result = await resp.json(); }
-    catch { throw new Error('Erro de comunicação com a planilha da empresa.'); }
+    catch { throw new Error('Erro de comunicação com o servidor.'); }
     if (result.status !== 'ok') throw new Error(result.mensagem || 'Erro desconhecido ao enviar.');
-
-    await supabase.rpc('increment_company_usage', { p_company_id: publicCompany.id });
-
-    fetch('/api/send-ficha', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ companyId: publicCompany.id, formTitle: publicConfig.form_title, sections: printableSections }),
-    }).catch((err) => console.error('Falha ao gerar/enviar PDF:', err));
 
     document.querySelector('.ficha-form').outerHTML = `
       <div class="ficha-success">
@@ -694,6 +848,7 @@ async function handleFichaSubmit(e) {
     btn.disabled = false; btn.textContent = 'Enviar Cadastro';
   }
 }
+
 </script>
 </body>
 </html>
