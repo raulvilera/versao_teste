@@ -16,7 +16,14 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      setError('E-mail ou senha inválidos.');
+      const msg = error.message?.toLowerCase() || '';
+      if (msg.includes('email not confirmed')) {
+        setError('E-mail ainda não confirmado. Verifique sua caixa de entrada ou desative "Confirm email" no painel do Supabase.');
+      } else if (msg.includes('invalid login credentials')) {
+        setError('E-mail ou senha incorretos. Se você ainda não criou sua conta nesta plataforma, clique abaixo em "Cadastre sua empresa".');
+      } else {
+        setError(error.message || 'E-mail ou senha inválidos.');
+      }
       return;
     }
     navigate('/dashboard');
