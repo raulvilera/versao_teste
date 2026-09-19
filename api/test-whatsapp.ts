@@ -1,9 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// ENDPOINT TEMPORÁRIO DE DIAGNÓSTICO — manda um texto simples pelo WhatsApp
-// via Z-API e devolve a resposta CRUA da Z-API (corpo completo, não só o
-// status). Serve só pra descobrir por que o envio de PDF não está
-// chegando. Pode apagar esse arquivo depois de resolver o problema.
+// Endpoint de diagnóstico do Assistente Virtual / Z-API.
+// Permite testar o envio de texto e verificar status e respostas da Z-API.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const phone = (req.query.phone as string) || (req.body?.phone as string);
 
@@ -13,21 +11,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (!process.env.ZAPI_INSTANCE_ID || !process.env.ZAPI_TOKEN) {
-    res.status(500).json({ status: 'error', mensagem: 'ZAPI_INSTANCE_ID ou ZAPI_TOKEN não configurados.' });
+    res.status(500).json({
+      status: 'error',
+      mensagem: 'ZAPI_INSTANCE_ID ou ZAPI_TOKEN não configurados nas variáveis de ambiente da Vercel.',
+    });
     return;
   }
 
   try {
+    const zapiHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(process.env.ZAPI_CLIENT_TOKEN ? { 'Client-Token': process.env.ZAPI_CLIENT_TOKEN } : {}),
+    };
+
     const zapiUrl = `https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/send-text`;
     const zapiResp = await fetch(zapiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(process.env.ZAPI_CLIENT_TOKEN ? { 'Client-Token': process.env.ZAPI_CLIENT_TOKEN } : {}),
-      },
+      headers: zapiHeaders,
       body: JSON.stringify({
         phone,
-        message: 'Teste de diagnóstico da Plataforma de Fichas — se você recebeu isso, o envio de texto está funcionando.',
+        message: '🤖 *Assistente Virtual*\n\nTeste de conexão do WhatsApp realizado com sucesso! Sua instância da Z-API está ativa e configurada para o envio das fichas cadastrais em PDF.',
       }),
     });
 
@@ -36,11 +39,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       bodyParsed = JSON.parse(bodyText);
     } catch {
-      // corpo não era JSON, mantém como texto mesmo
+      // mantém como texto puro
     }
 
     res.status(200).json({
-      status: 'ok',
+      status: zapiResp.ok ? 'ok' : 'error',
       httpStatusDaZapi: zapiResp.status,
       httpOkDaZapi: zapiResp.ok,
       corpoDaResposta: bodyParsed,

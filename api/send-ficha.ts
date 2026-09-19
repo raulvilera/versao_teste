@@ -56,6 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ---------- 1. Gera o PDF ----------
     const pdfBytes = await gerarPdf(formTitle || 'Ficha Cadastral', sections, company.name);
+    const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
 
     // ---------- 2. Salva o PDF no Storage (bucket privado) ----------
     const fileName = `${companyId}/ficha-${Date.now()}.pdf`;
@@ -82,21 +83,69 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (signError || !signed) throw signError ?? new Error('Erro ao gerar link do PDF.');
 
-    // ---------- 5. Envia pro WhatsApp da empresa, se configurado (Z-API) ----------
+    // ---------- 5. Envia pro WhatsApp da empresa, se configurado (Assistente Z-API) ----------
     let whatsappStatus: 'enviado' | 'falhou' | 'nao_configurado' = 'nao_configurado';
 
     if (company.whatsapp_number && process.env.ZAPI_INSTANCE_ID && process.env.ZAPI_TOKEN) {
-      const zapiUrl = `https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/send-document/pdf`;
-      const zapiResp = await fetch(zapiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: company.whatsapp_number,
-          document: signed.signedUrl,
-          fileName: `Ficha Cadastral - ${company.name}.pdf`,
-        }),
-      });
-      whatsappStatus = zapiResp.ok ? 'enviado' : 'falhou';
+      const zapiHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(process.env.ZAPI_CLIENT_TOKEN ? { 'Client-Token': process.env.ZAPI_CLIENT_TOKEN } : {}),
+      };
+
+      // 5.1 Envia mensagem de texto introdutória do Assistente
+      try {
+        const textUrl = `https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/send-text`;
+        await fetch(textUrl, {
+          method: 'POST',
+          headers: zapiHeaders,
+          body: JSON.stringify({
+            phone: company.whatsapp_number,
+            message: `🤖 *Assistente Virtual*\n\nOlá! Uma nova resposta foi recebida para *${formTitle || 'Ficha Cadastral'}* (${company.name}).\n\n📄 O documento em PDF segue em anexo abaixo:`,
+          }),
+        });
+      } catch (textErr) {
+        console.error('Erro ao enviar mensagem de texto Z-API:', textErr);
+      }
+
+      // 5.2 Envia o documento PDF
+      try {
+        const zapiUrl = `https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE_ID}/token/${process.env.ZAPI_TOKEN}/send-document/pdf`;
+        const zapiResp = await fetch(zapiUrl, {
+          method: 'POST',
+          headers: zapiHeaders,
+          body: JSON.stringify({
+            phone: company.whatsapp_number,
+            document: signed.signedUrl,
+            fileName: `Ficha Cadastral - ${company.name}.pdf`,
+            caption: `Ficha Cadastral - ${company.name}`,
+          }),
+        });
+
+        if (!zapiResp.ok) {
+          const errBody = await zapiResp.text();
+          console.error('Aviso Z-API send-document falhou com signedUrl, tentando fallback Base64:', zapiResp.status, errBody);
+          // Fallback em Base64 caso o download da URL falhe nos servidores da Z-API
+          const zapiFallbackResp = await fetch(zapiUrl, {
+            method: 'POST',
+            headers: zapiHeaders,
+            body: JSON.stringify({
+              phone: company.whatsapp_number,
+              document: `data:application/pdf;base64,${pdfBase64}`,
+              fileName: `Ficha Cadastral - ${company.name}.pdf`,
+              caption: `Ficha Cadastral - ${company.name}`,
+            }),
+          });
+          if (!zapiFallbackResp.ok) {
+            console.error('Erro Fallback Base64 Z-API:', await zapiFallbackResp.text());
+          }
+          whatsappStatus = zapiFallbackResp.ok ? 'enviado' : 'falhou';
+        } else {
+          whatsappStatus = 'enviado';
+        }
+      } catch (zErr) {
+        console.error('Exceção ao enviar PDF na Z-API:', zErr);
+        whatsappStatus = 'falhou';
+      }
     }
 
     // ---------- 6. Envia por e-mail pra empresa, se configurado (Resend) ----------
@@ -104,7 +153,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (company.notification_email && process.env.RESEND_API_KEY) {
       try {
-        const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
         const emailResp = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -182,15 +230,11 @@ async function gerarPdf(title: string, sections: PrintableSection[], companyName
     });
     y -= 18;
 
-    // Controla o "grupo" atual (ex: "Experiências Profissionais 1") pra não
-    // repetir o prefixo inteiro em cada linha — isso é o que causava o rótulo
-    // ficar mais largo que o espaço reservado e sobrepor o valor ao lado.
     let grupoAtual: string | null = null;
 
     for (const row of section.rows) {
       novaPaginaSeNecessario(18);
 
-      // Rótulos de campos repetíveis vêm no formato "Grupo N — Campo".
       const separadorIndex = row.label.indexOf(' — ');
       const temGrupo = separadorIndex !== -1;
       const grupoLabel = temGrupo ? row.label.slice(0, separadorIndex) : null;

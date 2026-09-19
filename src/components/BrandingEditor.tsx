@@ -18,6 +18,33 @@ export default function BrandingEditor({ company, onSaved }: Props) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  const [testingWhatsapp, setTestingWhatsapp] = useState(false);
+  const [testWhatsappFeedback, setTestWhatsappFeedback] = useState<string | null>(null);
+
+  async function handleTestWhatsapp() {
+    const num = normalizeWhatsapp(whatsappNumber);
+    if (!num || num.length < 10) {
+      setTestWhatsappFeedback('Informe um número de WhatsApp válido antes de testar.');
+      return;
+    }
+    setTestingWhatsapp(true);
+    setTestWhatsappFeedback(null);
+    try {
+      const res = await fetch(`/api/test-whatsapp?phone=${num}`);
+      const data = await res.json();
+      if (res.ok && data.status === 'ok') {
+        setTestWhatsappFeedback('✅ Mensagem do Assistente enviada com sucesso! Verifique seu WhatsApp.');
+      } else {
+        const detalhe = data.mensagem || (typeof data.corpoDaResposta === 'object' ? JSON.stringify(data.corpoDaResposta) : data.corpoDaResposta);
+        setTestWhatsappFeedback(`❌ Falha no envio: ${detalhe || 'Verifique se o QR Code da Z-API está conectado.'}`);
+      }
+    } catch (err: any) {
+      setTestWhatsappFeedback(`❌ Erro ao conectar com o servidor: ${err.message}`);
+    } finally {
+      setTestingWhatsapp(false);
+    }
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -63,7 +90,7 @@ export default function BrandingEditor({ company, onSaved }: Props) {
 
   return (
     <form className="panel-card" onSubmit={handleSave}>
-      <h2>Identidade Visual</h2>
+      <h2>Identidade Visual & Notificações</h2>
 
       <label>
         Nome da Empresa
@@ -91,13 +118,30 @@ export default function BrandingEditor({ company, onSaved }: Props) {
 
       <label>
         WhatsApp para receber os PDFs (com DDI e DDD, só números)
-        <input
-          type="tel"
-          placeholder="5511999998888"
-          value={whatsappNumber}
-          onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
-        />
+        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+          <input
+            type="tel"
+            placeholder="5511999998888"
+            value={whatsappNumber}
+            onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
+            style={{ flex: 1 }}
+          />
+          <button
+            type="button"
+            disabled={testingWhatsapp || !whatsappNumber}
+            onClick={handleTestWhatsapp}
+            className="btn-secondary"
+            style={{ whiteSpace: 'nowrap', padding: '0 12px', fontSize: '13px' }}
+          >
+            {testingWhatsapp ? 'Enviando...' : '📱 Testar Assistente'}
+          </button>
+        </div>
       </label>
+      {testWhatsappFeedback && (
+        <p className="panel-message" style={{ marginTop: '2px', marginBottom: '12px' }}>
+          {testWhatsappFeedback}
+        </p>
+      )}
 
       <label>
         E-mail para receber os PDFs
@@ -110,7 +154,7 @@ export default function BrandingEditor({ company, onSaved }: Props) {
       </label>
 
       <button type="submit" disabled={saving}>
-        {saving ? 'Salvando...' : 'Salvar Identidade Visual'}
+        {saving ? 'Salvando...' : 'Salvar Alterações'}
       </button>
       {message && <p className="panel-message">{message}</p>}
     </form>
