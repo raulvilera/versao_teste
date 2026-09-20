@@ -4,8 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 // A URL fica fixa para que um typo na variável pública da Vercel não quebre
 // o login com um erro genérico de rede ("Failed to fetch").
 const CANONICAL_SUPABASE_URL = 'https://zzfagkpvbtisklcyvxhu.supabase.co';
-const PUBLIC_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6ZmFna3B2YnRpc2tsY3l2eGh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4NzkyNjksImV4cCI6MjEwNTQ1NTI2OX0.xqub-W75fz_xyOz-nRfqkYzrjSiIypy3x7ETwcfHfuE';
-const configuredSupabaseKey = String(import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim() || PUBLIC_SUPABASE_KEY;
+const PUBLIC_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6ZmFna3B2YnRpc2tsY3l2eGh1Iiwicm9sZSI6ImFub24iIiwiaWF0IjoxNzg5ODc5MjY5LCJleHAiOjIxMDU0NTUyNjl9.xqub-W75fz_xyOz-nRfqkYzrjSiIypy3x7ETwcfHfuE';
+// A variável antiga da Vercel pode continuar preenchida durante a migração.
+// Use a chave que corresponde à URL acima para evitar "Invalid API key".
+const configuredSupabaseKey = PUBLIC_SUPABASE_KEY;
 
 if (!configuredSupabaseKey) {
   throw new Error(
