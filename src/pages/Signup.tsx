@@ -71,7 +71,12 @@ export default function Signup() {
 
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message ?? 'Não foi possível concluir o cadastro.');
+      const message = String(err?.message ?? '').toLowerCase();
+      if (message.includes('already exists') || message.includes('already registered') || message.includes('user already')) {
+        setError('Este e-mail já possui uma conta. Use a opção "Entrar" abaixo para acessar, em vez de criar outra conta.');
+      } else {
+        setError(err.message ?? 'Não foi possível concluir o cadastro.');
+      }
     } finally {
       setLoading(false);
     }
