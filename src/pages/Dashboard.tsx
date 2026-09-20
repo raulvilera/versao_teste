@@ -9,7 +9,7 @@ import SubscriptionCard from '../components/SubscriptionCard';
 import type { FormConfig } from '../types/formConfig';
 
 export default function Dashboard() {
-  const { session, company, loading, refreshCompany, signOut } = useAuth();
+  const { session, company, loading, authError, refreshCompany, signOut } = useAuth();
   const [config, setConfig] = useState<FormConfig | null>(null);
   const navigate = useNavigate();
 
@@ -27,8 +27,24 @@ export default function Dashboard() {
       .then(({ data }) => setConfig(data as FormConfig));
   }, [company]);
 
-  if (loading || !company) {
+  if (loading) {
     return <div className="panel-loading">Carregando...</div>;
+  }
+
+  if (!session) return null;
+
+  if (!company) {
+    return (
+      <div className="panel">
+        <div className="panel-card">
+          <h2>Configuração da conta pendente</h2>
+          <p>{authError ?? 'Sua conta ainda não está vinculada a uma empresa.'}</p>
+          <button type="button" onClick={() => signOut().then(() => navigate('/login'))}>
+            Sair
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const publicUrl = `${window.location.origin}/f/${company.slug}`;
